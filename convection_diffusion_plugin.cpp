@@ -113,7 +113,7 @@ static void Domain(Registry& reg, string grp)
 extern "C" void
 InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 {
-	grp.append("/SpatialDisc/ElemDisc/ConvectionDiffusion");
+	grp.append("/SpatialDisc/ElemDisc");
 	typedef ConvectionDiffusionPlugin::Functionality Functionality;
 
 	try{
