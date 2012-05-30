@@ -20,7 +20,7 @@ set(SOURCES	convection_diffusion_plugin.cpp
 
 if(STATIC)
 	# add the sources to ug4's sources
-	EXPORTSOURCES(plugins/core/ConvectionDiffusion ${SOURCES})
+	EXPORTSOURCES(plugins/core/convection_diffusion ${SOURCES})
 else(STATIC)
 	add_library(ConvectionDiffusion SHARED ${SOURCES})
 	target_link_libraries (ConvectionDiffusion ug4)
