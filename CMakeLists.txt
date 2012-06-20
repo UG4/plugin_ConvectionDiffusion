@@ -18,10 +18,10 @@ set(SOURCES	convection_diffusion_plugin.cpp
 
 
 
-if(STATIC)
+if(buildEmbeddedPlugins)
 	# add the sources to ug4's sources
 	EXPORTSOURCES(plugins/core/convection_diffusion ${SOURCES})
-else(STATIC)
+else(buildEmbeddedPlugins)
 	add_library(ConvectionDiffusion SHARED ${SOURCES})
 	target_link_libraries (ConvectionDiffusion ug4)
-endif(STATIC)
+endif(buildEmbeddedPlugins)
