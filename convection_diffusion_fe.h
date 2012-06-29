@@ -496,7 +496,7 @@ ex_value_fe(const LocalVector& u,
 			ref_elem_type;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::num_corners;
+	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -575,7 +575,7 @@ ex_grad_fe(const LocalVector& u,
 	static const int refDim = reference_element_traits<TElem>::dim;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::num_corners;
+	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;

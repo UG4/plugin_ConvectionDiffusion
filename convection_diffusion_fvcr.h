@@ -654,7 +654,7 @@ ex_value_crfv(const LocalVector& u,
 			ref_elem_type;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::num_corners;
+	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	CRFV SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
@@ -741,7 +741,7 @@ ex_grad_crfv(const LocalVector& u,
 	static const int refDim = ref_elem_type::dim;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::num_corners;
+	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	CRFV SCVF ip
 	if(vLocIP == geo.scvf_local_ips())

@@ -739,7 +739,7 @@ ex_value_fvho(const LocalVector& u,
 			ref_elem_type;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::num_corners;
+	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -853,7 +853,7 @@ ex_grad_fvho(const LocalVector& u,
 	static const int refDim = ref_elem_type::dim;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::num_corners;
+	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
