@@ -269,6 +269,52 @@ class ConvectionDiffusion
 	///	assembles the local right hand side
 		template <typename TElem, typename TFVGeom>
 		void ass_rhs_elem_fv1(LocalVector& d);
+		
+		/////////////////////////////////////
+		//	Finite Volume assemblings (CRFV)
+		/////////////////////////////////////
+
+	///	prepares the loop over all elements
+	/**
+	 * This method prepares the loop over all elements. It resizes the Position
+	 * array for the corner coordinates and schedules the local ip positions
+	 * at the data imports.
+	 */
+		template <typename TElem, typename TFVGeom>
+		void elem_loop_prepare_crfv();
+
+	///	prepares the element for assembling
+	/**
+	 * This methods prepares an element for the assembling. The Positions of
+	 * the Element Corners are read and the Finite Volume Geometry is updated.
+	 * The global ip positions are scheduled at the data imports.
+	 */
+		template <typename TElem, typename TFVGeom>
+		void elem_prepare_crfv(TElem* elem, const LocalVector& u);
+
+	///	finishes the loop over all elements
+		template <typename TElem, typename TFVGeom>
+		void elem_loop_finish_crfv();
+
+	///	assembles the local stiffness matrix using a finite volume scheme
+		template <typename TElem, typename TFVGeom>
+		void ass_JA_elem_crfv(LocalMatrix& J, const LocalVector& u);
+
+	///	assembles the local mass matrix using a finite volume scheme
+		template <typename TElem, typename TFVGeom>
+		void ass_JM_elem_crfv(LocalMatrix& J, const LocalVector& u);
+
+	///	assembles the stiffness part of the local defect
+		template <typename TElem, typename TFVGeom>
+		void ass_dA_elem_crfv(LocalVector& d, const LocalVector& u);
+
+	///	assembles the mass part of the local defect
+		template <typename TElem, typename TFVGeom>
+		void ass_dM_elem_crfv(LocalVector& d, const LocalVector& u);
+
+	///	assembles the local right hand side
+		template <typename TElem, typename TFVGeom>
+		void ass_rhs_elem_crfv(LocalVector& d);
 
 		/////////////////////////////////////
 		//	Finite Volume assemblings (FVHO)
@@ -384,6 +430,49 @@ class ConvectionDiffusion
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TFVGeom>
 		void lin_def_mass_fv1(const LocalVector& u,
+		                      std::vector<std::vector<number> > vvvLinDef[],
+		                      const size_t nip);
+							  
+protected:
+	///	computes the linearized defect w.r.t to the velocity
+		template <typename TElem, typename TFVGeom>
+		void lin_def_velocity_crfv(const LocalVector& u,
+		                          std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
+		                          const size_t nip);
+
+	///	computes the linearized defect w.r.t to the velocity
+		template <typename TElem, typename TFVGeom>
+		void lin_def_diffusion_crfv(const LocalVector& u,
+		                           std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
+		                           const size_t nip);
+
+	///	computes the linearized defect w.r.t to the reaction
+		template <typename TElem, typename TFVGeom>
+		void lin_def_reaction_crfv(const LocalVector& u,
+		                          std::vector<std::vector<number> > vvvLinDef[],
+		                          const size_t nip);
+
+	///	computes the linearized defect w.r.t to the reaction
+		template <typename TElem, typename TFVGeom>
+		void lin_def_reaction_rate_crfv(const LocalVector& u,
+		                               std::vector<std::vector<number> > vvvLinDef[],
+		                               const size_t nip);
+
+	///	computes the linearized defect w.r.t to the source term
+		template <typename TElem, typename TFVGeom>
+		void lin_def_source_crfv(const LocalVector& u,
+		                        std::vector<std::vector<number> > vvvLinDef[],
+		                        const size_t nip);
+
+	///	computes the linearized defect w.r.t to the mass scale term
+		template <typename TElem, typename TFVGeom>
+		void lin_def_mass_scale_crfv(const LocalVector& u,
+		                            std::vector<std::vector<number> > vvvLinDef[],
+		                            const size_t nip);
+
+	///	computes the linearized defect w.r.t to the mass scale term
+		template <typename TElem, typename TFVGeom>
+		void lin_def_mass_crfv(const LocalVector& u,
 		                      std::vector<std::vector<number> > vvvLinDef[],
 		                      const size_t nip);
 
@@ -539,6 +628,26 @@ class ConvectionDiffusion
 		                 MathVector<dim> vValue[],
 		                 bool bDeriv,
 		                 std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
+						 
+	///	computes the concentration
+		template <typename TElem, typename TFVGeom>
+		void ex_value_crfv(const LocalVector& u,
+		                  const MathVector<dim> vGlobIP[],
+		                  const MathVector<TFVGeom::dim> vLocIP[],
+		                  const size_t nip,
+		                  number vValue[],
+		                  bool bDeriv,
+		                  std::vector<std::vector<number> > vvvDeriv[]);
+
+	///	computes the gradient of the concentration
+		template <typename TElem, typename TFVGeom>
+		void ex_grad_crfv(const LocalVector& u,
+		                 const MathVector<dim> vGlobIP[],
+		                 const MathVector<TFVGeom::dim> vLocIP[],
+		                 const size_t nip,
+		                 MathVector<dim> vValue[],
+		                 bool bDeriv,
+		                 std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);						 
 
 	///	computes the concentration
 		template <typename TElem, typename TGeomProvider>
@@ -592,6 +701,12 @@ class ConvectionDiffusion
 
 		template <typename TElem, typename TFVGeom>
 		void register_fv1_func();
+		
+	// 	CRFV Assemblings
+		void register_all_crfv_funcs(bool bHang);
+
+		template <typename TElem, typename TFVGeom>
+		void register_crfv_func();
 
 
 	// 	FVHO Assemblings

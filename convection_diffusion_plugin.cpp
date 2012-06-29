@@ -45,7 +45,7 @@ static void Domain(Registry& reg, string grp)
 		string name = string("ConvectionDiffusion").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\"]")
+			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\",\"fvcr\"]")
 			.add_method("set_quad_order", &T::set_quad_order)
 			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
 			.add_method("set_quad_order_scv", &T::set_quad_order_scv)

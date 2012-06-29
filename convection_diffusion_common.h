@@ -295,13 +295,15 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		return false;
 	}
 
-//	check that Lagrange order
-	if(vLfeID[0].type() != LFEID::LAGRANGE)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
+	if(m_discScheme != "fvcr"){
+		//	check that Lagrange order
+		if(vLfeID[0].type() != LFEID::LAGRANGE)
+		{
+			UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
 				" Lagrange trial space needed.\n");
-		return false;
-	}
+			return false;
+		}
+	};
 
 //	for fv only 1st order
 	if(m_discScheme == "fv1" && vLfeID[0].order() != 1)
@@ -353,6 +355,7 @@ use_hanging() const
 	if(m_discScheme == "fv1") return true;
 	else if(m_discScheme == "fv") return false;
 	else if(m_discScheme == "fe") return false;
+	else if(m_discScheme == "fvcr") return false;
 	else throw(UGError("Disc Scheme not recognized. Internal error."));
 }
 
@@ -366,10 +369,11 @@ set_disc_scheme(const char* c_scheme)
 //	check
 	if(scheme != std::string("fe") &&
 	   scheme != std::string("fv1") &&
-	   scheme != std::string("fv"))
+	   scheme != std::string("fv") &&
+	   scheme != std::string("fvcr"))
 	{
 		UG_LOG("ERROR in 'ConvectionDiffusion::set_disc_scheme':"
-				" Only 'fe', 'fv' and 'fv1' supported.\n");
+				" Only 'fe', 'fv', 'fv1' and 'fvcr' supported.\n");
 	}
 
 //	remember
@@ -403,6 +407,7 @@ set_ass_funcs()
 
 //	switch, which assemble functions to use; both supported.
 	if(m_discScheme == "fv1") register_all_fv1_funcs(m_bNonRegularGrid);
+	else if(m_discScheme == "fvcr") register_all_crfv_funcs(m_bNonRegularGrid);
 	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
 	else if(m_discScheme == "fe") register_all_fe_funcs(m_order, m_quadOrder);
 	else throw(UGError("Disc Scheme not recognized. Internal error."));
