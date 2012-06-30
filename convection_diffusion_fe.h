@@ -30,9 +30,10 @@ elem_loop_prepare_fe()
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	prepare geometry for type and order
-	if(!geo.update_local(roid, m_lfeID, m_quadOrder))
-		UG_THROW("ConvectionDiffusion::elem_loop_prepare_fe:"
-						" Cannot update Finite Element Geometry.");
+	try{
+		geo.update_local(roid, m_lfeID, m_quadOrder);
+	}UG_CATCH_THROW("ConvectionDiffusion::elem_loop_prepare_fe:"
+					" Cannot update Finite Element Geometry.");
 
 //	set local positions
 	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
@@ -61,9 +62,11 @@ elem_prepare_fe(TElem* elem, const LocalVector& u)
 //	request geometry
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
-	if(!geo.update(elem, &m_vCornerCoords[0]))
-		UG_THROW("ConvectionDiffusion::elem_prepare_fe:"
-						" Cannot update Finite Element Geometry.");
+	try{
+		geo.update(elem, &m_vCornerCoords[0]);
+	}
+	UG_CATCH_THROW("ConvectionDiffusion::elem_prepare_fe:"
+					" Cannot update Finite Element Geometry.");
 
 //	set global positions for rhs
 	m_imDiffusion.	set_global_ips(geo.global_ips(), geo.num_ip());
