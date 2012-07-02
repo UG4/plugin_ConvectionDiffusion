@@ -800,7 +800,7 @@ ex_value_fvho(const LocalVector& u,
 	{
 	//	request for trial space
 		try{
-		const DimLocalShapeFunctionSet<dim>& rTrialSpace
+		const LocalShapeFunctionSet<dim>& rTrialSpace
 			 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
@@ -824,7 +824,7 @@ ex_value_fvho(const LocalVector& u,
 					vvvDeriv[ip][_C_][sh] = vShape[sh];
 		}
 
-		}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+		}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 			UG_LOG("ERROR in ConvectionDiffusion::ex_value_fvho: "<< ex.get_msg());
 		}
 	}
@@ -886,7 +886,7 @@ ex_grad_fvho(const LocalVector& u,
 	{
 	//	request for trial space
 		try{
-		const DimLocalShapeFunctionSet<dim>& rTrialSpace
+		const LocalShapeFunctionSet<dim>& rTrialSpace
 			 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
@@ -918,7 +918,7 @@ ex_grad_fvho(const LocalVector& u,
 					MatVecMult(vvvDeriv[ip][_C_][sh], JTInv, vLocGrad[sh]);
 		}
 
-		}catch(UG_ERROR_LocalShapeFunctionSetNotRegistered& ex){
+		}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
 			UG_LOG("ERROR in ConvectionDiffusion::ex_grad_fvho: "<< ex.get_msg());
 		}
 	}
