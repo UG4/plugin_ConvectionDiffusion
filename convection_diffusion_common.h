@@ -6,7 +6,7 @@
  */
 
 #include "convection_diffusion.h"
-#include "lib_disc/spatial_disc/ip_data/const_user_data.h"
+#include "lib_disc/spatial_disc/user_data/const_user_data.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 #ifdef UG_FOR_LUA
 #include "bindings/lua/lua_user_data.h"
