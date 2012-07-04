@@ -89,7 +89,7 @@ class ConvectionDiffusion
 	 * Tensor is set, a zero value is assumed.
 	 */
 	///	\{
-		void set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user);
+		void set_diffusion(SmartPtr<UserData<MathMatrix<dim, dim>, dim> > user);
 		void set_diffusion(number val);
 #ifdef UG_FOR_LUA
 		void set_diffusion(const char* fctName);
@@ -102,7 +102,7 @@ class ConvectionDiffusion
 	 * value is assumed.
 	 */
 	/// \{
-		void set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user);
+		void set_velocity(SmartPtr<UserData<MathVector<dim>, dim> > user);
 		void set_velocity(number vel_x);
 		void set_velocity(number vel_x, number vel_y);
 		void set_velocity(number vel_x, number vel_y, number vel_z);
@@ -116,7 +116,7 @@ class ConvectionDiffusion
 	 * This method sets the Reaction Rate. A zero value is assumed as default.
 	 */
 	///	\{
-		void set_reaction_rate(SmartPtr<IPData<number, dim> > user);
+		void set_reaction_rate(SmartPtr<UserData<number, dim> > user);
 		void set_reaction_rate(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction_rate(const char* fctName);
@@ -128,7 +128,7 @@ class ConvectionDiffusion
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
 	///	\{
-		void set_reaction(SmartPtr<IPData<number, dim> > user);
+		void set_reaction(SmartPtr<UserData<number, dim> > user);
 		void set_reaction(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction(const char* fctName);
@@ -141,7 +141,7 @@ class ConvectionDiffusion
 	 * default.
 	 */
 	///	\{
-		void set_source(SmartPtr<IPData<number, dim> > user);
+		void set_source(SmartPtr<UserData<number, dim> > user);
 		void set_source(number val);
 #ifdef UG_FOR_LUA
 		void set_source(const char* fctName);
@@ -154,7 +154,7 @@ class ConvectionDiffusion
 	 * default.
 	 */
 	///	\{
-		void set_mass_scale(SmartPtr<IPData<number, dim> > user);
+		void set_mass_scale(SmartPtr<UserData<number, dim> > user);
 		void set_mass_scale(number val);
 #ifdef UG_FOR_LUA
 		void set_mass_scale(const char* fctName);
@@ -167,7 +167,7 @@ class ConvectionDiffusion
 	 * default.
 	 */
 	///	\{
-		void set_mass(SmartPtr<IPData<number, dim> > user);
+		void set_mass(SmartPtr<UserData<number, dim> > user);
 		void set_mass(number val);
 #ifdef UG_FOR_LUA
 		void set_mass(const char* fctName);
@@ -596,14 +596,14 @@ protected:
 		DataImport<number, dim> m_imMass;
 
 	public:
-		typedef SmartPtr<IPData<number, dim> > NumberExport;
-		typedef SmartPtr<IPData<MathVector<dim>, dim> > GradExport;
+		typedef SmartPtr<UserData<number, dim> > NumberExport;
+		typedef SmartPtr<UserData<MathVector<dim>, dim> > GradExport;
 
 	///	returns the export of the value of associated unknown function
-		SmartPtr<IPData<number, dim> > value();
+		SmartPtr<UserData<number, dim> > value();
 
 	///	returns the export of the gradient of associated unknown function
-		SmartPtr<IPData<MathVector<dim>, dim> > gradient();
+		SmartPtr<UserData<MathVector<dim>, dim> > gradient();
 
 	protected:
 		typedef IConvectionShapes<dim> conv_shape_type;

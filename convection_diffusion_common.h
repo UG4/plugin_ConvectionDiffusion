@@ -27,7 +27,7 @@ set_upwind(SmartPtr<IConvectionShapes<dim> > shapes) {m_spConvShape = shapes;}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_diffusion(SmartPtr<IPData<MathMatrix<dim, dim>, dim> > user) {m_imDiffusion.set_data(user);}
+set_diffusion(SmartPtr<UserData<MathMatrix<dim, dim>, dim> > user) {m_imDiffusion.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
@@ -49,7 +49,7 @@ set_diffusion(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_velocity(SmartPtr<IPData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
+set_velocity(SmartPtr<UserData<MathVector<dim>, dim> > user) {m_imVelocity.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
@@ -119,7 +119,7 @@ set_velocity(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_reaction_rate(SmartPtr<IPData<number, dim> > user) {m_imReactionRate.set_data(user);}
+set_reaction_rate(SmartPtr<UserData<number, dim> > user) {m_imReactionRate.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
@@ -141,7 +141,7 @@ set_reaction_rate(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_reaction(SmartPtr<IPData<number, dim> > user) {m_imReaction.set_data(user);}
+set_reaction(SmartPtr<UserData<number, dim> > user) {m_imReaction.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
@@ -163,7 +163,7 @@ set_reaction(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_source(SmartPtr<IPData<number, dim> > user)	{m_imSource.set_data(user);}
+set_source(SmartPtr<UserData<number, dim> > user)	{m_imSource.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
@@ -185,7 +185,7 @@ set_source(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_mass_scale(SmartPtr<IPData<number, dim> > user)	{m_imMassScale.set_data(user);}
+set_mass_scale(SmartPtr<UserData<number, dim> > user)	{m_imMassScale.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
@@ -207,7 +207,7 @@ set_mass_scale(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_mass(SmartPtr<IPData<number, dim> > user)	{m_imMass.set_data(user);}
+set_mass(SmartPtr<UserData<number, dim> > user)	{m_imMass.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
