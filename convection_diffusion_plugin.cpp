@@ -6,7 +6,7 @@
  */
 
 #include "bridge/util.h"
-
+#include "bridge/util_domain_dependent.h"
 #include "convection_diffusion.h"
 
 using namespace std;
