@@ -181,6 +181,72 @@ set_source(const char* fctName)
 }
 #endif
 
+//////// Surface Source
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_surface_source(SmartPtr<UserData<MathVector<dim>, dim> > user)	{m_imSurfaceSource.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_surface_source(number surfaceSource_x)
+{
+	UG_THROW("ConvectionDiffusion: Setting surface source vector of dimension 1"
+			 " to a Discretization for world dim " << dim);
+}
+template<>
+void ConvectionDiffusion<Domain1d>::
+set_surface_source(number surfaceSource_x)
+{
+	SmartPtr<ConstUserVector<dim> > surfaceSource(new ConstUserVector<dim>());
+	surfaceSource->set_entry(0, surfaceSource_x);
+	set_surface_source(surfaceSource);
+}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_surface_source(number surfaceSource_x, number surfaceSource_y)
+{
+	UG_THROW("ConvectionDiffusion: Setting surface source vector of dimension 2"
+			 " to a Discretization for world dim " << dim);
+}
+template<>
+void ConvectionDiffusion<Domain2d>::
+set_surface_source(number surfaceSource_x, number surfaceSource_y)
+{
+	SmartPtr<ConstUserVector<dim> > surfaceSource(new ConstUserVector<dim>());
+	surfaceSource->set_entry(0, surfaceSource_x);
+	surfaceSource->set_entry(1, surfaceSource_y);
+	set_surface_source(surfaceSource);
+}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_surface_source(number surfaceSource_x, number surfaceSource_y, number surfaceSource_z)
+{
+	UG_THROW("ConvectionDiffusion: Setting surface source vector of dimension 3"
+			 " to a Discretization for world dim " << dim);
+}
+template<>
+void ConvectionDiffusion<Domain3d>::
+set_surface_source(number surfaceSource_x, number surfaceSource_y, number surfaceSource_z)
+{
+	SmartPtr<ConstUserVector<dim> > surfaceSource(new ConstUserVector<dim>());
+	surfaceSource->set_entry(0, surfaceSource_x);
+	surfaceSource->set_entry(1, surfaceSource_y);
+	surfaceSource->set_entry(2, surfaceSource_z);
+	set_surface_source(surfaceSource);
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_surface_source(const char* fctName)
+{
+	set_surface_source(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
+}
+#endif
+
 //////// Mass Scale
 
 template<typename TDomain>
@@ -263,12 +329,14 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	this->register_import(m_imReactionRate);
 	this->register_import(m_imReaction);
 	this->register_import(m_imSource);
+	this->register_import(m_imSurfaceSource);
 	this->register_import(m_imMassScale);
 	this->register_import(m_imMass);
 
 	m_imMassScale.set_mass_part(true);
 	m_imMass.set_mass_part(true);
 	m_imSource.set_rhs_part(true);
+	m_imSurfaceSource.set_rhs_part(true);
 
 //	set defaults
 	m_order = 1;

@@ -82,6 +82,14 @@ static void Domain(Registry& reg, string grp)
 			.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
 #endif
 
+			.add_method("set_surface_source", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_surface_source), "", "Surface Source")
+			.add_method("set_surface_source", static_cast<void (T::*)(number)>(&T::set_surface_source), "", "surfaceSource_x")
+			.add_method("set_surface_source", static_cast<void (T::*)(number,number)>(&T::set_surface_source), "", "surfaceSource_x, surfaceSource_y")
+			.add_method("set_surface_source", static_cast<void (T::*)(number,number,number)>(&T::set_surface_source), "", "surfaceSource_x, surfaceSource_y, surfaceSource_z")
+#ifdef UG_FOR_LUA
+			.add_method("set_surface_source", static_cast<void (T::*)(const char*)>(&T::set_surface_source), "", "Surface Source")
+#endif
+
 			.add_method("set_mass_scale", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_mass_scale), "", "Mass Scale")
 			.add_method("set_mass_scale", static_cast<void (T::*)(number)>(&T::set_mass_scale), "", "Mass Scale")
 #ifdef UG_FOR_LUA

@@ -33,7 +33,7 @@ namespace ConvectionDiffusionPlugin{
  * The Equation has the form
  * \f[
  * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c \right) +
- * 		r1 \cdot c + r2 = f
+ * 		r1 \cdot c + r2 = f + f2
  * \f]
  * with
  * <ul>
@@ -45,6 +45,7 @@ namespace ConvectionDiffusionPlugin{
  * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
  * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
+ * <li> \f$ f2 \equiv f_2(\vec{x},t) \f$ is a Surface Source Term
  * </ul>
  *
  * \tparam	TDomain		Domain
@@ -145,6 +146,22 @@ class ConvectionDiffusion
 		void set_source(number val);
 #ifdef UG_FOR_LUA
 		void set_source(const char* fctName);
+#endif
+	///	\}
+
+	///	sets the surface source term
+	/**
+	 * This method sets the divergence of the source as an effect of an
+	 * external field. A zero value is assumed as default, thus this term is
+	 * ignored then.
+	 */
+	///	\{
+		void set_surface_source(SmartPtr<UserData<MathVector<dim>, dim> > user);
+		void set_surface_source(number surfaceSource_x);
+		void set_surface_source(number surfaceSource_x, number surfaceSource_y);
+		void set_surface_source(number surfaceSource_x, number surfaceSource_y, number surfaceSource_z);
+#ifdef UG_FOR_LUA
+		void set_surface_source(const char* fctName);
 #endif
 	///	\}
 
@@ -552,6 +569,12 @@ protected:
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
+	///	computes the linearized defect w.r.t to the surface source term
+		template <typename TElem, typename TGeomProvider>
+		void lin_def_surface_source_fe(const LocalVector& u,
+		                        std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
+		                        const size_t nip);
+
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TGeomProvider>
 		void lin_def_mass_scale_fe(const LocalVector& u,
@@ -586,8 +609,11 @@ protected:
 	///	Data import for the reaction term
 		DataImport<number, dim> m_imReaction;
 
-	///	Data import for the right-hand side
+	///	Data import for the right-hand side (volume)
 		DataImport<number, dim> m_imSource;
+
+	///	Data import for the right-hand side (surface)
+		DataImport<MathVector<dim>, dim > m_imSurfaceSource;
 
 	///	Data import for the mass scale
 		DataImport<number, dim> m_imMassScale;
