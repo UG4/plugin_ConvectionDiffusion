@@ -606,7 +606,7 @@ template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void ConvectionDiffusion<TDomain>::
 lin_def_vector_source_fv1(const LocalVector& u,
-                           std::vector<std::vector<MathVector<dim>> > vvvLinDef[],
+                           std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                            const size_t nip)
 {
 	// get finite volume geometry

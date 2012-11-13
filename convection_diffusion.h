@@ -443,7 +443,7 @@ class ConvectionDiffusion
 	///	computes the linearized defect w.r.t to the vector source term
 		template <typename TElem, typename TFVGeom>
 		void lin_def_vector_source_fv1(const LocalVector& u,
-                                        std::vector<std::vector<MathVector<dim>> > vvvLinDef[],
+                                        std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                                         const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
