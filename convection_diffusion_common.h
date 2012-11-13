@@ -181,69 +181,69 @@ set_source(const char* fctName)
 }
 #endif
 
-//////// Surface Source
+//////// Vector Source
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_surface_source(SmartPtr<UserData<MathVector<dim>, dim> > user)	{m_imSurfaceSource.set_data(user);}
+set_vector_source(SmartPtr<UserData<MathVector<dim>, dim> > user)	{m_imVectorSource.set_data(user);}
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_surface_source(number surfaceSource_x)
+set_vector_source(number vectorSource_x)
 {
-	UG_THROW("ConvectionDiffusion: Setting surface source vector of dimension 1"
+	UG_THROW("ConvectionDiffusion: Setting vector source vector of dimension 1"
 			 " to a Discretization for world dim " << dim);
 }
 template<>
 void ConvectionDiffusion<Domain1d>::
-set_surface_source(number surfaceSource_x)
+set_vector_source(number vectorSource_x)
 {
-	SmartPtr<ConstUserVector<dim> > surfaceSource(new ConstUserVector<dim>());
-	surfaceSource->set_entry(0, surfaceSource_x);
-	set_surface_source(surfaceSource);
+	SmartPtr<ConstUserVector<dim> > vectorSource(new ConstUserVector<dim>());
+	vectorSource->set_entry(0, vectorSource_x);
+	set_vector_source(vectorSource);
 }
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_surface_source(number surfaceSource_x, number surfaceSource_y)
+set_vector_source(number vectorSource_x, number vectorSource_y)
 {
-	UG_THROW("ConvectionDiffusion: Setting surface source vector of dimension 2"
+	UG_THROW("ConvectionDiffusion: Setting vector source vector of dimension 2"
 			 " to a Discretization for world dim " << dim);
 }
 template<>
 void ConvectionDiffusion<Domain2d>::
-set_surface_source(number surfaceSource_x, number surfaceSource_y)
+set_vector_source(number vectorSource_x, number vectorSource_y)
 {
-	SmartPtr<ConstUserVector<dim> > surfaceSource(new ConstUserVector<dim>());
-	surfaceSource->set_entry(0, surfaceSource_x);
-	surfaceSource->set_entry(1, surfaceSource_y);
-	set_surface_source(surfaceSource);
+	SmartPtr<ConstUserVector<dim> > vectorSource(new ConstUserVector<dim>());
+	vectorSource->set_entry(0, vectorSource_x);
+	vectorSource->set_entry(1, vectorSource_y);
+	set_vector_source(vectorSource);
 }
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_surface_source(number surfaceSource_x, number surfaceSource_y, number surfaceSource_z)
+set_vector_source(number vectorSource_x, number vectorSource_y, number vectorSource_z)
 {
-	UG_THROW("ConvectionDiffusion: Setting surface source vector of dimension 3"
+	UG_THROW("ConvectionDiffusion: Setting vector source vector of dimension 3"
 			 " to a Discretization for world dim " << dim);
 }
 template<>
 void ConvectionDiffusion<Domain3d>::
-set_surface_source(number surfaceSource_x, number surfaceSource_y, number surfaceSource_z)
+set_vector_source(number vectorSource_x, number vectorSource_y, number vectorSource_z)
 {
-	SmartPtr<ConstUserVector<dim> > surfaceSource(new ConstUserVector<dim>());
-	surfaceSource->set_entry(0, surfaceSource_x);
-	surfaceSource->set_entry(1, surfaceSource_y);
-	surfaceSource->set_entry(2, surfaceSource_z);
-	set_surface_source(surfaceSource);
+	SmartPtr<ConstUserVector<dim> > vectorSource(new ConstUserVector<dim>());
+	vectorSource->set_entry(0, vectorSource_x);
+	vectorSource->set_entry(1, vectorSource_y);
+	vectorSource->set_entry(2, vectorSource_z);
+	set_vector_source(vectorSource);
 }
 
 #ifdef UG_FOR_LUA
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
-set_surface_source(const char* fctName)
+set_vector_source(const char* fctName)
 {
-	set_surface_source(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
+	set_vector_source(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
 }
 #endif
 
@@ -329,14 +329,14 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	this->register_import(m_imReactionRate);
 	this->register_import(m_imReaction);
 	this->register_import(m_imSource);
-	this->register_import(m_imSurfaceSource);
+	this->register_import(m_imVectorSource);
 	this->register_import(m_imMassScale);
 	this->register_import(m_imMass);
 
 	m_imMassScale.set_mass_part(true);
 	m_imMass.set_mass_part(true);
 	m_imSource.set_rhs_part(true);
-	m_imSurfaceSource.set_rhs_part(true);
+	m_imVectorSource.set_rhs_part(true);
 
 //	set defaults
 	m_order = 1;

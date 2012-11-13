@@ -39,7 +39,7 @@ elem_loop_prepare_fe()
 	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imSurfaceSource.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imVectorSource.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imReactionRate.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imReaction.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
@@ -73,7 +73,7 @@ elem_prepare_fe(TElem* elem, const LocalVector& u)
 	m_imDiffusion.	set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imVelocity. 	set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imSource.   	set_global_ips(geo.global_ips(), geo.num_ip());
-	m_imSurfaceSource. 	set_global_ips(geo.global_ips(), geo.num_ip());
+	m_imVectorSource.set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imReactionRate.set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imReaction. 	set_global_ips(geo.global_ips(), geo.num_ip());
 	m_imMassScale.	set_global_ips(geo.global_ips(), geo.num_ip());
@@ -268,7 +268,7 @@ ass_rhs_elem_fe(LocalVector& d)
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 //	skip if no source present
-	if(!m_imSource.data_given() && !m_imSurfaceSource.data_given()) return;
+	if(!m_imSource.data_given() && !m_imVectorSource.data_given()) return;
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -284,12 +284,12 @@ ass_rhs_elem_fe(LocalVector& d)
 			}
 		}
 
-		//	only do this if surface source is given
-		if(m_imSurfaceSource.data_given()) {
+		//	only do this if vector source is given
+		if(m_imVectorSource.data_given()) {
 			for(size_t i = 0; i < geo.num_sh(); ++i)
 			{
 			//	add contribution to local defect
-				d(_C_, i) += geo.weight(ip) * VecDot(m_imSurfaceSource[ip], geo.global_grad(ip, i));
+				d(_C_, i) += geo.weight(ip) * VecDot(m_imVectorSource[ip], geo.global_grad(ip, i));
 			}
 		}
 	}
@@ -437,11 +437,11 @@ lin_def_source_fe(const LocalVector& u,
 	}
 }
 
-//	computes the linearized defect w.r.t to the "surface source"
+//	computes the linearized defect w.r.t to the "vector source"
 template<typename TDomain>
 template <typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-lin_def_surface_source_fe(const LocalVector& u,
+lin_def_vector_source_fe(const LocalVector& u,
                            std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                            const size_t nip)
 {
@@ -808,7 +808,7 @@ void ConvectionDiffusion<TDomain>::register_fe_func()
 	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate_fe<TElem, TGeomProvider>);
 	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fe<TElem, TGeomProvider>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fe<TElem, TGeomProvider>);
-	m_imSurfaceSource.set_fct(id, this, &T::template lin_def_surface_source_fe<TElem, TGeomProvider>);
+	m_imVectorSource.set_fct(id, this, &T::template lin_def_vector_source_fe<TElem, TGeomProvider>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fe<TElem, TGeomProvider>);
 	m_imMass.	  set_fct(id, this, &T::template lin_def_mass_fe<TElem, TGeomProvider>);
 

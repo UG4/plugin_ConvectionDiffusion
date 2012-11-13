@@ -45,7 +45,7 @@ namespace ConvectionDiffusionPlugin{
  * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
  * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
- * <li> \f$ f2 \equiv f_2(\vec{x},t) \f$ is a Surface Source Term
+ * <li> \f$ f2 \equiv f_2(\vec{x},t) \f$ is a Vector Source Term
  * </ul>
  *
  * \tparam	TDomain		Domain
@@ -149,19 +149,19 @@ class ConvectionDiffusion
 #endif
 	///	\}
 
-	///	sets the surface source term
+	///	sets the vector source term
 	/**
 	 * This method sets the divergence of the source as an effect of an
 	 * external field. A zero value is assumed as default, thus this term is
 	 * ignored then.
 	 */
 	///	\{
-		void set_surface_source(SmartPtr<UserData<MathVector<dim>, dim> > user);
-		void set_surface_source(number surfaceSource_x);
-		void set_surface_source(number surfaceSource_x, number surfaceSource_y);
-		void set_surface_source(number surfaceSource_x, number surfaceSource_y, number surfaceSource_z);
+		void set_vector_source(SmartPtr<UserData<MathVector<dim>, dim> > user);
+		void set_vector_source(number vectorSource_x);
+		void set_vector_source(number vectorSource_x, number vectorSource_y);
+		void set_vector_source(number vectorSource_x, number vectorSource_y, number vectorSource_z);
 #ifdef UG_FOR_LUA
-		void set_surface_source(const char* fctName);
+		void set_vector_source(const char* fctName);
 #endif
 	///	\}
 
@@ -440,11 +440,11 @@ class ConvectionDiffusion
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
-	///	computes the linearized defect w.r.t to the surface source term
+	///	computes the linearized defect w.r.t to the vector source term
 		template <typename TElem, typename TFVGeom>
-		void lin_def_surface_source_fv1(const LocalVector& u,
-                                         std::vector<std::vector<MathVector<dim>> > vvvLinDef[],
-                                         const size_t nip);
+		void lin_def_vector_source_fv1(const LocalVector& u,
+                                        std::vector<std::vector<MathVector<dim>> > vvvLinDef[],
+                                        const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TFVGeom>
@@ -575,11 +575,11 @@ protected:
 		                        std::vector<std::vector<number> > vvvLinDef[],
 		                        const size_t nip);
 
-	///	computes the linearized defect w.r.t to the surface source term
+	///	computes the linearized defect w.r.t to the vector source term
 		template <typename TElem, typename TGeomProvider>
-		void lin_def_surface_source_fe(const LocalVector& u,
-		                        std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-		                        const size_t nip);
+		void lin_def_vector_source_fe(const LocalVector& u,
+		                               std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
+		                               const size_t nip);
 
 	///	computes the linearized defect w.r.t to the mass scale term
 		template <typename TElem, typename TGeomProvider>
@@ -618,8 +618,8 @@ protected:
 	///	Data import for the right-hand side (volume)
 		DataImport<number, dim> m_imSource;
 
-	///	Data import for the right-hand side (surface)
-		DataImport<MathVector<dim>, dim > m_imSurfaceSource;
+	///	Data import for the right-hand side (vector)
+		DataImport<MathVector<dim>, dim > m_imVectorSource;
 
 	///	Data import for the mass scale
 		DataImport<number, dim> m_imMassScale;

@@ -82,12 +82,12 @@ static void Domain(Registry& reg, string grp)
 			.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
 #endif
 
-			.add_method("set_surface_source", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_surface_source), "", "Surface Source")
-			.add_method("set_surface_source", static_cast<void (T::*)(number)>(&T::set_surface_source), "", "surfaceSource_x")
-			.add_method("set_surface_source", static_cast<void (T::*)(number,number)>(&T::set_surface_source), "", "surfaceSource_x, surfaceSource_y")
-			.add_method("set_surface_source", static_cast<void (T::*)(number,number,number)>(&T::set_surface_source), "", "surfaceSource_x, surfaceSource_y, surfaceSource_z")
+			.add_method("set_vector_source", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_vector_source), "", "Vector Source")
+			.add_method("set_vector_source", static_cast<void (T::*)(number)>(&T::set_vector_source), "", "vectorSource_x")
+			.add_method("set_vector_source", static_cast<void (T::*)(number,number)>(&T::set_vector_source), "", "vectorSource_x, vectorSource_y")
+			.add_method("set_vector_source", static_cast<void (T::*)(number,number,number)>(&T::set_vector_source), "", "vectorSource_x, vectorSource_y, vectorSource_z")
 #ifdef UG_FOR_LUA
-			.add_method("set_surface_source", static_cast<void (T::*)(const char*)>(&T::set_surface_source), "", "Surface Source")
+			.add_method("set_vector_source", static_cast<void (T::*)(const char*)>(&T::set_vector_source), "", "Vector Source")
 #endif
 
 			.add_method("set_mass_scale", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_mass_scale), "", "Mass Scale")

@@ -40,7 +40,7 @@ elem_loop_prepare_fv1()
 		                      	                      geo.num_scvf_ips(), false);
 		m_imSource.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                    	                      geo.num_scv_ips(), false);
-		m_imSurfaceSource.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		m_imVectorSource.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                    	                          geo.num_scvf_ips(), false);
 		m_imReactionRate.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips(), false);
@@ -96,7 +96,7 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 		                      	                      geo.num_scvf_ips());
 		m_imSource.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                    	                      geo.num_scv_ips());
-		m_imSurfaceSource.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
+		m_imVectorSource.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                    	                          geo.num_scvf_ips());
 		m_imReactionRate.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
@@ -117,7 +117,7 @@ elem_prepare_fv1(TElem* elem, const LocalVector& u)
 	m_imDiffusion.	set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imVelocity.	set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imSource.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-	m_imSurfaceSource.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
+	m_imVectorSource.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imReactionRate.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imReaction.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMassScale.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
@@ -400,11 +400,11 @@ void ConvectionDiffusion<TDomain>::
 ass_rhs_elem_fv1(LocalVector& d)
 {
 	// if zero data given, return
-	if ( !m_imSource.data_given() && !m_imSurfaceSource.data_given() ) return;
+	if ( !m_imSource.data_given() && !m_imVectorSource.data_given() ) return;
 
 	// save those as they get reused frequently below
 	bool sourceGiven = m_imSource.data_given();
-	bool surfaceSourceGiven = m_imSurfaceSource.data_given();
+	bool vectorSourceGiven = m_imVectorSource.data_given();
 
 	// get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -424,14 +424,14 @@ ass_rhs_elem_fv1(LocalVector& d)
 	}
 
 	// loop Sub Control Volumes (SCVF)
-	if ( surfaceSourceGiven ) {
+	if ( vectorSourceGiven ) {
 		for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
 			// get current SCVF
 			const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
 
 			// Add to local rhs
-			d(_C_, scvf.from()) -= VecDot(m_imSurfaceSource[ip], scvf.normal() );
-			d(_C_, scvf.to()  ) += VecDot(m_imSurfaceSource[ip], scvf.normal() );
+			d(_C_, scvf.from()) -= VecDot(m_imVectorSource[ip], scvf.normal() );
+			d(_C_, scvf.to()  ) += VecDot(m_imVectorSource[ip], scvf.normal() );
 		}
 	}
 }
@@ -600,14 +600,14 @@ lin_def_source_fv1(const LocalVector& u,
 	}
 }
 
-//	computes the linearized defect w.r.t to the surface source
+//	computes the linearized defect w.r.t to the vector source
 //	(in analogy to velocity)
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void ConvectionDiffusion<TDomain>::
-lin_def_surface_source_fv1(const LocalVector& u,
-                            std::vector<std::vector<MathVector<dim>> > vvvLinDef[],
-                            const size_t nip)
+lin_def_vector_source_fv1(const LocalVector& u,
+                           std::vector<std::vector<MathVector<dim>> > vvvLinDef[],
+                           const size_t nip)
 {
 	// get finite volume geometry
 	const static TFVGeom& geo = Provider<TFVGeom>::get();
@@ -953,7 +953,7 @@ register_fv1_func()
 	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate_fv1<TElem, TFVGeom>);
 	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fv1<TElem, TFVGeom>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fv1<TElem, TFVGeom>);
-	m_imSurfaceSource.set_fct(id, this, &T::template lin_def_surface_source_fv1<TElem, TFVGeom>);
+	m_imVectorSource.set_fct(id, this, &T::template lin_def_vector_source_fv1<TElem, TFVGeom>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fv1<TElem, TFVGeom>);
 	m_imMass.	set_fct(id, this, &T::template lin_def_mass_fv1<TElem, TFVGeom>);
 
