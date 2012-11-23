@@ -319,7 +319,7 @@ lin_def_velocity_fe(const LocalVector& u,
 		{
 		//	add to local defect
 			VecScale(vvvLinDef[ip][_C_][i], geo.global_grad(ip, i),
-			         	 	 	 	 	 	 geo.weight(ip) * shape_u);
+			         	 	 	 	 	 	(-1)* geo.weight(ip) * shape_u);
 		}
 	}
 }
