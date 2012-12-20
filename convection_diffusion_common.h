@@ -333,10 +333,10 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	this->register_import(m_imMassScale);
 	this->register_import(m_imMass);
 
-	m_imMassScale.set_mass_part(true);
-	m_imMass.set_mass_part(true);
-	m_imSource.set_rhs_part(true);
-	m_imVectorSource.set_rhs_part(true);
+	m_imMassScale.set_mass_part();
+	m_imMass.set_mass_part();
+	m_imSource.set_rhs_part();
+	m_imVectorSource.set_rhs_part();
 
 //	set defaults
 	m_order = 1;
