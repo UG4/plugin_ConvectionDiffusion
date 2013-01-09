@@ -732,29 +732,19 @@ protected:
 	protected:
 	// 	FV1 Assemblings
 		void register_all_fv1_funcs(bool bHang);
-
-		template <typename TElem, typename TFVGeom>
-		void register_fv1_func();
+		template <typename TElem, typename TFVGeom> void register_fv1_func();
 		
 	// 	CRFV Assemblings
 		void register_all_crfv_funcs(bool bHang);
-
-		template <typename TElem, typename TFVGeom>
-		void register_crfv_func();
-
+		template <typename TElem, typename TFVGeom> void register_crfv_func();
 
 	// 	FVHO Assemblings
 		void register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF);
-
-		template<typename TElem, typename TGeomProvider>
-		void register_fvho_func();
-
+		template<typename TElem, typename TGeomProvider> void register_fvho_func();
 
 	// 	FE Assemblings
 		void register_all_fe_funcs(int order, int quadOrder);
-
-		template <typename TElem, typename TGeomProvider>
-		void register_fe_func();
+		template <typename TElem, typename TGeomProvider> void register_fe_func();
 
 	//	helper class holding a geometry
 		template<typename TGeom>
