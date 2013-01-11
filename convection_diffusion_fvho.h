@@ -23,7 +23,7 @@ namespace ConvectionDiffusionPlugin{
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-elem_loop_prepare_fvho()
+prep_elem_loop_fvho()
 {
 //	reference dimension
 	static const int refDim = reference_element_traits<TElem>::dim;
@@ -34,7 +34,7 @@ elem_loop_prepare_fvho()
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(!geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV))
-		UG_THROW("ConvectionDiffusion::elem_loop_prepare_fvho:"
+		UG_THROW("ConvectionDiffusion::prep_elem_loop_fvho:"
 						" Cannot update Finite Volume Geometry.");
 
 //	set local positions
@@ -60,13 +60,13 @@ elem_loop_prepare_fvho()
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-elem_loop_finish_fvho()
+fsh_elem_loop_fvho()
 {}
 
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-elem_prepare_fvho(TElem* elem, const LocalVector& u)
+prep_elem_fvho(TElem* elem, const LocalVector& u)
 {
 //	get reference elements
 	static const int refDim = reference_element_traits<TElem>::dim;
@@ -78,7 +78,7 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 	static typename TGeomProvider::Type& geo = TGeomProvider::get();
 
 	if(!geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler())))
-		UG_THROW("ConvectionDiffusion::prepare_element:"
+		UG_THROW("ConvectionDiffusion::prep_elem:"
 						" Cannot update Finite Volume Geometry.");
 
 //	set local positions
@@ -113,7 +113,7 @@ elem_prepare_fvho(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_JA_elem_fvho(LocalMatrix& J, const LocalVector& u)
+add_jac_A_elem_fvho(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -218,7 +218,7 @@ ass_JA_elem_fvho(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_JM_elem_fvho(LocalMatrix& J, const LocalVector& u)
+add_jac_M_elem_fvho(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -262,7 +262,7 @@ ass_JM_elem_fvho(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_dA_elem_fvho(LocalVector& d, const LocalVector& u)
+add_def_A_elem_fvho(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -395,7 +395,7 @@ ass_dA_elem_fvho(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_dM_elem_fvho(LocalVector& d, const LocalVector& u)
+add_def_M_elem_fvho(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -447,7 +447,7 @@ ass_dM_elem_fvho(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_rhs_elem_fvho(LocalVector& d)
+add_rhs_elem_fvho(LocalVector& d)
 {
 //	if zero data given, return
 	if(!m_imSource.data_given()) return;
@@ -1047,15 +1047,15 @@ register_fvho_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	this->enable_fast_ass_elem(true);
-	this->set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fvho<TElem, TGeomProvider>);
-	this->set_prep_elem_fct(	 id, &T::template elem_prepare_fvho<TElem, TGeomProvider>);
-	this->set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fvho<TElem, TGeomProvider>);
-	this->set_ass_JA_elem_fct(   id, &T::template ass_JA_elem_fvho<TElem, TGeomProvider>);
-	this->set_ass_JM_elem_fct(   id, &T::template ass_JM_elem_fvho<TElem, TGeomProvider>);
-	this->set_ass_dA_elem_fct(   id, &T::template ass_dA_elem_fvho<TElem, TGeomProvider>);
-	this->set_ass_dM_elem_fct(   id, &T::template ass_dM_elem_fvho<TElem, TGeomProvider>);
-	this->set_ass_rhs_elem_fct(  id, &T::template ass_rhs_elem_fvho<TElem, TGeomProvider>);
+	this->enable_fast_add_elem(true);
+	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop_fvho<TElem, TGeomProvider>);
+	this->set_prep_elem_fct(	 id, &T::template prep_elem_fvho<TElem, TGeomProvider>);
+	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop_fvho<TElem, TGeomProvider>);
+	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem_fvho<TElem, TGeomProvider>);
+	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem_fvho<TElem, TGeomProvider>);
+	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem_fvho<TElem, TGeomProvider>);
+	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem_fvho<TElem, TGeomProvider>);
+	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem_fvho<TElem, TGeomProvider>);
 
 //	set computation of linearized defect w.r.t velocity
 	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fvho<TElem, TGeomProvider>);

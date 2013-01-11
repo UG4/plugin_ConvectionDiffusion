@@ -19,7 +19,7 @@ namespace ConvectionDiffusionPlugin{
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-elem_loop_prepare_fe()
+prep_elem_loop_fe()
 {
 //	get reference dimension
 	static const int refDim = reference_element_traits<TElem>::dim;
@@ -32,7 +32,7 @@ elem_loop_prepare_fe()
 //	prepare geometry for type and order
 	try{
 		geo.update_local(roid, m_lfeID, m_quadOrder);
-	}UG_CATCH_THROW("ConvectionDiffusion::elem_loop_prepare_fe:"
+	}UG_CATCH_THROW("ConvectionDiffusion::prep_elem_loop_fe:"
 					" Cannot update Finite Element Geometry.");
 
 //	set local positions
@@ -49,13 +49,13 @@ elem_loop_prepare_fe()
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-elem_loop_finish_fe()
+fsh_elem_loop_fe()
 {}
 
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-elem_prepare_fe(TElem* elem, const LocalVector& u)
+prep_elem_fe(TElem* elem, const LocalVector& u)
 {
 //	get corners
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
@@ -66,7 +66,7 @@ elem_prepare_fe(TElem* elem, const LocalVector& u)
 	try{
 		geo.update(elem, &m_vCornerCoords[0]);
 	}
-	UG_CATCH_THROW("ConvectionDiffusion::elem_prepare_fe:"
+	UG_CATCH_THROW("ConvectionDiffusion::prep_elem_fe:"
 					" Cannot update Finite Element Geometry.");
 
 //	set global positions for rhs
@@ -83,7 +83,7 @@ elem_prepare_fe(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_JA_elem_fe(LocalMatrix& J, const LocalVector& u)
+add_jac_A_elem_fe(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -132,7 +132,7 @@ ass_JA_elem_fe(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_JM_elem_fe(LocalMatrix& J, const LocalVector& u)
+add_jac_M_elem_fe(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -166,7 +166,7 @@ ass_JM_elem_fe(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_dA_elem_fe(LocalVector& d, const LocalVector& u)
+add_def_A_elem_fe(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -224,7 +224,7 @@ ass_dA_elem_fe(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_dM_elem_fe(LocalVector& d, const LocalVector& u)
+add_def_M_elem_fe(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -262,7 +262,7 @@ ass_dM_elem_fe(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TGeomProvider>
 void ConvectionDiffusion<TDomain>::
-ass_rhs_elem_fe(LocalVector& d)
+add_rhs_elem_fe(LocalVector& d)
 {
 //	request geometry
 	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
@@ -792,29 +792,29 @@ void ConvectionDiffusion<TDomain>::register_fe_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	this->enable_fast_ass_elem(true);
-	this->set_prep_elem_loop_fct(id, &T::template elem_loop_prepare_fe<TElem, TGeomProvider>);
-	this->set_prep_elem_fct(	   id, &T::template elem_prepare_fe<TElem, TGeomProvider>);
-	this->set_fsh_elem_loop_fct( id, &T::template elem_loop_finish_fe<TElem, TGeomProvider>);
-	this->set_ass_JA_elem_fct(   id, &T::template ass_JA_elem_fe<TElem, TGeomProvider>);
-	this->set_ass_JM_elem_fct(   id, &T::template ass_JM_elem_fe<TElem, TGeomProvider>);
-	this->set_ass_dA_elem_fct(   id, &T::template ass_dA_elem_fe<TElem, TGeomProvider>);
-	this->set_ass_dM_elem_fct(   id, &T::template ass_dM_elem_fe<TElem, TGeomProvider>);
-	this->set_ass_rhs_elem_fct(  id, &T::template ass_rhs_elem_fe<TElem, TGeomProvider>);
+	this->enable_fast_add_elem(true);
+	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop_fe<TElem, TGeomProvider>);
+	this->set_prep_elem_fct(	 id, &T::template prep_elem_fe<TElem, TGeomProvider>);
+	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop_fe<TElem, TGeomProvider>);
+	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem_fe<TElem, TGeomProvider>);
+	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem_fe<TElem, TGeomProvider>);
+	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem_fe<TElem, TGeomProvider>);
+	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem_fe<TElem, TGeomProvider>);
+	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem_fe<TElem, TGeomProvider>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity_fe<TElem, TGeomProvider>);
-	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fe<TElem, TGeomProvider>);
-	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate_fe<TElem, TGeomProvider>);
-	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fe<TElem, TGeomProvider>);
-	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fe<TElem, TGeomProvider>);
-	m_imVectorSource.set_fct(id, this, &T::template lin_def_vector_source_fe<TElem, TGeomProvider>);
-	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fe<TElem, TGeomProvider>);
-	m_imMass.	  set_fct(id, this, &T::template lin_def_mass_fe<TElem, TGeomProvider>);
+	m_imVelocity. 		set_fct(id, this, &T::template lin_def_velocity_fe<TElem, TGeomProvider>);
+	m_imDiffusion.		set_fct(id, this, &T::template lin_def_diffusion_fe<TElem, TGeomProvider>);
+	m_imReactionRate. 	set_fct(id, this, &T::template lin_def_reaction_rate_fe<TElem, TGeomProvider>);
+	m_imReaction. 		set_fct(id, this, &T::template lin_def_reaction_fe<TElem, TGeomProvider>);
+	m_imSource.	  		set_fct(id, this, &T::template lin_def_source_fe<TElem, TGeomProvider>);
+	m_imVectorSource.	set_fct(id, this, &T::template lin_def_vector_source_fe<TElem, TGeomProvider>);
+	m_imMassScale.		set_fct(id, this, &T::template lin_def_mass_scale_fe<TElem, TGeomProvider>);
+	m_imMass.	  		set_fct(id, this, &T::template lin_def_mass_fe<TElem, TGeomProvider>);
 
 //	exports
-	m_exValue->	  template set_fct<T,refDim>(id, this, &T::template ex_value_fe<TElem, TGeomProvider>);
-	m_exGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad_fe<TElem, TGeomProvider>);
+	m_exValue->	template set_fct<T,refDim>(id, this, &T::template ex_value_fe<TElem, TGeomProvider>);
+	m_exGrad->	template set_fct<T,refDim>(id, this, &T::template ex_grad_fe<TElem, TGeomProvider>);
 }
 
 } // end namespace ConvectionDiffusionPlugin
