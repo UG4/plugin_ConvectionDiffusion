@@ -702,6 +702,7 @@ register_all_fe_funcs(int order, int quadOrder)
 	{
 		register_fe_func<Triangle, FlexGeomProvider<DimFEGeometry<dim, 2> > >();
 		register_fe_func<Quadrilateral, FlexGeomProvider<DimFEGeometry<dim, 2> > >();
+		return;
 	}
 
 //	special compiled cases
@@ -741,6 +742,7 @@ register_all_fe_funcs(int order, int quadOrder)
 		register_fe_func<Prism, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
 		register_fe_func<Pyramid, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
 		register_fe_func<Hexahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
+		return;
 	}
 
 //	special compiled cases
