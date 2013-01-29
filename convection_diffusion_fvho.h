@@ -472,7 +472,7 @@ add_rhs_elem_fvho(LocalVector& d)
 		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
 		{
 		//	add to integral-sum
-			integral += m_imSource[ipCnt] * scv.weight(ip);
+			integral += m_imSource[ipCnt++] * scv.weight(ip);
 		}
 
 	// 	get associated node
