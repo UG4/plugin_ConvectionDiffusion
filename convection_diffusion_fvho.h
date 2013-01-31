@@ -827,10 +827,8 @@ ex_value_fvho(const LocalVector& u,
 				for(size_t sh = 0; sh < numSH; ++sh)
 					vvvDeriv[ip][_C_][sh] = vShape[sh];
 		}
-
-		}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-			UG_LOG("ERROR in ConvectionDiffusion::ex_value_fvho: "<< ex.get_msg());
 		}
+		UG_CATCH_THROW("ConvectionDiffusion::ex_value_fvho: trial space missing.");
 	}
 }
 
@@ -922,9 +920,8 @@ ex_grad_fvho(const LocalVector& u,
 					MatVecMult(vvvDeriv[ip][_C_][sh], JTInv, vLocGrad[sh]);
 		}
 
-		}catch(UGError_LocalShapeFunctionSetNotRegistered& ex){
-			UG_LOG("ERROR in ConvectionDiffusion::ex_grad_fvho: "<< ex.get_msg());
 		}
+		UG_CATCH_THROW("ConvectionDiffusion::ex_grad_fvho: trial space missing");
 	}
 };
 
