@@ -424,7 +424,7 @@ use_hanging() const
 	else if(m_discScheme == "fv") return false;
 	else if(m_discScheme == "fe") return false;
 	else if(m_discScheme == "fvcr") return false;
-	else throw(UGError("Disc Scheme not recognized. Internal error."));
+	else UG_THROW("Disc Scheme not recognized. Internal error.");
 }
 
 template<typename TDomain>
@@ -478,7 +478,7 @@ set_ass_funcs()
 	else if(m_discScheme == "fvcr") register_all_crfv_funcs(m_bNonRegularGrid);
 	else if(m_discScheme == "fv") register_all_fvho_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
 	else if(m_discScheme == "fe") register_all_fe_funcs(m_order, m_quadOrder);
-	else throw(UGError("Disc Scheme not recognized. Internal error."));
+	else UG_THROW("Disc Scheme not recognized. Internal error.");
 }
 
 } // end namespace ConvectionDiffusionPlugin
