@@ -208,7 +208,7 @@ add_jac_A_elem_fvho(LocalMatrix& J, const LocalVector& u)
 			}
 
 		// 	Add to local matrix
-			J(_C_, co, _C_, sh) += integral * scv.volume();
+			J(_C_, co, _C_, sh) += integral;
 		}
 
 	//	increase ip offset
@@ -254,7 +254,7 @@ add_jac_M_elem_fvho(LocalMatrix& J, const LocalVector& u)
 			}
 
 		// 	Add to local matrix
-			J(_C_, co, _C_, sh) += integral * scv.volume();
+			J(_C_, co, _C_, sh) += integral;
 		}
 
 	//	increase ip offset
@@ -363,7 +363,7 @@ add_def_A_elem_fvho(LocalVector& d, const LocalVector& u)
 			const int co = scv.node_id();
 
 		// 	Add to local defect
-			d(_C_, co) += integral * scv.volume();
+			d(_C_, co) += integral;
 		}
 	}
 
@@ -390,7 +390,7 @@ add_def_A_elem_fvho(LocalVector& d, const LocalVector& u)
 			const int co = scv.node_id();
 
 		// 	Add to local defect
-			d(_C_, co) += integral * scv.volume();
+			d(_C_, co) += integral;
 		}
 	}
 }
@@ -443,7 +443,7 @@ add_def_M_elem_fvho(LocalVector& d, const LocalVector& u)
 		const int co = scv.node_id();
 
 	// 	Add to local defect
-		d(_C_, co) +=  integral * scv.volume();
+		d(_C_, co) +=  integral;
 	}
 }
 
@@ -479,7 +479,7 @@ add_rhs_elem_fvho(LocalVector& d)
 		const int co = scv.node_id();
 
 	// 	Add to local defect
-		d(_C_, co) +=  integral * scv.volume();
+		d(_C_, co) +=  integral;
 	}
 }
 
@@ -597,7 +597,7 @@ lin_def_reaction_rate_fvho(const LocalVector& u,
 				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
 		// 	set lin defect
-			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip) * scv.volume();
+			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip);
 		}
 	}
 }
@@ -626,7 +626,7 @@ lin_def_reaction_fvho(const LocalVector& u,
 		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
 		{
 		// 	set lin defect
-			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip) * scv.volume();
+			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip);
 		}
 	}
 }
@@ -655,7 +655,7 @@ lin_def_source_fvho(const LocalVector& u,
 		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
 		{
 		// 	set lin defect
-			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip) * scv.volume();
+			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip);
 		}
 	}
 }
@@ -689,7 +689,7 @@ lin_def_mass_scale_fvho(const LocalVector& u,
 				solIP += u(_C_, sh) * scv.shape(ip, sh);
 
 		// 	set lin defect
-			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip) * scv.volume();
+			vvvLinDef[ipCnt++][_C_][co] = solIP * scv.weight(ip);
 		}
 	}
 }
@@ -718,7 +718,7 @@ lin_def_mass_fvho(const LocalVector& u,
 		for(size_t ip = 0; ip < scv.num_ip(); ++ip)
 		{
 		// 	set lin defect
-			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip) * scv.volume();
+			vvvLinDef[ipCnt++][_C_][co] = scv.weight(ip);
 		}
 	}
 }
