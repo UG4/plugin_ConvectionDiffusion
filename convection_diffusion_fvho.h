@@ -953,7 +953,7 @@ template<>
 void ConvectionDiffusion<Domain2d>::
 register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-	if(order == quadOrderSCV && order == quadOrderSCVF)
+	if(quadOrderSCV == order+1 && quadOrderSCVF ==  order+1)
 	{
 	//	Triangle
 		switch(order)
@@ -993,7 +993,7 @@ template<>
 void ConvectionDiffusion<Domain3d>::
 register_all_fvho_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 {
-	if(order == quadOrderSCV && order == quadOrderSCVF)
+	if(quadOrderSCV == order+1 && quadOrderSCVF ==  order+1)
 	{
 	//	Tetrahedron
 		switch(order)

@@ -462,15 +462,15 @@ set_ass_funcs()
 		m_quadOrder = 2* m_order + 1;
 
 	//	FV
-		m_quadOrderSCV = m_order;
-		m_quadOrderSCVF = m_order;
+		m_quadOrderSCV = m_order + 1;
+		m_quadOrderSCVF = m_order + 1;
 	}
 //	set all non-set orders
 	else
 	{
 		if(m_quadOrder < 0) m_quadOrder = 2 * m_order + 1;
-		if(m_quadOrderSCV < 0) m_quadOrderSCV = m_order;
-		if(m_quadOrderSCVF < 0) m_quadOrderSCVF = m_order;
+		if(m_quadOrderSCV < 0) m_quadOrderSCV = m_order + 1;
+		if(m_quadOrderSCVF < 0) m_quadOrderSCVF = m_order + 1;
 	}
 
 //	switch, which assemble functions to use; both supported.
