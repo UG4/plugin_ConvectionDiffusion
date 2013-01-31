@@ -7,7 +7,7 @@
 
 #include "convection_diffusion.h"
 
-#include "lib_disc/spatial_disc/disc_util/finite_element_geometry.h"
+#include "lib_disc/spatial_disc/disc_util/fe_geom.h"
 #include "common/util/provider.h"
 #include "lib_disc/local_finite_element/lagrange/lagrange.h"
 #include "lib_disc/local_finite_element/lagrange/lagrangep1.h"

@@ -8,7 +8,7 @@
 #include "convection_diffusion.h"
 
 #include "common/util/provider.h"
-#include "lib_disc/spatial_disc/disc_util/finite_volume_geometry.h"
+#include "lib_disc/spatial_disc/disc_util/fvho_geom.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
