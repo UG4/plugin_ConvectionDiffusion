@@ -53,6 +53,13 @@ set_velocity(SmartPtr<UserData<MathVector<dim>, dim> > user) {m_imVelocity.set_d
 
 template<typename TDomain>
 void ConvectionDiffusion<TDomain>::
+set_velocity(const std::vector<number>& vVel)
+{
+	set_velocity(SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)));
+}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
 set_velocity(number vel_x)
 {
 	UG_THROW("ConvectionDiffusion: Setting velocity vector of dimension 1"

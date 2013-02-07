@@ -107,6 +107,7 @@ class ConvectionDiffusion
 		void set_velocity(number vel_x);
 		void set_velocity(number vel_x, number vel_y);
 		void set_velocity(number vel_x, number vel_y, number vel_z);
+		void set_velocity(const std::vector<number>& vVel);
 #ifdef UG_FOR_LUA
 		void set_velocity(const char* fctName);
 #endif
