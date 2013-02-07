@@ -144,6 +144,30 @@ set_reaction_rate(const char* fctName)
 }
 #endif
 
+// NEW: explicit reaction
+
+//////// Reaction Rate Explicit
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_reaction_rate_explicit(SmartPtr<UserData<number, dim> > user) {m_imReactionRate_explicit.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_reaction_rate_explicit(number val)
+{
+	set_reaction_rate_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_reaction_rate_explicit(const char* fctName)
+{
+	set_reaction_rate_explicit(LuaUserDataFactory<number,dim>::create(fctName));
+}
+#endif
+
 //////// Reaction
 
 template<typename TDomain>
@@ -165,6 +189,31 @@ set_reaction(const char* fctName)
 	set_reaction(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
+
+// NEW: reaction explicit
+
+//////// Reaction Explicit
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_reaction_explicit(SmartPtr<UserData<number, dim> > user) {m_imReaction_explicit.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_reaction_explicit(number val)
+{
+	set_reaction_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_reaction_explicit(const char* fctName)
+{
+	set_reaction_explicit(LuaUserDataFactory<number,dim>::create(fctName));
+}
+#endif
+
 
 //////// Source
 
@@ -335,6 +384,10 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	this->register_import(m_imVelocity);
 	this->register_import(m_imReactionRate);
 	this->register_import(m_imReaction);
+	// NEW: explicit reaction
+	this->register_import(m_imReactionRate_explicit);
+	this->register_import(m_imReaction_explicit);
+
 	this->register_import(m_imSource);
 	this->register_import(m_imVectorSource);
 	this->register_import(m_imMassScale);

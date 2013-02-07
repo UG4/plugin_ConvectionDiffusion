@@ -137,6 +137,20 @@ class ConvectionDiffusion
 #endif
 	///	\}
 
+		// NEW: explicit reaction
+		void set_reaction_rate_explicit(SmartPtr<UserData<number, dim> > user);
+		void set_reaction_rate_explicit(number val);
+#ifdef UG_FOR_LUA
+		void set_reaction_rate_explicit(const char* fctName);
+#endif
+		void set_reaction_explicit(SmartPtr<UserData<number, dim> > user);
+		void set_reaction_explicit(number val);
+
+#ifdef UG_FOR_LUA
+		void set_reaction_explicit(const char* fctName);
+#endif
+
+
 	///	sets the source / sink term
 	/**
 	 * This method sets the source/sink value. A zero value is assumed as
@@ -281,6 +295,11 @@ class ConvectionDiffusion
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem_fv1(LocalVector& d, const LocalVector& u);
+
+		// NEW: explicit reaction
+	///	assembles the stiffness part of the local defect explicit recaction
+		template <typename TElem, typename TFVGeom>
+		void add_def_A_elem_fv1_explicit(LocalVector& d, const LocalVector& u);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFVGeom>
@@ -615,6 +634,15 @@ protected:
 
 	///	Data import for the reaction term
 		DataImport<number, dim> m_imReaction;
+
+
+		// NEW: explicit reaction
+	///	Data import for the reaction term explicit
+		DataImport<number, dim> m_imReactionRate_explicit;
+
+	///	Data import for the reaction term explicit
+		DataImport<number, dim> m_imReaction_explicit;
+
 
 	///	Data import for the right-hand side (volume)
 		DataImport<number, dim> m_imSource;
