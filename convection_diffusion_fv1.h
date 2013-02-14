@@ -53,7 +53,8 @@ prep_elem_loop_fv1()
 		                      	                      geo.num_scv_ips(), false);
 		m_imReaction_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips(), false);
-
+		m_imSource_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
+		                      	                      geo.num_scv_ips(), false);
 
 		m_imMassScale.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips(), false);
@@ -119,7 +120,8 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 		                      	                      geo.num_scv_ips());
 		m_imReaction_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
-
+		m_imSource_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
+		                      	                      geo.num_scv_ips());
 
 		m_imMassScale.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
@@ -142,6 +144,7 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 	// NEW: explicit reaction
 	m_imReactionRate_explicit.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imReaction_explicit.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
+	m_imSource_explicit.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 
 	m_imReaction.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMassScale.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
@@ -410,6 +413,22 @@ add_def_A_elem_fv1_explicit(LocalVector& d, const LocalVector& u)
 			d(_C_, co) += m_imReaction_explicit[ip] * scv.volume();
 		}
 	}
+	if(m_imSource_explicit.data_given())
+	{
+	// 	loop Sub Control Volumes (SCV)
+		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+		{
+		// 	get current SCV
+			const typename TFVGeom::SCV& scv = geo.scv(ip);
+
+		// 	get associated node
+			const int co = scv.node_id();
+
+		// 	Add to local defect
+			d(_C_, co) -= m_imSource_explicit[ip] * scv.volume();
+		}
+	}
+
 }
 
 
@@ -1035,6 +1054,7 @@ register_fv1_func()
 	// NEW: explicit reaction
 	m_imReactionRate_explicit. set_fct(id, this, &T::template lin_def_reaction_rate_fv1<TElem, TFVGeom>);
 	m_imReaction_explicit. set_fct(id, this, &T::template lin_def_reaction_fv1<TElem, TFVGeom>);
+	m_imSource_explicit. set_fct(id, this, &T::template lin_def_source_fv1<TElem, TFVGeom>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source_fv1<TElem, TFVGeom>);
 	m_imVectorSource.set_fct(id, this, &T::template lin_def_vector_source_fv1<TElem, TFVGeom>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale_fv1<TElem, TFVGeom>);

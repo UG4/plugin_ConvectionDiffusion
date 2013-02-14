@@ -149,7 +149,12 @@ class ConvectionDiffusion
 #ifdef UG_FOR_LUA
 		void set_reaction_explicit(const char* fctName);
 #endif
+		void set_source_explicit(SmartPtr<UserData<number, dim> > user);
+				void set_source_explicit(number val);
 
+		#ifdef UG_FOR_LUA
+				void set_source_explicit(const char* fctName);
+		#endif
 
 	///	sets the source / sink term
 	/**
@@ -642,7 +647,8 @@ protected:
 
 	///	Data import for the reaction term explicit
 		DataImport<number, dim> m_imReaction_explicit;
-
+	///	Data import for the source term explicit
+			DataImport<number, dim> m_imSource_explicit;
 
 	///	Data import for the right-hand side (volume)
 		DataImport<number, dim> m_imSource;

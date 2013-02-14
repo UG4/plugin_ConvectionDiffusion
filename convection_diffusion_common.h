@@ -237,6 +237,29 @@ set_source(const char* fctName)
 }
 #endif
 
+//////// Source explicit
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_source_explicit(SmartPtr<UserData<number, dim> > user) {m_imSource_explicit.set_data(user);}
+
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_source_explicit(number val)
+{
+	set_source_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConvectionDiffusion<TDomain>::
+set_source_explicit(const char* fctName)
+{
+	set_source_explicit(LuaUserDataFactory<number,dim>::create(fctName));
+}
+#endif
+
+
 //////// Vector Source
 
 template<typename TDomain>
@@ -387,6 +410,7 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	// NEW: explicit reaction
 	this->register_import(m_imReactionRate_explicit);
 	this->register_import(m_imReaction_explicit);
+	this->register_import(m_imSource_explicit);
 
 	this->register_import(m_imSource);
 	this->register_import(m_imVectorSource);
@@ -397,6 +421,7 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	m_imMass.set_mass_part();
 	m_imSource.set_rhs_part();
 	m_imVectorSource.set_rhs_part();
+	m_imSource_explicit.set_expl_part();
 	m_imReaction_explicit.set_expl_part();
 	m_imReactionRate_explicit.set_expl_part();
 
