@@ -397,6 +397,8 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	m_imMass.set_mass_part();
 	m_imSource.set_rhs_part();
 	m_imVectorSource.set_rhs_part();
+	m_imReaction_explicit.set_expl_part();
+	m_imReactionRate_explicit.set_expl_part();
 
 //	set defaults
 	m_order = 1;
