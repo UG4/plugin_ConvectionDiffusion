@@ -76,7 +76,7 @@ static void Domain(Registry& reg, string grp)
 #ifdef UG_FOR_LUA
 			.add_method("set_reaction", static_cast<void (T::*)(const char*)>(&T::set_reaction), "", "Reaction")
 #endif
-		  // NEW: explicit reaction start
+
 			.add_method("set_reaction_rate_explicit", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_reaction_rate_explicit), "", "Reaction Rate Explicit")
 			.add_method("set_reaction_rate_explicit", static_cast<void (T::*)(number)>(&T::set_reaction_rate_explicit), "", "Reaction Rate Explicit")
 #ifdef UG_FOR_LUA
@@ -95,8 +95,6 @@ static void Domain(Registry& reg, string grp)
 						.add_method("set_source_explicit", static_cast<void (T::*)(const char*)>(&T::set_source_explicit), "", "Source Explicit")
 			#endif
 
-
-		  // end explicit reactions
 			.add_method("set_source", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_source), "", "Source")
 			.add_method("set_source", static_cast<void (T::*)(number)>(&T::set_source), "", "Source")
 #ifdef UG_FOR_LUA

@@ -46,16 +46,12 @@ prep_elem_loop_fv1()
 		                      	                      geo.num_scv_ips(), false);
 		m_imReaction.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips(), false);
-
-		// NEW: explicit reaction
-		// explicit reactions
 		m_imReactionRate_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips(), false);
 		m_imReaction_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips(), false);
 		m_imSource_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips(), false);
-
 		m_imMassScale.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips(), false);
 		m_imMass.template 	set_local_ips<refDim>(geo.scv_local_ips(),
@@ -113,16 +109,12 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 		                      	                      geo.num_scv_ips());
 		m_imReaction.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
-
-		// NEW: explicit reaction
-		// explicit reactions
 		m_imReactionRate_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
 		m_imReaction_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
 		m_imSource_explicit.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                      	                      geo.num_scv_ips());
-
 		m_imMassScale.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
 		m_imMass.template 	set_local_ips<refDim>(geo.scv_local_ips(),
@@ -140,12 +132,9 @@ prep_elem_fv1(TElem* elem, const LocalVector& u)
 	m_imSource.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imVectorSource.set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
 	m_imReactionRate.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-
-	// NEW: explicit reaction
 	m_imReactionRate_explicit.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imReaction_explicit.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imSource_explicit.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-
 	m_imReaction.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMassScale.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
 	m_imMass.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
@@ -367,10 +356,7 @@ add_def_A_elem_fv1(LocalVector& d, const LocalVector& u)
 
 /////////////////////////////////////////////////////////////////////////////
 
-// NEW: explicit reaction
-// complete function, assemblation of single element
-
-// start
+// assemble single element (explicit reaction_rate, reaction and source)
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
@@ -397,7 +383,7 @@ add_def_A_elem_fv1_explicit(LocalVector& d, const LocalVector& u)
 		}
 	}
 
-//	reaction rate
+//	reaction
 	if(m_imReaction_explicit.data_given())
 	{
 	// 	loop Sub Control Volumes (SCV)
@@ -431,8 +417,6 @@ add_def_A_elem_fv1_explicit(LocalVector& d, const LocalVector& u)
 
 }
 
-
-// end
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -1041,7 +1025,6 @@ register_fv1_func()
 	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem_fv1<TElem, TFVGeom>);
 	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem_fv1<TElem, TFVGeom>);
 	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem_fv1<TElem, TFVGeom>);
-	// NEW: explicit reaction
 	this->set_add_def_A_elem_fct_explicit(id, &T::template add_def_A_elem_fv1_explicit<TElem, TFVGeom>);
 	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem_fv1<TElem, TFVGeom>);
 	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem_fv1<TElem, TFVGeom>);
@@ -1051,7 +1034,6 @@ register_fv1_func()
 	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion_fv1<TElem, TFVGeom>);
 	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate_fv1<TElem, TFVGeom>);
 	m_imReaction. set_fct(id, this, &T::template lin_def_reaction_fv1<TElem, TFVGeom>);
-	// NEW: explicit reaction
 	m_imReactionRate_explicit. set_fct(id, this, &T::template lin_def_reaction_rate_fv1<TElem, TFVGeom>);
 	m_imReaction_explicit. set_fct(id, this, &T::template lin_def_reaction_fv1<TElem, TFVGeom>);
 	m_imSource_explicit. set_fct(id, this, &T::template lin_def_source_fv1<TElem, TFVGeom>);

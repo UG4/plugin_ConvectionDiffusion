@@ -137,7 +137,6 @@ class ConvectionDiffusion
 #endif
 	///	\}
 
-		// NEW: explicit reaction
 		void set_reaction_rate_explicit(SmartPtr<UserData<number, dim> > user);
 		void set_reaction_rate_explicit(number val);
 #ifdef UG_FOR_LUA
@@ -301,8 +300,7 @@ class ConvectionDiffusion
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem_fv1(LocalVector& d, const LocalVector& u);
 
-		// NEW: explicit reaction
-	///	assembles the stiffness part of the local defect explicit recaction
+	///	assembles the stiffness part of the local defect explicit reaction, reaction_rate and source
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem_fv1_explicit(LocalVector& d, const LocalVector& u);
 
@@ -640,13 +638,12 @@ protected:
 	///	Data import for the reaction term
 		DataImport<number, dim> m_imReaction;
 
-
-		// NEW: explicit reaction
-	///	Data import for the reaction term explicit
+	///	Data import for the reaction_rate term explicit
 		DataImport<number, dim> m_imReactionRate_explicit;
 
 	///	Data import for the reaction term explicit
 		DataImport<number, dim> m_imReaction_explicit;
+
 	///	Data import for the source term explicit
 			DataImport<number, dim> m_imSource_explicit;
 

@@ -144,8 +144,6 @@ set_reaction_rate(const char* fctName)
 }
 #endif
 
-// NEW: explicit reaction
-
 //////// Reaction Rate Explicit
 
 template<typename TDomain>
@@ -189,8 +187,6 @@ set_reaction(const char* fctName)
 	set_reaction(LuaUserDataFactory<number,dim>::create(fctName));
 }
 #endif
-
-// NEW: reaction explicit
 
 //////// Reaction Explicit
 
@@ -407,11 +403,9 @@ ConvectionDiffusion(const char* functions, const char* subsets)
 	this->register_import(m_imVelocity);
 	this->register_import(m_imReactionRate);
 	this->register_import(m_imReaction);
-	// NEW: explicit reaction
 	this->register_import(m_imReactionRate_explicit);
 	this->register_import(m_imReaction_explicit);
 	this->register_import(m_imSource_explicit);
-
 	this->register_import(m_imSource);
 	this->register_import(m_imVectorSource);
 	this->register_import(m_imMassScale);
