@@ -7,7 +7,11 @@
 
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
-#include "convection_diffusion.h"
+#include "convection_diffusion_base.h"
+#include "fv1/convection_diffusion_fv1.h"
+#include "fe/convection_diffusion_fe.h"
+#include "fvcr/convection_diffusion_fvcr.h"
+#include "fv/convection_diffusion_fv.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -38,18 +42,12 @@ static void Domain(Registry& reg, string grp)
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 
-//	Convection Diffusion
+//	Convection Diffusion Base
 	{
-		typedef ConvectionDiffusion<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> T;
 		typedef IDomainElemDisc<TDomain> TBase;
-		string name = string("ConvectionDiffusion").append(suffix);
+		string name = string("ConvectionDiffusionBase").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_disc_scheme", &T::set_disc_scheme, "", "Disc Scheme|selection|value=[\"fe\",\"fv\",\"fv1\",\"fvcr\"]")
-			.add_method("set_quad_order", &T::set_quad_order)
-			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
-			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
-
 			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<UserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
 			.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
 #ifdef UG_FOR_LUA
@@ -58,9 +56,6 @@ static void Domain(Registry& reg, string grp)
 
 			.add_method("set_velocity", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
 			.add_method("set_velocity", static_cast<void (T::*)(const std::vector<number>&)>(&T::set_velocity), "", "Velocity Field")
-			.add_method("set_velocity", static_cast<void (T::*)(number)>(&T::set_velocity), "", "Vel_x")
-			.add_method("set_velocity", static_cast<void (T::*)(number,number)>(&T::set_velocity), "", "Vel_x, Vel_y")
-			.add_method("set_velocity", static_cast<void (T::*)(number,number,number)>(&T::set_velocity), "", "Vel_x, Vel_y, Vel_z")
 #ifdef UG_FOR_LUA
 			.add_method("set_velocity", static_cast<void (T::*)(const char*)>(&T::set_velocity), "", "Velocity Field")
 #endif
@@ -90,9 +85,9 @@ static void Domain(Registry& reg, string grp)
 #endif
 
 			.add_method("set_source_explicit", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_source_explicit), "", "Source Explicit")
-						.add_method("set_source_explicit", static_cast<void (T::*)(number)>(&T::set_source_explicit), "", "Source Explicit")
+			.add_method("set_source_explicit", static_cast<void (T::*)(number)>(&T::set_source_explicit), "", "Source Explicit")
 			#ifdef UG_FOR_LUA
-						.add_method("set_source_explicit", static_cast<void (T::*)(const char*)>(&T::set_source_explicit), "", "Source Explicit")
+			.add_method("set_source_explicit", static_cast<void (T::*)(const char*)>(&T::set_source_explicit), "", "Source Explicit")
 			#endif
 
 			.add_method("set_source", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_source), "", "Source")
@@ -102,9 +97,6 @@ static void Domain(Registry& reg, string grp)
 #endif
 
 			.add_method("set_vector_source", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_vector_source), "", "Vector Source")
-			.add_method("set_vector_source", static_cast<void (T::*)(number)>(&T::set_vector_source), "", "vectorSource_x")
-			.add_method("set_vector_source", static_cast<void (T::*)(number,number)>(&T::set_vector_source), "", "vectorSource_x, vectorSource_y")
-			.add_method("set_vector_source", static_cast<void (T::*)(number,number,number)>(&T::set_vector_source), "", "vectorSource_x, vectorSource_y, vectorSource_z")
 #ifdef UG_FOR_LUA
 			.add_method("set_vector_source", static_cast<void (T::*)(const char*)>(&T::set_vector_source), "", "Vector Source")
 #endif
@@ -121,11 +113,59 @@ static void Domain(Registry& reg, string grp)
 			.add_method("set_mass", static_cast<void (T::*)(const char*)>(&T::set_mass), "", "Mass")
 #endif
 
-			.add_method("set_upwind", &T::set_upwind)
 			.add_method("value", &T::value)
-			.add_method("gradient", &T::gradient)
+			.add_method("gradient", &T::gradient);
+		reg.add_class_to_group(name, "ConvectionDiffusionBase", tag);
+	}
+
+//	Convection Diffusion FV1
+	{
+		typedef ConvectionDiffusionFV1<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFV1").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_upwind", &T::set_upwind)
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConvectionDiffusion", tag);
+		reg.add_class_to_group(name, "ConvectionDiffusionFV1", tag);
+	}
+
+//	Convection Diffusion FE
+	{
+		typedef ConvectionDiffusionFE<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFE").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_quad_order", &T::set_quad_order)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionFE", tag);
+	}
+
+//	Convection Diffusion FVCR
+	{
+		typedef ConvectionDiffusionFVCR<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFVCR").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_upwind", &T::set_upwind)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionFVCR", tag);
+	}
+
+//	Convection Diffusion FV
+	{
+		typedef ConvectionDiffusionFV<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFV").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_quad_order", &T::set_quad_order)
+			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
+			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
 	}
 
 }

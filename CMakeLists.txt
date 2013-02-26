@@ -13,8 +13,12 @@ include("../../../ug_plugin_cmake_includes.txt")
 
 
 # sources
-set(SOURCES	convection_diffusion_plugin.cpp
-            convection_diffusion.cpp)
+set(SOURCES	convection_diffusion_base.cpp
+            fv1/convection_diffusion_fv1.cpp
+            fe/convection_diffusion_fe.cpp
+            fvcr/convection_diffusion_fvcr.cpp
+            fv/convection_diffusion_fv.cpp
+            convection_diffusion_plugin.cpp)
 
 
 
