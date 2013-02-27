@@ -95,7 +95,7 @@ use_hanging() const
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 prep_elem_loop()
 {
@@ -105,7 +105,7 @@ prep_elem_loop()
 	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
 
 //	request geometry
-	static typename TGeomProvider::Type& geo = TGeomProvider::get();
+	TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	prepare geometry for type and order
 	try{
@@ -125,13 +125,13 @@ prep_elem_loop()
 }
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 fsh_elem_loop()
 {}
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 prep_elem(TElem* elem, const LocalVector& u)
 {
@@ -139,7 +139,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //	request geometry
-	static typename TGeomProvider::Type& geo = TGeomProvider::get();
+	TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 	try{
 		geo.update(elem, &m_vCornerCoords[0]);
@@ -159,12 +159,12 @@ prep_elem(TElem* elem, const LocalVector& u)
 }
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 	MathVector<dim> v, Dgrad;
 
@@ -208,12 +208,12 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -242,12 +242,12 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 	number integrand, shape_u;
 	MathMatrix<dim,dim> D;
@@ -300,12 +300,12 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 	number shape_u;
 
@@ -338,12 +338,12 @@ add_def_M_elem(LocalVector& d, const LocalVector& u)
 };
 
 template<typename TDomain>
-template<typename TElem, typename TGeomProvider>
+template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 add_rhs_elem(LocalVector& d)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	skip if no source present
 	if(!m_imSource.data_given() && !m_imVectorSource.data_given()) return;
@@ -375,14 +375,14 @@ add_rhs_elem(LocalVector& d)
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_velocity(const LocalVector& u,
                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                      const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -404,14 +404,14 @@ lin_def_velocity(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_diffusion(const LocalVector& u,
                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
                       const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 	MathVector<dim> grad_u;
 
@@ -436,14 +436,14 @@ lin_def_diffusion(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the reaction
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_reaction(const LocalVector& u,
                      std::vector<std::vector<number> > vvvLinDef[],
                      const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -462,14 +462,14 @@ lin_def_reaction(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the reaction
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_reaction_rate(const LocalVector& u,
                          std::vector<std::vector<number> > vvvLinDef[],
                          const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -494,14 +494,14 @@ lin_def_reaction_rate(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the source
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_source(const LocalVector& u,
                    std::vector<std::vector<number> > vvvLinDef[],
                    const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -517,14 +517,14 @@ lin_def_source(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the "vector source"
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_vector_source(const LocalVector& u,
                            std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
                            const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -541,14 +541,14 @@ lin_def_vector_source(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_mass_scale(const LocalVector& u,
                        std::vector<std::vector<number> > vvvLinDef[],
                        const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -572,14 +572,14 @@ lin_def_mass_scale(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the mass scale
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 lin_def_mass(const LocalVector& u,
                 std::vector<std::vector<number> > vvvLinDef[],
                 const size_t nip)
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -598,18 +598,18 @@ lin_def_mass(const LocalVector& u,
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 ex_value(const LocalVector& u,
          const MathVector<dim> vGlobIP[],
-         const MathVector<TGeomProvider::Type::dim> vLocIP[],
+         const MathVector<TFEGeom::dim> vLocIP[],
          const size_t nip,
          number vValue[],
          bool bDeriv,
          std::vector<std::vector<number> > vvvDeriv[])
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -673,18 +673,18 @@ ex_value(const LocalVector& u,
 }
 
 template<typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 ex_grad(const LocalVector& u,
            const MathVector<dim> vGlobIP[],
-           const MathVector<TGeomProvider::Type::dim> vLocIP[],
+           const MathVector<TFEGeom::dim> vLocIP[],
            const size_t nip,
            MathVector<dim> vValue[],
            bool bDeriv,
            std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 //	request geometry
-	static const typename TGeomProvider::Type& geo = TGeomProvider::get();
+	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -765,7 +765,7 @@ void ConvectionDiffusionFE<Domain1d>::
 register_all_funcs(int order, int quadOrder)
 {
 //	Edge
-	register_func<Edge, FlexGeomProvider<DimFEGeometry<dim, 1> > >();
+	register_func<Edge, DimFEGeometry<dim, 1> >();
 }
 
 // register for all dim
@@ -775,8 +775,8 @@ register_all_funcs(int order, int quadOrder)
 {
 	if(quadOrder != 2*order+1)
 	{
-		register_func<Triangle, FlexGeomProvider<DimFEGeometry<dim, 2> > >();
-		register_func<Quadrilateral, FlexGeomProvider<DimFEGeometry<dim, 2> > >();
+		register_func<Triangle, DimFEGeometry<dim, 2> >();
+		register_func<Quadrilateral, DimFEGeometry<dim, 2> >();
 		return;
 	}
 
@@ -786,23 +786,23 @@ register_all_funcs(int order, int quadOrder)
 	switch(order)
 	{
 		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 3> > FEGeom;
-				 register_func<Triangle, Provider<FEGeom> >(); break;}
+				 register_func<Triangle, FEGeom >(); break;}
 		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 5> > FEGeom;
-				 register_func<Triangle, Provider<FEGeom> >(); break;}
+				 register_func<Triangle, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> > FEGeom;
-				 register_func<Triangle, Provider<FEGeom> >(); break;}
-		default: register_func<Triangle, FlexGeomProvider<DimFEGeometry<dim, 2> > >();  break;
+				 register_func<Triangle, FEGeom >(); break;}
+		default: register_func<Triangle, DimFEGeometry<dim, 2> >();  break;
 	}
 
 //	Quadrilateral
 	switch(order) {
 		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 3> > FEGeom;
-				 register_func<Quadrilateral, Provider<FEGeom> >(); break;}
+				 register_func<Quadrilateral, FEGeom >(); break;}
 		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 7> > FEGeom;
-				 register_func<Quadrilateral, Provider<FEGeom> >(); break;}
+				 register_func<Quadrilateral, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> > FEGeom;
-				 register_func<Quadrilateral, Provider<FEGeom> >(); break;}
-		default: register_func<Quadrilateral, FlexGeomProvider<DimFEGeometry<dim, 2> > >();  break;
+				 register_func<Quadrilateral, FEGeom >(); break;}
+		default: register_func<Quadrilateral, DimFEGeometry<dim, 2> >();  break;
 	}
 }
 
@@ -813,10 +813,10 @@ register_all_funcs(int order, int quadOrder)
 {
 	if(quadOrder != 2*order+1)
 	{
-		register_func<Tetrahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
-		register_func<Prism, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
-		register_func<Pyramid, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
-		register_func<Hexahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();
+		register_func<Tetrahedron, DimFEGeometry<dim, 3> >();
+		register_func<Prism, DimFEGeometry<dim, 3> >();
+		register_func<Pyramid, DimFEGeometry<dim, 3> >();
+		register_func<Hexahedron, DimFEGeometry<dim, 3> >();
 		return;
 	}
 
@@ -826,43 +826,43 @@ register_all_funcs(int order, int quadOrder)
 	switch(order)
 	{
 		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 3> > FEGeom;
-				 register_func<Tetrahedron, Provider<FEGeom> >(); break;}
+				 register_func<Tetrahedron, FEGeom >(); break;}
 		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 5> > FEGeom;
-				 register_func<Tetrahedron, Provider<FEGeom> >(); break;}
+				 register_func<Tetrahedron, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> > FEGeom;
-				 register_func<Tetrahedron, Provider<FEGeom> >(); break;}
-		default: register_func<Tetrahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();  break;
+				 register_func<Tetrahedron, FEGeom >(); break;}
+		default: register_func<Tetrahedron, DimFEGeometry<dim, 3> >();  break;
 	}
 
 //	Prism
 	switch(order) {
 		case 1:	{typedef FEGeometry<Prism, dim, LagrangeLSFS<ReferencePrism, 1>, GaussQuadrature<ReferencePrism, 2> > FEGeom;
-				 register_func<Prism, Provider<FEGeom> >(); break;}
-		default: register_func<Prism, FlexGeomProvider<DimFEGeometry<dim, 3> > >();  break;
+				 register_func<Prism, FEGeom >(); break;}
+		default: register_func<Prism, DimFEGeometry<dim, 3> >();  break;
 	}
 
 //	Pyramid
 	switch(order)
 	{
-		default: register_func<Pyramid, FlexGeomProvider<DimFEGeometry<dim, 3> > >();  break;
+		default: register_func<Pyramid, DimFEGeometry<dim, 3> >();  break;
 	}
 
 //	Hexahedron
 	switch(order)
 	{
 		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 3> > FEGeom;
-				 register_func<Hexahedron, Provider<FEGeom> >(); break;}
+				 register_func<Hexahedron, FEGeom >(); break;}
 		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 7> > FEGeom;
-				 register_func<Hexahedron, Provider<FEGeom> >(); break;}
+				 register_func<Hexahedron, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> > FEGeom;
-				 register_func<Hexahedron, Provider<FEGeom> >(); break;}
-		default: register_func<Hexahedron, FlexGeomProvider<DimFEGeometry<dim, 3> > >();  break;
+				 register_func<Hexahedron, FEGeom >(); break;}
+		default: register_func<Hexahedron, DimFEGeometry<dim, 3> >();  break;
 	}
 }
 
 
 template <typename TDomain>
-template <typename TElem, typename TGeomProvider>
+template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
@@ -870,28 +870,28 @@ void ConvectionDiffusionFE<TDomain>::register_func()
 	static const int refDim = reference_element_traits<TElem>::dim;
 
 	this->enable_fast_add_elem(true);
-	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TGeomProvider>);
-	this->set_prep_elem_fct(	 id, &T::template prep_elem<TElem, TGeomProvider>);
-	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop<TElem, TGeomProvider>);
-	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TGeomProvider>);
-	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TGeomProvider>);
-	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TGeomProvider>);
-	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TGeomProvider>);
-	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem<TElem, TGeomProvider>);
+	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFEGeom>);
+	this->set_prep_elem_fct(	 id, &T::template prep_elem<TElem, TFEGeom>);
+	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop<TElem, TFEGeom>);
+	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFEGeom>);
+	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFEGeom>);
+	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFEGeom>);
+	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFEGeom>);
+	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem<TElem, TFEGeom>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. 		set_fct(id, this, &T::template lin_def_velocity<TElem, TGeomProvider>);
-	m_imDiffusion.		set_fct(id, this, &T::template lin_def_diffusion<TElem, TGeomProvider>);
-	m_imReactionRate. 	set_fct(id, this, &T::template lin_def_reaction_rate<TElem, TGeomProvider>);
-	m_imReaction. 		set_fct(id, this, &T::template lin_def_reaction<TElem, TGeomProvider>);
-	m_imSource.	  		set_fct(id, this, &T::template lin_def_source<TElem, TGeomProvider>);
-	m_imVectorSource.	set_fct(id, this, &T::template lin_def_vector_source<TElem, TGeomProvider>);
-	m_imMassScale.		set_fct(id, this, &T::template lin_def_mass_scale<TElem, TGeomProvider>);
-	m_imMass.	  		set_fct(id, this, &T::template lin_def_mass<TElem, TGeomProvider>);
+	m_imVelocity. 		set_fct(id, this, &T::template lin_def_velocity<TElem, TFEGeom>);
+	m_imDiffusion.		set_fct(id, this, &T::template lin_def_diffusion<TElem, TFEGeom>);
+	m_imReactionRate. 	set_fct(id, this, &T::template lin_def_reaction_rate<TElem, TFEGeom>);
+	m_imReaction. 		set_fct(id, this, &T::template lin_def_reaction<TElem, TFEGeom>);
+	m_imSource.	  		set_fct(id, this, &T::template lin_def_source<TElem, TFEGeom>);
+	m_imVectorSource.	set_fct(id, this, &T::template lin_def_vector_source<TElem, TFEGeom>);
+	m_imMassScale.		set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFEGeom>);
+	m_imMass.	  		set_fct(id, this, &T::template lin_def_mass<TElem, TFEGeom>);
 
 //	exports
-	m_exValue->	template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TGeomProvider>);
-	m_exGrad->	template set_fct<T,refDim>(id, this, &T::template ex_grad<TElem, TGeomProvider>);
+	m_exValue->	template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TFEGeom>);
+	m_exGrad->	template set_fct<T,refDim>(id, this, &T::template ex_grad<TElem, TFEGeom>);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
