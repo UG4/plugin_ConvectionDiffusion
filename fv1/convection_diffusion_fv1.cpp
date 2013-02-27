@@ -23,7 +23,8 @@ template<typename TDomain>
 ConvectionDiffusionFV1<TDomain>::
 ConvectionDiffusionFV1(const char* functions, const char* subsets)
  : ConvectionDiffusionBase<TDomain>(functions,subsets),
-   m_spConvShape(new ConvectionShapesNoUpwind<dim>)
+   m_spConvShape(new ConvectionShapesNoUpwind<dim>),
+   m_bNonRegularGrid(false)
 {
 	register_all_funcs(m_bNonRegularGrid);
 }
