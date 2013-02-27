@@ -607,10 +607,8 @@ lin_def_velocity(const LocalVector& u,
 				shape_u += u(_C_,sh) * scvf.shape(ip, sh);
 
 		//	add parts for both sides of scvf
-			VecScale(vvvLinDef[ip][_C_][scvf.from()], scvf.normal(), shape_u);
-			VecScale(vvvLinDef[ip][_C_][scvf.to()  ], scvf.normal(), -shape_u);
-
-			++ipCnt;
+			VecScale(vvvLinDef[ipCnt][_C_][scvf.from()], scvf.normal(), shape_u);
+			VecScale(vvvLinDef[ipCnt++][_C_][scvf.to()  ], scvf.normal(), -shape_u);
 		}
 	}
 }
