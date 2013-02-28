@@ -590,11 +590,11 @@ lin_def_velocity(const LocalVector& u,
 	// 	get current SCVF
 		const typename TFVGeom::SCVF& scvf = geo.scvf(s);
 
-		for(size_t i = 0; i < scvf.num_ip(); ++i)
+		for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
 		{
 		// 	compute shape at ip
 			number solIP = 0.0;
-			for(size_t sh = 0; sh < scvf.num_sh(); ++sh, ++ip)
+			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				solIP += u(_C_,sh) * scvf.shape(i, sh);
 
 		//	add parts for both sides of scvf
