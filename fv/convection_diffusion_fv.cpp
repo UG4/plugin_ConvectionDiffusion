@@ -598,8 +598,8 @@ lin_def_velocity(const LocalVector& u,
 				solIP += u(_C_,sh) * scvf.shape(i, sh);
 
 		//	add parts for both sides of scvf
-			VecScale(vvvLinDef[ip][_C_][scvf.from()], scvf.normal(), solIP);
-			VecScale(vvvLinDef[ip][_C_][scvf.to()  ], scvf.normal(), -solIP);
+			VecScale(vvvLinDef[ip][_C_][scvf.from()], scvf.normal(), solIP * scvf.weight(i));
+			VecScale(vvvLinDef[ip][_C_][scvf.to()  ], scvf.normal(), -solIP * scvf.weight(i));
 		}
 	}
 }
@@ -640,8 +640,8 @@ lin_def_diffusion(const LocalVector& u,
 				{
 					const number val = (scvf.normal())[j] * gradIP[k];
 
-					vvvLinDef[ip][_C_][scvf.from()](k,j) = val;
-					vvvLinDef[ip][_C_][scvf.to()  ](k,j) -= val;
+					vvvLinDef[ip][_C_][scvf.from()](k,j) = val * scvf.weight(i);
+					vvvLinDef[ip][_C_][scvf.to()  ](k,j) -= val * scvf.weight(i);
 				}
 		}
 	}
