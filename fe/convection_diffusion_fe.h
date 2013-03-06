@@ -72,7 +72,7 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	 * at the data imports.
 	 */
 		template <typename TElem, typename TFEGeom>
-		void prep_elem_loop();
+		void prep_elem_loop(const ReferenceObjectID roid, const int si);
 
 	///	prepares the element for assembling
 	/**

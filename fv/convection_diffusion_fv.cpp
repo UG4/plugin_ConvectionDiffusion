@@ -115,13 +115,8 @@ set_quad_order_scvf(size_t order)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV<TDomain>::
-prep_elem_loop()
+prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
-//	reference dimension
-	static const int refDim = reference_element_traits<TElem>::dim;
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
-
 //	request geometry
 	TFVGeom& geo = Provider<TFVGeom>::get(m_order);
 
@@ -134,6 +129,7 @@ prep_elem_loop()
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
+		static const int refDim = TElem::dim;
 		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 		const size_t numSCVFip = geo.num_scvf_ips();
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
@@ -159,9 +155,6 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV<TDomain>::
 prep_elem(TElem* elem, const LocalVector& u)
 {
-//	get reference elements
-	static const int refDim = reference_element_traits<TElem>::dim;
-
 //	get corners
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
@@ -179,6 +172,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	const size_t numSCVip = geo.num_scv_ips();
 	if(TFVGeom::usesHangingNodes)
 	{
+		static const int refDim = TElem::dim;
 		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);

@@ -97,13 +97,8 @@ use_hanging() const
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-prep_elem_loop()
+prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
-//	get reference dimension
-	static const int refDim = reference_element_traits<TElem>::dim;
-	typedef typename reference_element_traits<TElem>::reference_element_type reference_element_type;
-	static const ReferenceObjectID roid = reference_element_type::REFERENCE_OBJECT_ID;
-
 //	request geometry
 	TFEGeom& geo = Provider<TFEGeom>::get(m_order);
 
@@ -114,6 +109,7 @@ prep_elem_loop()
 					" Cannot update Finite Element Geometry.");
 
 //	set local positions
+	static const int refDim = TElem::dim;
 	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);

@@ -81,7 +81,7 @@ use_hanging() const
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFVCR<TDomain>::
-prep_elem_loop()
+prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 //	reference dimension
 	static const int refDim = reference_element_traits<TElem>::dim;
