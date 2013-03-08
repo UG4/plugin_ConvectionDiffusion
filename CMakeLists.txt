@@ -9,7 +9,7 @@ cmake_minimum_required(VERSION 2.6)
 project(ConvectionDiffusion)
 
 # include the definitions and dependencies for ug-plugins.
-include("../../../ug_plugin_cmake_includes.txt")
+include("../../../cmake/ug_plugin_includes.cmake")
 
 
 # sources
