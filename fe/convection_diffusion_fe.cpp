@@ -1,5 +1,5 @@
 /*
- * convection_diffusion.cpp
+ * convection_diffusion_fe.cpp
  *
  *  Created on: 02.08.2010
  *      Author: andreasvogel
@@ -8,7 +8,7 @@
 #include "convection_diffusion_fe.h"
 
 #include "lib_disc/spatial_disc/disc_util/fe_geom.h"
-#include "common/util/provider.h"
+#include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/local_finite_element/lagrange/lagrange.h"
 #include "lib_disc/local_finite_element/lagrange/lagrangep1.h"
 #include "lib_disc/quadrature/gauss_quad/gauss_quad.h"
@@ -100,7 +100,7 @@ void ConvectionDiffusionFE<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 //	request geometry
-	TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	prepare geometry for type and order
 	try{
@@ -135,7 +135,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //	request geometry
-	TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 	try{
 		geo.update(elem, &m_vCornerCoords[0]);
@@ -160,7 +160,7 @@ void ConvectionDiffusionFE<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 	MathVector<dim> v, Dgrad;
 
@@ -209,7 +209,7 @@ void ConvectionDiffusionFE<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -243,7 +243,7 @@ void ConvectionDiffusionFE<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 	number integrand, shape_u;
 	MathMatrix<dim,dim> D;
@@ -301,7 +301,7 @@ void ConvectionDiffusionFE<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 	number shape_u;
 
@@ -339,7 +339,7 @@ void ConvectionDiffusionFE<TDomain>::
 add_rhs_elem(LocalVector& d)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	skip if no source present
 	if(!m_imSource.data_given() && !m_imVectorSource.data_given()) return;
@@ -378,7 +378,7 @@ lin_def_velocity(const LocalVector& u,
                      const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -407,7 +407,7 @@ lin_def_diffusion(const LocalVector& u,
                       const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 	MathVector<dim> grad_u;
 
@@ -439,7 +439,7 @@ lin_def_reaction(const LocalVector& u,
                      const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -465,7 +465,7 @@ lin_def_reaction_rate(const LocalVector& u,
                          const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -497,7 +497,7 @@ lin_def_source(const LocalVector& u,
                    const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -520,7 +520,7 @@ lin_def_vector_source(const LocalVector& u,
                            const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -544,7 +544,7 @@ lin_def_mass_scale(const LocalVector& u,
                        const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -575,7 +575,7 @@ lin_def_mass(const LocalVector& u,
                 const size_t nip)
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	loop integration points
 	for(size_t ip = 0; ip < geo.num_ip(); ++ip)
@@ -605,7 +605,7 @@ ex_value(const LocalVector& u,
          std::vector<std::vector<number> > vvvDeriv[])
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -680,7 +680,7 @@ ex_grad(const LocalVector& u,
            std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 //	request geometry
-	const TFEGeom& geo = Provider<TFEGeom>::get(m_order);
+	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type

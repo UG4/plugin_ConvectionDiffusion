@@ -7,7 +7,7 @@
 
 #include "convection_diffusion_fv.h"
 
-#include "common/util/provider.h"
+#include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fvho_geom.h"
 
 namespace ug{
@@ -118,7 +118,7 @@ void ConvectionDiffusionFV<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 //	request geometry
-	TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 	try{
 		geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV);
@@ -159,7 +159,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //	request geometry
-	TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 	try{
 		geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler()));
@@ -202,7 +202,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 //	Diff. Tensor times Gradient
 	MathVector<dim> Dgrad;
@@ -305,7 +305,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -349,7 +349,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
@@ -482,7 +482,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -534,7 +534,7 @@ add_rhs_elem(LocalVector& d)
 	if(!m_imSource.data_given()) return;
 
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -570,7 +570,7 @@ lin_def_velocity(const LocalVector& u,
                      const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -607,7 +607,7 @@ lin_def_diffusion(const LocalVector& u,
                       const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -650,7 +650,7 @@ lin_def_reaction_rate(const LocalVector& u,
                            const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -684,7 +684,7 @@ lin_def_reaction(const LocalVector& u,
                      const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -713,7 +713,7 @@ lin_def_source(const LocalVector& u,
                    const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -742,7 +742,7 @@ lin_def_mass_scale(const LocalVector& u,
                        const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -776,7 +776,7 @@ lin_def_mass(const LocalVector& u,
                   const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -809,7 +809,7 @@ ex_value(const LocalVector& u,
          std::vector<std::vector<number> > vvvDeriv[])
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -914,14 +914,14 @@ ex_grad(const LocalVector& u,
         std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 //	request geometry
-	const TFVGeom& geo = Provider<TFVGeom>::get(m_order);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
 //	reference dimension
-	static const int refDim = ref_elem_type::dim;
+	static const int refDim = TElem::dim;
 
 //	number of shape functions
 	static const size_t numSH =	ref_elem_type::numCorners;
