@@ -213,27 +213,17 @@ class ConvectionDiffusionFV : public ConvectionDiffusionBase<TDomain>
 	///	sets the quad order
 		void set_quad_order(size_t order);
 
-	///	sets the quad order for scv
-		void set_quad_order_scv(size_t order);
-
-	///	sets the quad order for scvf
-		void set_quad_order_scvf(size_t order);
-
 	protected:
-	///	current order of disc scheme
-		int m_order;
-
 	///	current shape function set
 		LFEID m_lfeID;
 
 	///	current integration order
 		bool m_bQuadOrderUserDef;
-		int m_quadOrderSCV;
-		int m_quadOrderSCVF;
+		int m_quadOrder;
 
 	///	register utils
 	///	\{
-		void register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF);
+		void register_all_funcs(const LFEID& lfeID, const int quadOrder);
 		template <typename TElem, typename TFVGeom> void register_func();
 	/// \}
 };

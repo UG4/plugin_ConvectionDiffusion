@@ -21,10 +21,9 @@ template<typename TDomain>
 ConvectionDiffusionFV<TDomain>::
 ConvectionDiffusionFV(const char* functions, const char* subsets)
  : ConvectionDiffusionBase<TDomain>(functions,subsets),
-   m_order(1), m_lfeID(LFEID::LAGRANGE, m_order),
-   m_bQuadOrderUserDef(false), m_quadOrderSCV(m_order+1), m_quadOrderSCVF(m_order+1)
+   m_bQuadOrderUserDef(false)
 {
-	register_all_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
+	this->enable_fast_add_elem(true);
 }
 
 template<typename TDomain>
@@ -39,13 +38,6 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		return false;
 	}
 
-	if(vLfeID[0].type() != LFEID::LAGRANGE)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
-				" FV Scheme only implemented for 1st order.\n");
-		return false;
-	}
-
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
 	{
@@ -56,13 +48,11 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 
 //	set order
 	m_lfeID = vLfeID[0];
-	m_order = vLfeID[0].order();
 	if(!m_bQuadOrderUserDef) {
-		m_quadOrderSCV = m_order+1;
-		m_quadOrderSCVF = m_order+1;
+		m_quadOrder = m_lfeID.order()+1;
 	}
 
-	register_all_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
+	register_all_funcs(m_lfeID, m_quadOrder);
 
 //	is supported
 	return true;
@@ -88,24 +78,7 @@ template<typename TDomain>
 void ConvectionDiffusionFV<TDomain>::
 set_quad_order(size_t order)
 {
-	set_quad_order_scv(order);
-	set_quad_order_scvf(order);
-}
-
-template<typename TDomain>
-void ConvectionDiffusionFV<TDomain>::
-set_quad_order_scv(size_t order)
-{
-	m_quadOrderSCV = order; m_bQuadOrderUserDef = true;
-	register_all_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
-}
-
-template<typename TDomain>
-void ConvectionDiffusionFV<TDomain>::
-set_quad_order_scvf(size_t order)
-{
-	m_quadOrderSCVF = order; m_bQuadOrderUserDef = true;
-	register_all_funcs(m_order, m_quadOrderSCV, m_quadOrderSCVF);
+	m_quadOrder = order; m_bQuadOrderUserDef = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -118,10 +91,10 @@ void ConvectionDiffusionFV<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 //	request geometry
-	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 	try{
-		geo.update_local(roid, m_order, m_quadOrderSCVF, m_quadOrderSCV);
+		geo.update_local(roid, m_lfeID, m_quadOrder);
 	}
 	UG_CATCH_THROW("ConvectionDiffusion::prep_elem_loop:"
 						" Cannot update Finite Volume Geometry.");
@@ -159,7 +132,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	m_vCornerCoords = this->template element_corners<TElem>(elem);
 
 //	request geometry
-	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 	try{
 		geo.update(elem, &m_vCornerCoords[0], &(this->subset_handler()));
@@ -202,7 +175,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	Diff. Tensor times Gradient
 	MathVector<dim> Dgrad;
@@ -305,7 +278,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -349,7 +322,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
 	{
@@ -482,7 +455,7 @@ void ConvectionDiffusionFV<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -534,7 +507,7 @@ add_rhs_elem(LocalVector& d)
 	if(!m_imSource.data_given()) return;
 
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -570,7 +543,7 @@ lin_def_velocity(const LocalVector& u,
                      const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -607,7 +580,7 @@ lin_def_diffusion(const LocalVector& u,
                       const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -650,7 +623,7 @@ lin_def_reaction_rate(const LocalVector& u,
                            const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -684,7 +657,7 @@ lin_def_reaction(const LocalVector& u,
                      const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -713,7 +686,7 @@ lin_def_source(const LocalVector& u,
                    const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -742,7 +715,7 @@ lin_def_mass_scale(const LocalVector& u,
                        const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -776,7 +749,7 @@ lin_def_mass(const LocalVector& u,
                   const size_t nip)
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
@@ -809,7 +782,7 @@ ex_value(const LocalVector& u,
          std::vector<std::vector<number> > vvvDeriv[])
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -914,7 +887,7 @@ ex_grad(const LocalVector& u,
         std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 //	request geometry
-	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrderSCV);
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
 	typedef typename reference_element_traits<TElem>::reference_element_type
@@ -999,8 +972,9 @@ ex_grad(const LocalVector& u,
 // register for all dim
 template<>
 void ConvectionDiffusionFV<Domain1d>::
-register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
+register_all_funcs(const LFEID& lfeID, const int quadOrder)
 {
+	const int order = lfeID.order();
 //	Edge
 	switch(order)
 	{}
@@ -1009,9 +983,10 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 // register for all dim
 template<>
 void ConvectionDiffusionFV<Domain2d>::
-register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
+register_all_funcs(const LFEID& lfeID, const int quadOrder)
 {
-	if(quadOrderSCV == order+1 && quadOrderSCVF ==  order+1)
+	const int order = lfeID.order();
+	if(quadOrder == order+1 && lfeID.type() == LFEID::LAGRANGE)
 	{
 	//	Triangle
 		switch(order)
@@ -1022,7 +997,7 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 					 register_func<Triangle, FVGeom >(); break;}
 			case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
 					 register_func<Triangle, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 2> FVGeom;
+			default: {typedef DimFVGeometry<dim> FVGeom;
 					 register_func<Triangle, FVGeom >(); break;}
 		}
 
@@ -1034,13 +1009,13 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 					 register_func<Quadrilateral, FVGeom >(); break;}
 			case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
 					 register_func<Quadrilateral, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 2> FVGeom;
+			default: {typedef DimFVGeometry<dim> FVGeom;
 					  register_func<Quadrilateral, FVGeom >(); break;}
 		}
 	}
 	else
 	{
-		typedef DimFVGeometry<dim, 2> FVGeom;
+		typedef DimFVGeometry<dim> FVGeom;
 		register_func<Triangle, FVGeom >();
 		register_func<Quadrilateral, FVGeom >();
 	}
@@ -1049,9 +1024,10 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 // register for all dim
 template<>
 void ConvectionDiffusionFV<Domain3d>::
-register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
+register_all_funcs(const LFEID& lfeID, const int quadOrder)
 {
-	if(quadOrderSCV == order+1 && quadOrderSCVF ==  order+1)
+	const int order = lfeID.order();
+	if(quadOrder == order+1 && lfeID.type() == LFEID::LAGRANGE)
 	{
 	//	Tetrahedron
 		switch(order)
@@ -1062,7 +1038,7 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 					 register_func<Tetrahedron, FVGeom >(); break;}
 			case 3:	{typedef FVGeometry<3, Tetrahedron, dim> FVGeom;
 					 register_func<Tetrahedron, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 3> FVGeom;
+			default: {typedef DimFVGeometry<dim> FVGeom;
 					  register_func<Tetrahedron, FVGeom >(); break;}
 		}
 
@@ -1070,7 +1046,7 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 		switch(order) {
 			case 1:	{typedef FVGeometry<1, Prism, dim> FVGeom;
 					 register_func<Prism, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 3> FVGeom;
+			default: {typedef DimFVGeometry<dim> FVGeom;
 					  register_func<Prism, FVGeom >(); break;}
 		}
 
@@ -1083,13 +1059,13 @@ register_all_funcs(int order, int quadOrderSCV, int quadOrderSCVF)
 					 register_func<Hexahedron, FVGeom >(); break;}
 			case 3:	{typedef FVGeometry<3, Hexahedron, dim> FVGeom;
 					 register_func<Hexahedron, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 3> FVGeom;
+			default: {typedef DimFVGeometry<dim> FVGeom;
 					  register_func<Hexahedron, FVGeom >(); break;}
 		}
 	}
 	else
 	{
-		typedef DimFVGeometry<dim, 3> FVGeom;
+		typedef DimFVGeometry<dim> FVGeom;
 		register_func<Tetrahedron, FVGeom >();
 		register_func<Prism, FVGeom >();
 		register_func<Hexahedron, FVGeom >();

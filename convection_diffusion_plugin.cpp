@@ -162,8 +162,6 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_quad_order", &T::set_quad_order)
-			.add_method("set_quad_order_scv", &T::set_quad_order_scv)
-			.add_method("set_quad_order_scvf", &T::set_quad_order_scvf)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
 	}
