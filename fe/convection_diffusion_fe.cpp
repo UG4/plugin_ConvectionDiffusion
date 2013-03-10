@@ -24,9 +24,9 @@ template<typename TDomain>
 ConvectionDiffusionFE<TDomain>::
 ConvectionDiffusionFE(const char* functions, const char* subsets)
  : ConvectionDiffusionBase<TDomain>(functions,subsets),
-	m_order(1), m_bQuadOrderUserDef(false), m_quadOrder(2*m_order+1)
+	m_bQuadOrderUserDef(false)
 {
-	register_all_funcs(m_order, m_quadOrder);
+	this->enable_fast_add_elem(true);
 }
 
 template<typename TDomain>
@@ -34,7 +34,6 @@ void ConvectionDiffusionFE<TDomain>::set_quad_order(size_t order)
 {
 	m_quadOrder = order;
 	m_bQuadOrderUserDef = true;
-	register_all_funcs(m_order, m_quadOrder);
 }
 
 template<typename TDomain>
@@ -49,13 +48,6 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 		return false;
 	}
 
-	if(vLfeID[0].type() != LFEID::LAGRANGE)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
-			" Lagrange trial space needed.\n");
-		return false;
-	}
-
 	//	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
 	{
@@ -66,10 +58,9 @@ request_finite_element_id(const std::vector<LFEID>& vLfeID)
 
 	//	set order
 	m_lfeID = vLfeID[0];
-	m_order = vLfeID[0].order();
-	if(!m_bQuadOrderUserDef) m_quadOrder = 2*m_order+1;
+	if(!m_bQuadOrderUserDef) m_quadOrder = 2*m_lfeID.order()+1;
 
-	register_all_funcs(m_order, m_quadOrder);
+	register_all_funcs(m_lfeID, m_quadOrder);
 
 	//	is supported
 	return true;
@@ -758,21 +749,22 @@ ex_grad(const LocalVector& u,
 // register for all dim
 template<>
 void ConvectionDiffusionFE<Domain1d>::
-register_all_funcs(int order, int quadOrder)
+register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
 //	Edge
-	register_func<Edge, DimFEGeometry<dim, 1> >();
+	register_func<Edge, DimFEGeometry<dim> >();
 }
 
 // register for all dim
 template<>
 void ConvectionDiffusionFE<Domain2d>::
-register_all_funcs(int order, int quadOrder)
+register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
-	if(quadOrder != 2*order+1)
+	const int order = lfeid.order();
+	if(quadOrder != 2*order+1 || lfeid.type() != LFEID::LAGRANGE)
 	{
-		register_func<Triangle, DimFEGeometry<dim, 2> >();
-		register_func<Quadrilateral, DimFEGeometry<dim, 2> >();
+		register_func<Triangle, DimFEGeometry<dim> >();
+		register_func<Quadrilateral, DimFEGeometry<dim> >();
 		return;
 	}
 
@@ -787,7 +779,7 @@ register_all_funcs(int order, int quadOrder)
 				 register_func<Triangle, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> > FEGeom;
 				 register_func<Triangle, FEGeom >(); break;}
-		default: register_func<Triangle, DimFEGeometry<dim, 2> >();  break;
+		default: register_func<Triangle, DimFEGeometry<dim> >();  break;
 	}
 
 //	Quadrilateral
@@ -798,21 +790,22 @@ register_all_funcs(int order, int quadOrder)
 				 register_func<Quadrilateral, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> > FEGeom;
 				 register_func<Quadrilateral, FEGeom >(); break;}
-		default: register_func<Quadrilateral, DimFEGeometry<dim, 2> >();  break;
+		default: register_func<Quadrilateral, DimFEGeometry<dim> >();  break;
 	}
 }
 
 // register for all dim
 template<>
 void ConvectionDiffusionFE<Domain3d>::
-register_all_funcs(int order, int quadOrder)
+register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
-	if(quadOrder != 2*order+1)
+	const int order = lfeid.order();
+	if(quadOrder != 2*order+1 || lfeid.type() != LFEID::LAGRANGE)
 	{
-		register_func<Tetrahedron, DimFEGeometry<dim, 3> >();
-		register_func<Prism, DimFEGeometry<dim, 3> >();
-		register_func<Pyramid, DimFEGeometry<dim, 3> >();
-		register_func<Hexahedron, DimFEGeometry<dim, 3> >();
+		register_func<Tetrahedron, DimFEGeometry<dim> >();
+		register_func<Prism, DimFEGeometry<dim> >();
+		register_func<Pyramid, DimFEGeometry<dim> >();
+		register_func<Hexahedron, DimFEGeometry<dim> >();
 		return;
 	}
 
@@ -827,20 +820,20 @@ register_all_funcs(int order, int quadOrder)
 				 register_func<Tetrahedron, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> > FEGeom;
 				 register_func<Tetrahedron, FEGeom >(); break;}
-		default: register_func<Tetrahedron, DimFEGeometry<dim, 3> >();  break;
+		default: register_func<Tetrahedron, DimFEGeometry<dim> >();  break;
 	}
 
 //	Prism
 	switch(order) {
 		case 1:	{typedef FEGeometry<Prism, dim, LagrangeLSFS<ReferencePrism, 1>, GaussQuadrature<ReferencePrism, 2> > FEGeom;
 				 register_func<Prism, FEGeom >(); break;}
-		default: register_func<Prism, DimFEGeometry<dim, 3> >();  break;
+		default: register_func<Prism, DimFEGeometry<dim> >();  break;
 	}
 
 //	Pyramid
 	switch(order)
 	{
-		default: register_func<Pyramid, DimFEGeometry<dim, 3> >();  break;
+		default: register_func<Pyramid, DimFEGeometry<dim> >();  break;
 	}
 
 //	Hexahedron
@@ -852,7 +845,7 @@ register_all_funcs(int order, int quadOrder)
 				 register_func<Hexahedron, FEGeom >(); break;}
 		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> > FEGeom;
 				 register_func<Hexahedron, FEGeom >(); break;}
-		default: register_func<Hexahedron, DimFEGeometry<dim, 3> >();  break;
+		default: register_func<Hexahedron, DimFEGeometry<dim> >();  break;
 	}
 }
 

@@ -214,12 +214,6 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 		virtual bool use_hanging() const;
 
 	protected:
-	///	current regular grid flag
-		bool m_bNonRegularGrid;
-
-	///	current order of disc scheme
-		int m_order;
-
 	///	current integration order
 		bool m_bQuadOrderUserDef;
 		int m_quadOrder;
@@ -229,7 +223,7 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 
 	///	register utils
 	///	\{
-		void register_all_funcs(int order, int quadOrder);
+		void register_all_funcs(const LFEID& lfeid, const int quadOrder);
 		template <typename TElem, typename TFEGeom> void register_func();
 	/// \}
 };
