@@ -11,7 +11,7 @@
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/local_finite_element/lagrange/lagrange.h"
 #include "lib_disc/local_finite_element/lagrange/lagrangep1.h"
-#include "lib_disc/quadrature/gauss_quad/gauss_quad.h"
+#include "lib_disc/quadrature/gauss/gauss_quad.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
