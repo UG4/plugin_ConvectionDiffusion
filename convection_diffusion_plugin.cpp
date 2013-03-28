@@ -45,7 +45,7 @@ static void Domain(Registry& reg, string grp)
 //	Convection Diffusion Base
 	{
 		typedef ConvectionDiffusionBase<TDomain> T;
-		typedef IDomainElemDisc<TDomain> TBase;
+		typedef IElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusionBase").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
 			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<UserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")

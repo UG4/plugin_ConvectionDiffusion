@@ -1016,6 +1016,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template<>
 void ConvectionDiffusionFV1<Domain1d>::
 register_all_funcs(bool bHang)
@@ -1030,7 +1031,9 @@ register_all_funcs(bool bHang)
 		register_func<Edge, HFV1Geometry<Edge, dim> >();
 	}
 }
+#endif
 
+#ifdef UG_DIM_2
 template<>
 void ConvectionDiffusionFV1<Domain2d>::
 register_all_funcs(bool bHang)
@@ -1047,7 +1050,9 @@ register_all_funcs(bool bHang)
 		register_func<Quadrilateral, HFV1Geometry<Quadrilateral, dim> >();
 	}
 }
+#endif
 
+#ifdef UG_DIM_3
 template<>
 void ConvectionDiffusionFV1<Domain3d>::
 register_all_funcs(bool bHang)
@@ -1068,6 +1073,7 @@ register_all_funcs(bool bHang)
 		register_func<Hexahedron, HFV1Geometry<Hexahedron, dim> >();
 	}
 }
+#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>

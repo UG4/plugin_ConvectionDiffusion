@@ -969,7 +969,7 @@ ex_grad(const LocalVector& u,
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// register for all dim
+#ifdef UG_DIM_1
 template<>
 void ConvectionDiffusionFV<Domain1d>::
 register_all_funcs(const LFEID& lfeID, const int quadOrder)
@@ -979,8 +979,9 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	switch(order)
 	{}
 }
+#endif
 
-// register for all dim
+#ifdef UG_DIM_2
 template<>
 void ConvectionDiffusionFV<Domain2d>::
 register_all_funcs(const LFEID& lfeID, const int quadOrder)
@@ -1020,8 +1021,9 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 		register_func<Quadrilateral, FVGeom >();
 	}
 }
+#endif
 
-// register for all dim
+#ifdef UG_DIM_3
 template<>
 void ConvectionDiffusionFV<Domain3d>::
 register_all_funcs(const LFEID& lfeID, const int quadOrder)
@@ -1072,6 +1074,7 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	}
 
 }
+#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>

@@ -313,7 +313,7 @@ gradient() {return m_exGrad;}
 template<typename TDomain>
 ConvectionDiffusionBase<TDomain>::
 ConvectionDiffusionBase(const char* functions, const char* subsets)
- : IDomainElemDisc<TDomain>(functions,subsets),
+ : IElemDisc<TDomain>(functions,subsets),
    m_exValue(new ValueDataExport<dim>(functions)),
    m_exGrad(new GradientDataExport<dim>(functions))
 {

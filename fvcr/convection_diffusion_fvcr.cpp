@@ -891,6 +891,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifdef UG_DIM_1
 template<>
 void ConvectionDiffusionFVCR<Domain1d>::
 register_all_funcs(bool bHang)
@@ -906,7 +907,9 @@ register_all_funcs(bool bHang)
 						" Hanging nodes not supported for CRFV discretization.");
 	}
 }
+#endif
 
+#ifdef UG_DIM_2
 template<>
 void ConvectionDiffusionFVCR<Domain2d>::
 register_all_funcs(bool bHang)
@@ -923,7 +926,9 @@ register_all_funcs(bool bHang)
 						" Hanging nodes not supported for CRFV discretization.");
 	}
 }
+#endif
 
+#ifdef UG_DIM_3
 template<>
 void ConvectionDiffusionFVCR<Domain3d>::
 register_all_funcs(bool bHang)
@@ -942,6 +947,7 @@ register_all_funcs(bool bHang)
 						" Hanging nodes not supported for CRFV discretization.");
 	}
 }
+#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>

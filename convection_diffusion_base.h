@@ -51,11 +51,11 @@ namespace ConvectionDiffusionPlugin{
  */
 template<	typename TDomain>
 class ConvectionDiffusionBase
-: public IDomainElemDisc<TDomain>
+: public IElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IDomainElemDisc<TDomain> base_type;
+		typedef IElemDisc<TDomain> base_type;
 
 	public:
 	///	World dimension

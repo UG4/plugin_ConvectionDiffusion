@@ -746,7 +746,7 @@ ex_grad(const LocalVector& u,
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-// register for all dim
+#ifdef UG_DIM_1
 template<>
 void ConvectionDiffusionFE<Domain1d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
@@ -754,8 +754,9 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Edge
 	register_func<Edge, DimFEGeometry<dim> >();
 }
+#endif
 
-// register for all dim
+#ifdef UG_DIM_2
 template<>
 void ConvectionDiffusionFE<Domain2d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
@@ -793,8 +794,9 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 		default: register_func<Quadrilateral, DimFEGeometry<dim> >();  break;
 	}
 }
+#endif
 
-// register for all dim
+#ifdef UG_DIM_3
 template<>
 void ConvectionDiffusionFE<Domain3d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
@@ -848,7 +850,7 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 		default: register_func<Hexahedron, DimFEGeometry<dim> >();  break;
 	}
 }
-
+#endif
 
 template <typename TDomain>
 template <typename TElem, typename TFEGeom>
