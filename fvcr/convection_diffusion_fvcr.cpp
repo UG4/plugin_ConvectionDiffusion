@@ -691,13 +691,16 @@ lin_def_mass(const LocalVector& u,
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void ConvectionDiffusionFVCR<TDomain>::
-ex_value(const LocalVector& u,
-                     const MathVector<dim> vGlobIP[],
-                     const MathVector<TFVGeom::dim> vLocIP[],
-                     const size_t nip,
-                     number vValue[],
-                     bool bDeriv,
-                     std::vector<std::vector<number> > vvvDeriv[])
+ex_value(number vValue[],
+         const MathVector<dim> vGlobIP[],
+         number time, int si,
+         const LocalVector& u,
+         GeometricObject* elem,
+         const MathVector<dim> vCornerCoords[],
+         const MathVector<TFVGeom::dim> vLocIP[],
+         const size_t nip,
+         bool bDeriv,
+         std::vector<std::vector<number> > vvvDeriv[])
 {
 //  get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -775,13 +778,16 @@ ex_value(const LocalVector& u,
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
 void ConvectionDiffusionFVCR<TDomain>::
-ex_grad(const LocalVector& u,
-                          const MathVector<dim> vGlobIP[],
-                          const MathVector<TFVGeom::dim> vLocIP[],
-                          const size_t nip,
-                          MathVector<dim> vValue[],
-                          bool bDeriv,
-                          std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
+ex_grad(MathVector<dim> vValue[],
+        const MathVector<dim> vGlobIP[],
+        number time, int si,
+        const LocalVector& u,
+        GeometricObject* elem,
+        const MathVector<dim> vCornerCoords[],
+        const MathVector<TFVGeom::dim> vLocIP[],
+        const size_t nip,
+        bool bDeriv,
+        std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 // 	Get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();

@@ -185,21 +185,27 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	protected:
 	///	computes the concentration
 		template <typename TElem, typename TFEGeom>
-		void ex_value(const LocalVector& u,
+		void ex_value(number vValue[],
 		              const MathVector<dim> vGlobIP[],
+		              number time, int si,
+		              const LocalVector& u,
+		              GeometricObject* elem,
+		              const MathVector<dim> vCornerCoords[],
 		              const MathVector<TFEGeom::dim> vLocIP[],
 		              const size_t nip,
-		              number vValue[],
 		              bool bDeriv,
 		              std::vector<std::vector<number> > vvvDeriv[]);
 
 	///	computes the gradient of the concentration
 		template <typename TElem, typename TFEGeom>
-		void ex_grad(const LocalVector& u,
+		void ex_grad(MathVector<dim> vValue[],
 		             const MathVector<dim> vGlobIP[],
+		             number time, int si,
+		             const LocalVector& u,
+		             GeometricObject* elem,
+		             const MathVector<dim> vCornerCoords[],
 		             const MathVector<TFEGeom::dim> vLocIP[],
 		             const size_t nip,
-		             MathVector<dim> vValue[],
 		             bool bDeriv,
 		             std::vector<std::vector<MathVector<dim> > > vvvDeriv[]);
 

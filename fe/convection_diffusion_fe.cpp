@@ -587,11 +587,14 @@ lin_def_mass(const LocalVector& u,
 template<typename TDomain>
 template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-ex_value(const LocalVector& u,
+ex_value(number vValue[],
          const MathVector<dim> vGlobIP[],
+         number time, int si,
+         const LocalVector& u,
+         GeometricObject* elem,
+         const MathVector<dim> vCornerCoords[],
          const MathVector<TFEGeom::dim> vLocIP[],
          const size_t nip,
-         number vValue[],
          bool bDeriv,
          std::vector<std::vector<number> > vvvDeriv[])
 {
@@ -662,13 +665,16 @@ ex_value(const LocalVector& u,
 template<typename TDomain>
 template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-ex_grad(const LocalVector& u,
-           const MathVector<dim> vGlobIP[],
-           const MathVector<TFEGeom::dim> vLocIP[],
-           const size_t nip,
-           MathVector<dim> vValue[],
-           bool bDeriv,
-           std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
+ex_grad(MathVector<dim> vValue[],
+        const MathVector<dim> vGlobIP[],
+        number time, int si,
+        const LocalVector& u,
+        GeometricObject* elem,
+        const MathVector<dim> vCornerCoords[],
+        const MathVector<TFEGeom::dim> vLocIP[],
+        const size_t nip,
+        bool bDeriv,
+        std::vector<std::vector<MathVector<dim> > > vvvDeriv[])
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
