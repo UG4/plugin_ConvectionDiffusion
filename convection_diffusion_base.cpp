@@ -23,7 +23,7 @@ namespace ConvectionDiffusionPlugin{
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_diffusion(SmartPtr<UserData<MathMatrix<dim, dim>, dim> > user)
+set_diffusion(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user)
 {
 	m_imDiffusion.set_data(user);
 }
@@ -46,7 +46,7 @@ void ConvectionDiffusionBase<TDomain>::set_diffusion(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_velocity(SmartPtr<UserData<MathVector<dim>, dim> > user)
+set_velocity(SmartPtr<CplUserData<MathVector<dim>, dim> > user)
 {
 	m_imVelocity.set_data(user);
 }
@@ -70,7 +70,7 @@ set_velocity(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_reaction_rate(SmartPtr<UserData<number, dim> > user)
+set_reaction_rate(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imReactionRate.set_data(user);
 }
@@ -95,7 +95,7 @@ set_reaction_rate(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_reaction_rate_explicit(SmartPtr<UserData<number, dim> > user)
+set_reaction_rate_explicit(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imReactionRate_explicit.set_data(user);
 }
@@ -120,7 +120,7 @@ set_reaction_rate_explicit(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_reaction(SmartPtr<UserData<number, dim> > user)
+set_reaction(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imReaction.set_data(user);
 }
@@ -145,7 +145,7 @@ set_reaction(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_reaction_explicit(SmartPtr<UserData<number, dim> > user)
+set_reaction_explicit(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imReaction_explicit.set_data(user);
 }
@@ -171,7 +171,7 @@ set_reaction_explicit(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_source(SmartPtr<UserData<number, dim> > user)
+set_source(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imSource.set_data(user);
 }
@@ -196,7 +196,7 @@ set_source(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_source_explicit(SmartPtr<UserData<number, dim> > user)
+set_source_explicit(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imSource_explicit.set_data(user);
 }
@@ -222,7 +222,7 @@ set_source_explicit(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_vector_source(SmartPtr<UserData<MathVector<dim>, dim> > user)
+set_vector_source(SmartPtr<CplUserData<MathVector<dim>, dim> > user)
 {
 	m_imVectorSource.set_data(user);
 }
@@ -245,7 +245,7 @@ void ConvectionDiffusionBase<TDomain>::set_vector_source(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_mass_scale(SmartPtr<UserData<number, dim> > user)
+set_mass_scale(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imMassScale.set_data(user);
 }
@@ -270,7 +270,7 @@ set_mass_scale(const char* fctName)
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
-set_mass(SmartPtr<UserData<number, dim> > user)
+set_mass(SmartPtr<CplUserData<number, dim> > user)
 {
 	m_imMass.set_data(user);
 }

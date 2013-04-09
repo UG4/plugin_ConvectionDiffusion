@@ -48,66 +48,66 @@ static void Domain(Registry& reg, string grp)
 		typedef IElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusionBase").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
-			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<UserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
+			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
 			.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
 #ifdef UG_FOR_LUA
 			.add_method("set_diffusion", static_cast<void (T::*)(const char*)>(&T::set_diffusion), "", "Diffusion")
 #endif
 
-			.add_method("set_velocity", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
+			.add_method("set_velocity", static_cast<void (T::*)(SmartPtr<CplUserData<MathVector<dim>, dim> >)>(&T::set_velocity), "", "Velocity Field")
 			.add_method("set_velocity", static_cast<void (T::*)(const std::vector<number>&)>(&T::set_velocity), "", "Velocity Field")
 #ifdef UG_FOR_LUA
 			.add_method("set_velocity", static_cast<void (T::*)(const char*)>(&T::set_velocity), "", "Velocity Field")
 #endif
 
-			.add_method("set_reaction_rate", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_reaction_rate), "", "Reaction Rate")
+			.add_method("set_reaction_rate", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_reaction_rate), "", "Reaction Rate")
 			.add_method("set_reaction_rate", static_cast<void (T::*)(number)>(&T::set_reaction_rate), "", "Reaction Rate")
 #ifdef UG_FOR_LUA
 			.add_method("set_reaction_rate", static_cast<void (T::*)(const char*)>(&T::set_reaction_rate), "", "Reaction Rate")
 #endif
 
-			.add_method("set_reaction", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_reaction), "", "Reaction")
+			.add_method("set_reaction", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_reaction), "", "Reaction")
 			.add_method("set_reaction", static_cast<void (T::*)(number)>(&T::set_reaction), "", "Reaction")
 #ifdef UG_FOR_LUA
 			.add_method("set_reaction", static_cast<void (T::*)(const char*)>(&T::set_reaction), "", "Reaction")
 #endif
 
-			.add_method("set_reaction_rate_explicit", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_reaction_rate_explicit), "", "Reaction Rate Explicit")
+			.add_method("set_reaction_rate_explicit", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_reaction_rate_explicit), "", "Reaction Rate Explicit")
 			.add_method("set_reaction_rate_explicit", static_cast<void (T::*)(number)>(&T::set_reaction_rate_explicit), "", "Reaction Rate Explicit")
 #ifdef UG_FOR_LUA
 			.add_method("set_reaction_rate_explicit", static_cast<void (T::*)(const char*)>(&T::set_reaction_rate_explicit), "", "Reaction Rate Explicit")
 #endif
 
-			.add_method("set_reaction_explicit", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_reaction_explicit), "", "Reaction Explicit")
+			.add_method("set_reaction_explicit", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_reaction_explicit), "", "Reaction Explicit")
 			.add_method("set_reaction_explicit", static_cast<void (T::*)(number)>(&T::set_reaction_explicit), "", "Reaction Explicit")
 #ifdef UG_FOR_LUA
 			.add_method("set_reaction_explicit", static_cast<void (T::*)(const char*)>(&T::set_reaction_explicit), "", "Reaction Explicit")
 #endif
 
-			.add_method("set_source_explicit", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_source_explicit), "", "Source Explicit")
+			.add_method("set_source_explicit", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_source_explicit), "", "Source Explicit")
 			.add_method("set_source_explicit", static_cast<void (T::*)(number)>(&T::set_source_explicit), "", "Source Explicit")
 			#ifdef UG_FOR_LUA
 			.add_method("set_source_explicit", static_cast<void (T::*)(const char*)>(&T::set_source_explicit), "", "Source Explicit")
 			#endif
 
-			.add_method("set_source", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_source), "", "Source")
+			.add_method("set_source", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_source), "", "Source")
 			.add_method("set_source", static_cast<void (T::*)(number)>(&T::set_source), "", "Source")
 #ifdef UG_FOR_LUA
 			.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
 #endif
 
-			.add_method("set_vector_source", static_cast<void (T::*)(SmartPtr<UserData<MathVector<dim>, dim> >)>(&T::set_vector_source), "", "Vector Source")
+			.add_method("set_vector_source", static_cast<void (T::*)(SmartPtr<CplUserData<MathVector<dim>, dim> >)>(&T::set_vector_source), "", "Vector Source")
 #ifdef UG_FOR_LUA
 			.add_method("set_vector_source", static_cast<void (T::*)(const char*)>(&T::set_vector_source), "", "Vector Source")
 #endif
 
-			.add_method("set_mass_scale", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_mass_scale), "", "Mass Scale")
+			.add_method("set_mass_scale", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_mass_scale), "", "Mass Scale")
 			.add_method("set_mass_scale", static_cast<void (T::*)(number)>(&T::set_mass_scale), "", "Mass Scale")
 #ifdef UG_FOR_LUA
 			.add_method("set_mass_scale", static_cast<void (T::*)(const char*)>(&T::set_mass_scale), "", "Mass Scale")
 #endif
 
-			.add_method("set_mass", static_cast<void (T::*)(SmartPtr<UserData<number, dim> >)>(&T::set_mass), "", "Mass")
+			.add_method("set_mass", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_mass), "", "Mass")
 			.add_method("set_mass", static_cast<void (T::*)(number)>(&T::set_mass), "", "Mass")
 #ifdef UG_FOR_LUA
 			.add_method("set_mass", static_cast<void (T::*)(const char*)>(&T::set_mass), "", "Mass")

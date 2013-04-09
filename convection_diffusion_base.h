@@ -71,7 +71,7 @@ class ConvectionDiffusionBase
 	 * Tensor is set, a zero value is assumed.
 	 */
 	///	\{
-		void set_diffusion(SmartPtr<UserData<MathMatrix<dim, dim>, dim> > user);
+		void set_diffusion(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user);
 		void set_diffusion(number val);
 #ifdef UG_FOR_LUA
 		void set_diffusion(const char* fctName);
@@ -84,7 +84,7 @@ class ConvectionDiffusionBase
 	 * value is assumed.
 	 */
 	/// \{
-		void set_velocity(SmartPtr<UserData<MathVector<dim>, dim> > user);
+		void set_velocity(SmartPtr<CplUserData<MathVector<dim>, dim> > user);
 		void set_velocity(const std::vector<number>& vVel);
 #ifdef UG_FOR_LUA
 		void set_velocity(const char* fctName);
@@ -96,7 +96,7 @@ class ConvectionDiffusionBase
 	 * This method sets the Reaction Rate. A zero value is assumed as default.
 	 */
 	///	\{
-		void set_reaction_rate(SmartPtr<UserData<number, dim> > user);
+		void set_reaction_rate(SmartPtr<CplUserData<number, dim> > user);
 		void set_reaction_rate(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction_rate(const char* fctName);
@@ -108,26 +108,26 @@ class ConvectionDiffusionBase
 	 * This method sets the Reaction. A zero value is assumed as default.
 	 */
 	///	\{
-		void set_reaction(SmartPtr<UserData<number, dim> > user);
+		void set_reaction(SmartPtr<CplUserData<number, dim> > user);
 		void set_reaction(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction(const char* fctName);
 #endif
 	///	\}
 
-		void set_reaction_rate_explicit(SmartPtr<UserData<number, dim> > user);
+		void set_reaction_rate_explicit(SmartPtr<CplUserData<number, dim> > user);
 		void set_reaction_rate_explicit(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction_rate_explicit(const char* fctName);
 #endif
 
-		void set_reaction_explicit(SmartPtr<UserData<number, dim> > user);
+		void set_reaction_explicit(SmartPtr<CplUserData<number, dim> > user);
 		void set_reaction_explicit(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction_explicit(const char* fctName);
 #endif
 
-		void set_source_explicit(SmartPtr<UserData<number, dim> > user);
+		void set_source_explicit(SmartPtr<CplUserData<number, dim> > user);
 		void set_source_explicit(number val);
 		#ifdef UG_FOR_LUA
 		void set_source_explicit(const char* fctName);
@@ -139,7 +139,7 @@ class ConvectionDiffusionBase
 	 * default.
 	 */
 	///	\{
-		void set_source(SmartPtr<UserData<number, dim> > user);
+		void set_source(SmartPtr<CplUserData<number, dim> > user);
 		void set_source(number val);
 #ifdef UG_FOR_LUA
 		void set_source(const char* fctName);
@@ -153,7 +153,7 @@ class ConvectionDiffusionBase
 	 * ignored then.
 	 */
 	///	\{
-		void set_vector_source(SmartPtr<UserData<MathVector<dim>, dim> > user);
+		void set_vector_source(SmartPtr<CplUserData<MathVector<dim>, dim> > user);
 		void set_vector_source(const std::vector<number>& vVel);
 #ifdef UG_FOR_LUA
 		void set_vector_source(const char* fctName);
@@ -166,7 +166,7 @@ class ConvectionDiffusionBase
 	 * default.
 	 */
 	///	\{
-		void set_mass_scale(SmartPtr<UserData<number, dim> > user);
+		void set_mass_scale(SmartPtr<CplUserData<number, dim> > user);
 		void set_mass_scale(number val);
 #ifdef UG_FOR_LUA
 		void set_mass_scale(const char* fctName);
@@ -179,7 +179,7 @@ class ConvectionDiffusionBase
 	 * default.
 	 */
 	///	\{
-		void set_mass(SmartPtr<UserData<number, dim> > user);
+		void set_mass(SmartPtr<CplUserData<number, dim> > user);
 		void set_mass(number val);
 #ifdef UG_FOR_LUA
 		void set_mass(const char* fctName);
@@ -225,14 +225,14 @@ class ConvectionDiffusionBase
 		virtual bool requests_local_time_series() {return false;}
 
 	public:
-		typedef SmartPtr<UserData<number, dim> > NumberExport;
-		typedef SmartPtr<UserData<MathVector<dim>, dim> > GradExport;
+		typedef SmartPtr<CplUserData<number, dim> > NumberExport;
+		typedef SmartPtr<CplUserData<MathVector<dim>, dim> > GradExport;
 
 	///	returns the export of the value of associated unknown function
-		virtual SmartPtr<UserData<number, dim> > value();
+		virtual SmartPtr<CplUserData<number, dim> > value();
 
 	///	returns the export of the gradient of associated unknown function
-		virtual SmartPtr<UserData<MathVector<dim>, dim> > gradient();
+		virtual SmartPtr<CplUserData<MathVector<dim>, dim> > gradient();
 
 	protected:
 	///	Export for the concentration
