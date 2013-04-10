@@ -37,41 +37,23 @@ void ConvectionDiffusionFE<TDomain>::set_quad_order(size_t order)
 }
 
 template<typename TDomain>
-bool ConvectionDiffusionFE<TDomain>::
-request_finite_element_id(const std::vector<LFEID>& vLfeID)
+void ConvectionDiffusionFE<TDomain>::
+prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	//	check number of fcts
 	if(vLfeID.size() != 1)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
-				" Wrong number of functions given. Need exactly "<<1<<"\n");
-		return false;
-	}
+		UG_THROW("ConvectionDiffusion: Wrong number of functions given. "
+				"Need exactly "<<1);
 
 	//	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
-				" Adaptive or invalid order not implemented.\n");
-		return false;
-	}
+		UG_THROW("ConvectionDiffusion: Adaptive order not implemented.");
 
 	//	set order
 	m_lfeID = vLfeID[0];
 	if(!m_bQuadOrderUserDef) m_quadOrder = 2*m_lfeID.order()+1;
 
 	register_all_funcs(m_lfeID, m_quadOrder);
-
-	//	is supported
-	return true;
-}
-
-template<typename TDomain>
-bool ConvectionDiffusionFE<TDomain>::
-request_non_regular_grid(bool bNonRegular)
-{
-//	this disc supports both grids
-	return true;
 }
 
 template<typename TDomain>

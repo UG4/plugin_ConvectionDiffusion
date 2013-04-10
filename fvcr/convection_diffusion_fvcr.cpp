@@ -29,40 +29,22 @@ ConvectionDiffusionFVCR(const char* functions, const char* subsets)
 }
 
 template<typename TDomain>
-bool ConvectionDiffusionFVCR<TDomain>::
-request_finite_element_id(const std::vector<LFEID>& vLfeID)
+void ConvectionDiffusionFVCR<TDomain>::
+prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 //	check number
 	if(vLfeID.size() != 1)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
-				" Wrong number of functions given. Need exactly "<<1<<"\n");
-		return false;
-	}
+		UG_THROW("ConvectionDiffusion: Wrong number of functions given. "
+				"Need exactly "<<1);
 
 	if(vLfeID[0].order() != 1 || vLfeID[0].type() != LFEID::CROUZEIX_RAVIART)
-	{
-		UG_LOG("ERROR in 'ConvectionDiffusion::request_finite_element_id':"
-				" FVCR Scheme only implemented for 1st order.\n");
-		return false;
-	}
+		UG_THROW("ConvectionDiffusion FVCR Scheme only implemented for 1st order.");
 
-//	is supported
-	return true;
-}
-
-template<typename TDomain>
-bool ConvectionDiffusionFVCR<TDomain>::
-request_non_regular_grid(bool bNonRegular)
-{
 //	remember
-	m_bNonRegularGrid = bNonRegular;
+	m_bNonRegularGrid = bNonRegularGrid;
 
 //	update assemble functions
 	register_all_funcs(m_bNonRegularGrid);
-
-//	this disc supports both grids
-	return true;
 }
 
 template<typename TDomain>

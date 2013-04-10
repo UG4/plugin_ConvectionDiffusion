@@ -223,10 +223,7 @@ class ConvectionDiffusionFVCR : public ConvectionDiffusionBase<TDomain>
 
 	public:
 	///	type of trial space for each function used
-		virtual bool request_finite_element_id(const std::vector<LFEID>& vLfeID);
-
-	///	switches between non-regular and regular grids
-		virtual bool request_non_regular_grid(bool bNonRegular);
+		virtual void prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid);
 
 	///	returns if hanging nodes are needed
 		virtual bool use_hanging() const;
