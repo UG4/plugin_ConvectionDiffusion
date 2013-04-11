@@ -24,7 +24,7 @@ namespace ConvectionDiffusionPlugin{
  * assemblings for the convection diffusion equation.
  * The Equation has the form
  * \f[
- * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c \right) +
+ * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c \right + \vec{F}) +
  * 		r1 \cdot c + r2 = f + f2
  * \f]
  * with
@@ -34,6 +34,7 @@ namespace ConvectionDiffusionPlugin{
  * <li>	\f$ m2 \equiv m(\vec{x},t) \f$ is the Mass Term
  * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
  * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
+ * <li>	\f$ F \equiv \vec{F}(\vec{x},t) \f$ is the Flux
  * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
  * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
@@ -121,6 +122,12 @@ class ConvectionDiffusionFV : public ConvectionDiffusionBase<TDomain>
 		                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                       const size_t nip);
 
+	///	computes the linearized defect w.r.t to the velocity
+		template <typename TElem, typename TFVGeom>
+		void lin_def_flux(const LocalVector& u,
+		                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
+		                  const size_t nip);
+
 	///	computes the linearized defect w.r.t to the reaction
 		template <typename TElem, typename TFVGeom>
 		void lin_def_reaction(const LocalVector& u,
@@ -166,13 +173,14 @@ class ConvectionDiffusionFV : public ConvectionDiffusionBase<TDomain>
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;
+		using base_type::m_imFlux;
 		using base_type::m_imSource;
-		using base_type::m_imSource_explicit;
+		using base_type::m_imSourceExpl;
 		using base_type::m_imVectorSource;
 		using base_type::m_imReactionRate;
-		using base_type::m_imReactionRate_explicit;
+		using base_type::m_imReactionRateExpl;
 		using base_type::m_imReaction;
-		using base_type::m_imReaction_explicit;
+		using base_type::m_imReactionExpl;
 		using base_type::m_imMassScale;
 		using base_type::m_imMass;
 

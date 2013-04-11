@@ -75,6 +75,11 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
+	if(	m_imSourceExpl.data_given() ||
+		m_imReactionExpl.data_given() ||
+		m_imReactionRateExpl.data_given())
+		UG_THROW("ConvectionDiffusionFV: Explicit terms not implemented.");
+
 //	request geometry
 	TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
@@ -94,6 +99,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 		const size_t numSCVip = geo.num_scv_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
 		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
+		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip, false);
 		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
 		m_imReactionRate.template	set_local_ips<refDim>(vSCVip,numSCVip, false);
 		m_imReaction.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
@@ -135,6 +141,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
 		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
+		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip);
 		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip);
 		m_imReactionRate.template 	set_local_ips<refDim>(vSCVip,numSCVip);
 		m_imReaction.template 		set_local_ips<refDim>(vSCVip,numSCVip);
@@ -147,6 +154,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 	const MathVector<dim>* vSCVip = geo.scv_global_ips();
 	m_imDiffusion.		set_global_ips(vSCVFip, numSCVFip);
 	m_imVelocity.		set_global_ips(vSCVFip, numSCVFip);
+	m_imFlux.			set_global_ips(vSCVFip, numSCVFip);
 	m_imSource.			set_global_ips(vSCVip, numSCVip);
 	m_imReactionRate.	set_global_ips(vSCVip, numSCVip);
 	m_imReaction.		set_global_ips(vSCVip, numSCVip);
@@ -213,6 +221,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 						J(_C_, scvf.to(),   _C_, sh) -= D_conv_flux * scvf.weight(i);
 					}
 				}
+
+				// no explicit dependency on flux import
 			} // end loop ip
 		} // end loop scvf
 	} // end data given
@@ -265,6 +275,8 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 //	request geometry
 	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
+	if(!m_imMassScale.data_given()) return;
+
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
 	{
@@ -282,14 +294,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 
 		//	loop integration points
 			for(size_t i = 0; i < scv.num_ip(); ++i)
-			{
-				if(m_imMassScale.data_given())
-					integral += scv.shape(i, sh) * scv.weight(i) * m_imMassScale[ip+i];
-				else
-					integral += scv.shape(i, sh) * scv.weight(i);
+				integral += scv.shape(i, sh) * scv.weight(i) * m_imMassScale[ip+i];
 
-				//	no explicit dependency in m_imMass
-			}
+		//	no explicit dependency in m_imMass
 
 		// 	Add to local matrix
 			J(_C_, co, _C_, sh) += integral;
@@ -309,7 +316,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 //	request geometry
 	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
-	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
+	if(m_imDiffusion.data_given() || m_imVelocity.data_given() || m_imFlux.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
 		for(size_t s = 0, ip = 0; s < geo.num_scvf(); ++s)
@@ -357,6 +364,15 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 
 				//	add convective flux
 					fluxIP += solIP * VecDot(m_imVelocity[ip], scvf.normal());
+				}
+
+			/////////////////////////////////////////////////////
+			// Flux Term
+			/////////////////////////////////////////////////////
+				if(m_imFlux.data_given())
+				{
+					//	add flux
+					fluxIP +=  VecDot(m_imFlux[ip], scvf.normal());
 				}
 
 			//	sum flux
@@ -442,6 +458,8 @@ add_def_M_elem(LocalVector& d, const LocalVector& u)
 //	request geometry
 	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
+	if(!m_imMassScale.data_given() && !m_imMass.data_given()) return;
+
 // 	loop Sub Control Volumes (SCV)
 	for(size_t s = 0, ip = 0; s < geo.num_scv(); ++s)
 	{
@@ -454,17 +472,18 @@ add_def_M_elem(LocalVector& d, const LocalVector& u)
 	//	loop integration points
 		for(size_t i = 0; i < scv.num_ip(); ++i, ++ip)
 		{
-		//	compute solution at ip
-			number solIP = 0;
-			for(size_t sh = 0; sh < scv.num_sh(); ++sh)
-				solIP += u(_C_, sh) * scv.shape(i, sh);
-
 		//	compute value
-			number val = solIP;
+			number val = 0.0;
 
 		//	multiply by scaling
-			if(m_imMassScale.data_given())
-				val *= m_imMassScale[ip];
+			if(m_imMassScale.data_given()){
+
+				number solIP = 0;
+				for(size_t sh = 0; sh < scv.num_sh(); ++sh)
+					solIP += u(_C_, sh) * scv.shape(i, sh);
+
+				val += m_imMassScale[ip] * solIP;
+			}
 
 		//	add mass
 			if(m_imMass.data_given())
@@ -552,6 +571,38 @@ lin_def_velocity(const LocalVector& u,
 		//	add parts for both sides of scvf
 			VecScale(vvvLinDef[ip][_C_][scvf.from()], scvf.normal(), solIP * scvf.weight(i));
 			VecScale(vvvLinDef[ip][_C_][scvf.to()  ], scvf.normal(), -solIP * scvf.weight(i));
+		}
+	}
+}
+
+//	computes the linearized defect w.r.t to the flux
+template<typename TDomain>
+template <typename TElem, typename TFVGeom>
+void ConvectionDiffusionFV<TDomain>::
+lin_def_flux(const LocalVector& u,
+             std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
+             const size_t nip)
+{
+//	request geometry
+	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
+
+//	reset the values for the linearized defect
+	for(size_t ip = 0; ip < nip; ++ip)
+		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
+			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
+				vvvLinDef[ip][c][sh] = 0.0;
+
+//  loop Sub Control Volume Faces (SCVF)
+	for(size_t s = 0, ip = 0; s < geo.num_scvf(); ++s)
+	{
+	// 	get current SCVF
+		const typename TFVGeom::SCVF& scvf = geo.scvf(s);
+
+		for(size_t i = 0; i < scvf.num_ip(); ++i, ++ip)
+		{
+		//	add parts for both sides of scvf
+			VecScale(vvvLinDef[ip][_C_][scvf.from()], scvf.normal(), scvf.weight(i));
+			VecScale(vvvLinDef[ip][_C_][scvf.to()  ], scvf.normal(), -scvf.weight(i));
 		}
 	}
 }
@@ -1087,9 +1138,10 @@ register_func()
 	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem<TElem, TFVGeom>);
 
 //	set computation of linearized defect w.r.t velocity
-	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
-	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion<TElem, TFVGeom>);
-	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate<TElem, TFVGeom>);
+	m_imDiffusion.	set_fct(id, this, &T::template lin_def_diffusion<TElem, TFVGeom>);
+	m_imVelocity. 	set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
+	m_imFlux.		set_fct(id, this, &T::template lin_def_flux<TElem, TFVGeom>);
+	m_imReactionRate.set_fct(id, this, &T::template lin_def_reaction_rate<TElem, TFVGeom>);
 	m_imReaction. set_fct(id, this, &T::template lin_def_reaction<TElem, TFVGeom>);
 	m_imSource.	  set_fct(id, this, &T::template lin_def_source<TElem, TFVGeom>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFVGeom>);

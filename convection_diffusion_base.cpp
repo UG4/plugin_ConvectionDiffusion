@@ -31,7 +31,8 @@ set_diffusion(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> > user)
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::set_diffusion(number val)
 {
-	set_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+	if(val == 0.0) set_diffusion(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >());
+	else set_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -54,7 +55,13 @@ set_velocity(SmartPtr<CplUserData<MathVector<dim>, dim> > user)
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::set_velocity(const std::vector<number>& vVel)
 {
-	set_velocity(SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)));
+	bool bZero = true;
+	for(size_t i = 0; i < vVel.size(); ++i){
+		if(vVel[i] != 0.0) bZero = false;
+	}
+
+	if(bZero) set_velocity(SmartPtr<CplUserData<MathVector<dim>, dim> >());
+	else set_velocity(SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)));
 }
 
 #ifdef UG_FOR_LUA
@@ -63,6 +70,36 @@ void ConvectionDiffusionBase<TDomain>::
 set_velocity(const char* fctName)
 {
 	set_velocity(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
+}
+#endif
+
+//////// Flux
+
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_flux(SmartPtr<CplUserData<MathVector<dim>, dim> > user)
+{
+	m_imFlux.set_data(user);
+}
+
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::set_flux(const std::vector<number>& vVel)
+{
+	bool bZero = true;
+	for(size_t i = 0; i < vVel.size(); ++i){
+		if(vVel[i] != 0.0) bZero = false;
+	}
+
+	if(bZero) set_flux(SmartPtr<CplUserData<MathVector<dim>, dim> >());
+	else set_flux(SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)));
+}
+
+#ifdef UG_FOR_LUA
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_flux(const char* fctName)
+{
+	set_flux(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
 }
 #endif
 
@@ -79,7 +116,8 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_reaction_rate(number val)
 {
-	set_reaction_rate(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_reaction_rate(SmartPtr<CplUserData<number, dim> >());
+	else set_reaction_rate(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -97,14 +135,15 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_reaction_rate_explicit(SmartPtr<CplUserData<number, dim> > user)
 {
-	m_imReactionRate_explicit.set_data(user);
+	m_imReactionRateExpl.set_data(user);
 }
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_reaction_rate_explicit(number val)
 {
-	set_reaction_rate_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_reaction_rate_explicit(SmartPtr<CplUserData<number, dim> >());
+	else set_reaction_rate_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -129,7 +168,8 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_reaction(number val)
 {
-	set_reaction(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_reaction(SmartPtr<CplUserData<number, dim> >());
+	else set_reaction(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -147,14 +187,15 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_reaction_explicit(SmartPtr<CplUserData<number, dim> > user)
 {
-	m_imReaction_explicit.set_data(user);
+	m_imReactionExpl.set_data(user);
 }
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_reaction_explicit(number val)
 {
-	set_reaction_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_reaction_explicit(SmartPtr<CplUserData<number, dim> >());
+	else set_reaction_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -180,7 +221,8 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_source(number val)
 {
-	set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_source(SmartPtr<CplUserData<number, dim> >());
+	else set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -198,14 +240,15 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_source_explicit(SmartPtr<CplUserData<number, dim> > user)
 {
-	m_imSource_explicit.set_data(user);
+	m_imSourceExpl.set_data(user);
 }
 
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_source_explicit(number val)
 {
-	set_source_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_source_explicit(SmartPtr<CplUserData<number, dim> >());
+	else set_source_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -230,7 +273,13 @@ set_vector_source(SmartPtr<CplUserData<MathVector<dim>, dim> > user)
 template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::set_vector_source(const std::vector<number>& vVel)
 {
-	set_velocity(SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)));
+	bool bZero = true;
+	for(size_t i = 0; i < vVel.size(); ++i){
+		if(vVel[i] != 0.0) bZero = false;
+	}
+
+	if(bZero) set_vector_source(SmartPtr<CplUserData<MathVector<dim>, dim> >());
+	else set_vector_source(SmartPtr<ConstUserVector<dim> >(new ConstUserVector<dim>(vVel)));
 }
 
 #ifdef UG_FOR_LUA
@@ -254,7 +303,8 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_mass_scale(number val)
 {
-	set_mass_scale(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_mass_scale(SmartPtr<CplUserData<number, dim> >());
+	else set_mass_scale(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -279,7 +329,8 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::
 set_mass(number val)
 {
-	set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	if(val == 0.0) set_mass(SmartPtr<CplUserData<number, dim> >());
+	else set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -325,11 +376,12 @@ ConvectionDiffusionBase(const char* functions, const char* subsets)
 //	register imports
 	this->register_import(m_imDiffusion);
 	this->register_import(m_imVelocity);
+	this->register_import(m_imFlux);
 	this->register_import(m_imReactionRate);
 	this->register_import(m_imReaction);
-	this->register_import(m_imReactionRate_explicit);
-	this->register_import(m_imReaction_explicit);
-	this->register_import(m_imSource_explicit);
+	this->register_import(m_imReactionRateExpl);
+	this->register_import(m_imReactionExpl);
+	this->register_import(m_imSourceExpl);
 	this->register_import(m_imSource);
 	this->register_import(m_imVectorSource);
 	this->register_import(m_imMassScale);
@@ -339,13 +391,16 @@ ConvectionDiffusionBase(const char* functions, const char* subsets)
 	m_imMass.set_mass_part();
 	m_imSource.set_rhs_part();
 	m_imVectorSource.set_rhs_part();
-	m_imSource_explicit.set_expl_part();
-	m_imReaction_explicit.set_expl_part();
-	m_imReactionRate_explicit.set_expl_part();
+	m_imSourceExpl.set_expl_part();
+	m_imReactionExpl.set_expl_part();
+	m_imReactionRateExpl.set_expl_part();
 
 //	register exports
 	this->register_export(m_exValue);
 	this->register_export(m_exGrad);
+
+//	default value for mass scale
+	set_mass_scale(1.0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

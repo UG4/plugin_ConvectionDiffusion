@@ -65,6 +65,14 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFVCR<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
+	if(m_imFlux.data_given())
+		UG_THROW("ConvectionDiffusionFVCR: Flux import not implemented.");
+
+	if(	m_imSourceExpl.data_given() ||
+		m_imReactionExpl.data_given() ||
+		m_imReactionRateExpl.data_given())
+		UG_THROW("ConvectionDiffusionFVCR: Explicit terms not implemented.");
+
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
@@ -255,6 +263,8 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
+	if(!m_imMassScale.data_given()) return;
+
 // 	loop Sub Control Volumes (SCV)
 	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
@@ -264,15 +274,8 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 	// 	get associated node
 		const int co = scv.node_id();
 
-	//	get value
-		number val = scv.volume();
-
-	//	multiply by scaling
-		if(m_imMassScale.data_given())
-			val *= m_imMassScale[ip];
-
 	// 	Add to local matrix
-		J(_C_, co, _C_, co) += val;
+		J(_C_, co, _C_, co) += scv.volume() * m_imMassScale[ip];
 	}
 
 //	m_imMass part does not explicitly depend on associated unknown function
@@ -383,49 +386,30 @@ add_def_M_elem(LocalVector& d, const LocalVector& u)
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-	if(!m_imMassScale.data_given() && !m_imMass.data_given())
+	if(!m_imMassScale.data_given() && !m_imMass.data_given()) return;
+
+// 	loop Sub Control Volumes (SCV)
+	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 	{
-	// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
+	// 	get current SCV
+		const typename TFVGeom::SCV& scv = geo.scv(ip);
 
-		// 	get associated node
-			const int co = scv.node_id();
+	// 	get associated node
+		const int co = scv.node_id();
 
-		//	mass value
-			number val = u(_C_, co) * scv.volume();
+	//	mass value
+		number val = 0.0;
 
-		// 	Add to local defect
-			d(_C_, co) += val;
-		}
-	}
-	else
-	{
-	// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
+	//	multiply by scaling
+		if(m_imMassScale.data_given())
+			val += m_imMassScale[ip] * u(_C_, co);
 
-		// 	get associated node
-			const int co = scv.node_id();
+	//	add mass
+		if(m_imMass.data_given())
+			val += m_imMass[ip];
 
-		//	mass value
-			number val = u(_C_, co);
-
-		//	multiply by scaling
-			if(m_imMassScale.data_given())
-				val *= m_imMassScale[ip];
-
-		//	add mass
-			if(m_imMass.data_given())
-				val += m_imMass[ip];
-
-		// 	Add to local defect
-			d(_C_, co) += val * scv.volume();
-		}
+	// 	Add to local defect
+		d(_C_, co) += val * scv.volume();
 	}
 }
 

@@ -91,6 +91,19 @@ class ConvectionDiffusionBase
 #endif
 	/// \}
 
+	///	sets the flux
+	/**
+	 * This method sets the Flux. If no field is provided a zero
+	 * value is assumed.
+	 */
+	/// \{
+		void set_flux(SmartPtr<CplUserData<MathVector<dim>, dim> > user);
+		void set_flux(const std::vector<number>& vVel);
+#ifdef UG_FOR_LUA
+		void set_flux(const char* fctName);
+#endif
+	/// \}
+
 	///	sets the reaction rate
 	/**
 	 * This method sets the Reaction Rate. A zero value is assumed as default.
@@ -129,9 +142,9 @@ class ConvectionDiffusionBase
 
 		void set_source_explicit(SmartPtr<CplUserData<number, dim> > user);
 		void set_source_explicit(number val);
-		#ifdef UG_FOR_LUA
+#ifdef UG_FOR_LUA
 		void set_source_explicit(const char* fctName);
-		#endif
+#endif
 
 	///	sets the source / sink term
 	/**
@@ -162,8 +175,7 @@ class ConvectionDiffusionBase
 
 	///	sets mass scale
 	/**
-	 * This method sets the mass scale value. A value of 1.0 is assumed as
-	 * default.
+	 * This method sets the mass scale value. The default value is 1.0.
 	 */
 	///	\{
 		void set_mass_scale(SmartPtr<CplUserData<number, dim> > user);
@@ -175,8 +187,7 @@ class ConvectionDiffusionBase
 
 	///	sets mass
 	/**
-	 * This method sets the mass value. A value of 0.0 is assumed as
-	 * default.
+	 * This method sets the mass value. The default value is 0.0.
 	 */
 	///	\{
 		void set_mass(SmartPtr<CplUserData<number, dim> > user);
@@ -193,6 +204,9 @@ class ConvectionDiffusionBase
 	///	Data import for the Velocity field
 		DataImport<MathVector<dim>, dim > m_imVelocity;
 
+	///	Data import for the Flux
+		DataImport<MathVector<dim>, dim > m_imFlux;
+
 	///	Data import for the reaction term
 		DataImport<number, dim> m_imReactionRate;
 
@@ -200,13 +214,13 @@ class ConvectionDiffusionBase
 		DataImport<number, dim> m_imReaction;
 
 	///	Data import for the reaction_rate term explicit
-		DataImport<number, dim> m_imReactionRate_explicit;
+		DataImport<number, dim> m_imReactionRateExpl;
 
 	///	Data import for the reaction term explicit
-		DataImport<number, dim> m_imReaction_explicit;
+		DataImport<number, dim> m_imReactionExpl;
 
 	///	Data import for the source term explicit
-		DataImport<number, dim> m_imSource_explicit;
+		DataImport<number, dim> m_imSourceExpl;
 
 	///	Data import for the right-hand side (volume)
 		DataImport<number, dim> m_imSource;
