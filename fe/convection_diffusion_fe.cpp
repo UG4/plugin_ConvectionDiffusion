@@ -108,16 +108,13 @@ fsh_elem_loop()
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-prep_elem(TElem* elem, const LocalVector& u)
+prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-//	get corners
-	m_vCornerCoords = this->template element_corners<TElem>(elem);
-
 //	request geometry
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 	try{
-		geo.update(elem, &m_vCornerCoords[0]);
+		geo.update(elem, vCornerCoords);
 	}
 	UG_CATCH_THROW("ConvectionDiffusion::prep_elem:"
 					" Cannot update Finite Element Geometry.");
@@ -137,7 +134,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -188,7 +185,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
+add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -218,7 +215,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-add_def_A_elem(LocalVector& d, const LocalVector& u)
+add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -280,7 +277,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-add_def_M_elem(LocalVector& d, const LocalVector& u)
+add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -322,7 +319,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-add_rhs_elem(LocalVector& d)
+add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -740,7 +737,7 @@ ex_grad(MathVector<dim> vValue[],
 
 	//	Reference Mapping
 		MathMatrix<dim, refDim> JTInv;
-		ReferenceMapping<ref_elem_type, dim> mapping(&m_vCornerCoords[0]);
+		ReferenceMapping<ref_elem_type, dim> mapping(vCornerCoords);
 
 	//	loop ips
 		for(size_t ip = 0; ip < nip; ++ip)

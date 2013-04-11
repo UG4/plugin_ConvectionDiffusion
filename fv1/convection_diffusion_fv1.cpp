@@ -107,15 +107,13 @@ fsh_elem_loop()
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-prep_elem(TElem* elem, const LocalVector& u)
+prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	m_vCornerCoords = &(this->template element_corners<TElem>(elem))[0];
-
 // 	Update Geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	try{
-		geo.update(elem, m_vCornerCoords, &(this->subset_handler()));
+		geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}UG_CATCH_THROW("ConvectionDiffusionFV1::prep_elem:"
 						" Cannot update Finite Volume Geometry.");
 
@@ -168,7 +166,7 @@ prep_elem(TElem* elem, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
+add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -257,7 +255,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
+add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -284,7 +282,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_def_A_elem(LocalVector& d, const LocalVector& u)
+add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -393,7 +391,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_def_A_expl_elem(LocalVector& d, const LocalVector& u)
+add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -452,7 +450,7 @@ add_def_A_expl_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_def_M_elem(LocalVector& d, const LocalVector& u)
+add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -488,7 +486,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_rhs_elem(LocalVector& d)
+add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[])
 {
 
 	// get finite volume geometry
@@ -935,7 +933,7 @@ ex_grad(MathVector<dim> vValue[],
 
 	//	Reference Mapping
 		MathMatrix<dim, refDim> JTInv;
-		ReferenceMapping<ref_elem_type, dim> mapping(&m_vCornerCoords[0]);
+		ReferenceMapping<ref_elem_type, dim> mapping(vCornerCoords);
 
 	//	loop ips
 		for(size_t ip = 0; ip < nip; ++ip)

@@ -82,7 +82,7 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFEGeom>
-		void prep_elem(TElem* elem, const LocalVector& u);
+		void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFEGeom>
@@ -90,23 +90,23 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, typename TFEGeom>
-		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u);
+		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, typename TFEGeom>
-		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u);
+		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, typename TFEGeom>
-		void add_def_A_elem(LocalVector& d, const LocalVector& u);
+		void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFEGeom>
-		void add_def_M_elem(LocalVector& d, const LocalVector& u);
+		void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local right hand side
 		template <typename TElem, typename TFEGeom>
-		void add_rhs_elem(LocalVector& d);
+		void add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
 		
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
@@ -166,9 +166,6 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	private:
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
-
-	///	Corner Coordinates
-		const MathVector<dim>* m_vCornerCoords;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;
