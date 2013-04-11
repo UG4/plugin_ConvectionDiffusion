@@ -31,7 +31,7 @@ void ConvectionDiffusionFV<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 //	check grid
-	if(!bNonRegularGrid)
+	if(bNonRegularGrid)
 		UG_THROW("ConvectionDiffusion: Only regular grid implemented.");
 
 //	check number
