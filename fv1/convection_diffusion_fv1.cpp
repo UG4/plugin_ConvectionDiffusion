@@ -393,7 +393,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
-add_def_A_elem_explicit(LocalVector& d, const LocalVector& u)
+add_def_A_expl_elem(LocalVector& d, const LocalVector& u)
 {
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -1075,7 +1075,7 @@ register_func()
 	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFVGeom>);
 	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFVGeom>);
 	this->set_add_def_A_elem_fct(id, &T::template add_def_A_elem<TElem, TFVGeom>);
-	this->set_add_def_A_elem_fct_explicit(id, &T::template add_def_A_elem_explicit<TElem, TFVGeom>);
+	this->set_add_def_A_expl_elem_fct(id, &T::template add_def_A_expl_elem<TElem, TFVGeom>);
 	this->set_add_def_M_elem_fct(id, &T::template add_def_M_elem<TElem, TFVGeom>);
 	this->set_add_rhs_elem_fct(  id, &T::template add_rhs_elem<TElem, TFVGeom>);
 

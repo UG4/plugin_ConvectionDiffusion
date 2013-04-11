@@ -105,10 +105,6 @@ class ConvectionDiffusionFVCR : public ConvectionDiffusionBase<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem(LocalVector& d, const LocalVector& u);
 
-	///	assembles the stiffness part of the local defect explicit reaction, reaction_rate and source
-		template <typename TElem, typename TFVGeom>
-		void add_def_A_elem_explicit(LocalVector& d, const LocalVector& u);
-
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFVGeom>
 		void add_def_M_elem(LocalVector& d, const LocalVector& u);
