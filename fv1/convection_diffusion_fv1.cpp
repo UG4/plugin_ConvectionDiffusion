@@ -64,6 +64,12 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
+
+//	check, that upwind has been set
+	if(m_spConvShape.invalid())
+		UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
+						" Upwind has not been set.");
+
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
@@ -85,17 +91,12 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 		m_imSourceExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip, false);
 		m_imMassScale.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
 		m_imMass.template 			set_local_ips<refDim>(vSCVip,numSCVip, false);
-	}
 
-//	check, that upwind has been set
-	if(m_spConvShape.invalid())
-		UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
-						" Upwind has not been set.");
-
-//	init upwind for element type
-	if(!m_spConvShape->template set_geometry_type<TFVGeom>())
-		UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
+		//	init upwind for element type
+		if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
+			UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
 						" Cannot init upwind for element type.");
+	}
 }
 
 template<typename TDomain>
@@ -139,7 +140,7 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 		m_imMass.template 			set_local_ips<refDim>(vSCVip,numSCVip);
 
 		if(m_spConvShape.valid())
-			if(!m_spConvShape->template set_geometry_type<TFVGeom>())
+			if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
 				UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
 								" Cannot init upwind for element type.");
 	}

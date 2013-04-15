@@ -147,7 +147,7 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 		m_imMass.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
 		if(m_spConvShape.valid())
-			if(!m_spConvShape->template set_geometry_type<TFVGeom>())
+			if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
 				UG_THROW("ConvectionDiffusion::prep_elem_loop:"
 								" Cannot init upwind for element type.");
 	}
