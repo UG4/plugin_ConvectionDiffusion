@@ -74,11 +74,11 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 	if(!TFVGeom::usesHangingNodes)
 	{
 		static const int refDim = TElem::dim;
-		static TFVGeom& geo = GeomProvider<TFVGeom>::get();
-		static const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
-		static const size_t numSCVFip = geo.num_scvf_ips();
-		static const MathVector<refDim>* vSCVip = geo.scv_local_ips();
-		static const size_t numSCVip = geo.num_scv_ips();
+		TFVGeom& geo = GeomProvider<TFVGeom>::get();
+		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
+		const size_t numSCVFip = geo.num_scvf_ips();
+		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
+		const size_t numSCVip = geo.num_scv_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
 		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
 		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip, false);
@@ -121,11 +121,11 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 //	set local positions
 	if(TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
-		static const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
-		static const size_t numSCVFip = geo.num_scvf_ips();
-		static const MathVector<refDim>* vSCVip = geo.scv_local_ips();
-		static const size_t numSCVip = geo.num_scv_ips();
+		const int refDim = TElem::dim;
+		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
+		const size_t numSCVFip = geo.num_scvf_ips();
+		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
+		const size_t numSCVip = geo.num_scv_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
 		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
 		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip);
@@ -146,10 +146,10 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 	}
 
 	//	set global positions
-	static const MathVector<dim>* vSCVFip = geo.scvf_global_ips();
-	static const size_t numSCVFip = geo.num_scvf_ips();
-	static const MathVector<dim>* vSCVip = geo.scv_global_ips();
-	static const size_t numSCVip = geo.num_scv_ips();
+	const MathVector<dim>* vSCVFip = geo.scvf_global_ips();
+	const size_t numSCVFip = geo.num_scvf_ips();
+	const MathVector<dim>* vSCVip = geo.scv_global_ips();
+	const size_t numSCVip = geo.num_scv_ips();
 	m_imDiffusion.			set_global_ips(vSCVFip, numSCVFip);
 	m_imVelocity.			set_global_ips(vSCVFip, numSCVFip);
 	m_imFlux.				set_global_ips(vSCVFip, numSCVFip);
