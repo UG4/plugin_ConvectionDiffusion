@@ -15,8 +15,9 @@
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
-/// \ingroup lib_disc_elem_disc
-/// @{
+// \ingroup lib_disc_elem_disc
+/// \addtogroup convection_diffusion
+/// \{
 
 /// Discretization for the Convection-Diffusion Equation
 /**
@@ -232,7 +233,8 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	/// \}
 };
 
-/// @}
+// end group convection_diffusion
+/// \}
 
 } // end ConvectionDiffusionPlugin
 } // end namespace ug

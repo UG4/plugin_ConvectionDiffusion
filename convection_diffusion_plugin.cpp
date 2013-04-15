@@ -19,6 +19,13 @@ using namespace ug::bridge;
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
+/** 
+ *  \defgroup convection_diffusion Convection Diffusion
+ *  \ingroup plugins_core
+ *  This plugin provides the discretization of convection and diffusion problems.
+ *  \{
+ */
+
 /**
  * Class exporting the functionality of the plugin. All functionality that is to
  * be used in scripts or visualization must be registered here.
@@ -175,6 +182,10 @@ static void Domain(Registry& reg, string grp)
 }
 
 }; // end Functionality
+
+// end group convection_diffusion
+/// \}
+
 } // end namespace ConvectionDiffusionPlugin
 
 
