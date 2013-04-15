@@ -395,10 +395,6 @@ ConvectionDiffusionBase(const char* functions, const char* subsets)
 	m_imReactionExpl.set_expl_part();
 	m_imReactionRateExpl.set_expl_part();
 
-//	register exports
-	this->register_export(m_exValue);
-	this->register_export(m_exGrad);
-
 //	default value for mass scale
 	set_mass_scale(1.0);
 }
