@@ -250,10 +250,10 @@ class ConvectionDiffusionBase
 
 	protected:
 	///	Export for the concentration
-		SmartPtr<ValueDataExport<dim> > m_exValue;
+		SmartPtr<DataExport<number, dim> > m_exValue;
 
 	///	Export for the gradient of concentration
-		SmartPtr<GradientDataExport<dim> > m_exGrad;
+		SmartPtr<DataExport<MathVector<dim>, dim> > m_exGrad;
 };
 
 /// @}

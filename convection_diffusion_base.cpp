@@ -365,8 +365,8 @@ template<typename TDomain>
 ConvectionDiffusionBase<TDomain>::
 ConvectionDiffusionBase(const char* functions, const char* subsets)
  : IElemDisc<TDomain>(functions,subsets),
-   m_exValue(new ValueDataExport<dim>(functions)),
-   m_exGrad(new GradientDataExport<dim>(functions))
+   m_exValue(new DataExport<number, dim>(functions)),
+   m_exGrad(new DataExport<MathVector<dim>, dim>(functions))
 {
 //	check number of functions
 	if(this->num_fct() != 1)
