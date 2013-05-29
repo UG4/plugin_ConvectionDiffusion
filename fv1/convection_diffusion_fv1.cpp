@@ -164,6 +164,30 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 	m_imMass.				set_global_ips(vSCVip, numSCVip);
 }
 
+//template <class TVector>
+//static TVector CalculateCenter(GeometricObject* o, const TVector* coords)
+//{
+//	TVector v;
+//	VecSet(v, 0);
+//
+//	size_t numCoords = 0;
+//	switch(o->base_object_id()){
+//		case VERTEX: numCoords = 1; break;
+//		case EDGE: numCoords = static_cast<EdgeBase*>(o)->num_vertices(); break;
+//		case FACE: numCoords = static_cast<Face*>(o)->num_vertices(); break;
+//		case VOLUME: numCoords = static_cast<Volume*>(o)->num_vertices(); break;
+//		default: UG_THROW("Unknown element type."); break;
+//	}
+//
+//	for(size_t i = 0; i < numCoords; ++i)
+//		VecAdd(v, v, coords[i]);
+//
+//	if(numCoords > 0)
+//		VecScale(v, v, 1. / (number)numCoords);
+//
+//	return v;
+//}
+
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
@@ -202,6 +226,10 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 					const number D_diff_flux = VecDot(Dgrad, scvf.normal());
 
 				// 	Add flux term to local matrix // HIER MATRIXINDIZES!!!
+//					UG_ASSERT((scvf.from() < J.num_row_dof(_C_)) && (scvf.to() < J.num_col_dof(_C_)),
+//							  "Bad local dof-index on element with object-id " << elem->base_object_id()
+//							  << " with center: " << CalculateCenter(elem, vCornerCoords));
+
 					J(_C_, scvf.from(), _C_, sh) -= D_diff_flux;
 					J(_C_, scvf.to()  , _C_, sh) += D_diff_flux;
 				}
