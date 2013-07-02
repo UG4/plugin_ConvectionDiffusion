@@ -282,7 +282,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, cons
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
-	number shape_u;
+	number shape_u = 0.0;
 
 	if(!m_imMassScale.data_given() && !m_imMass.data_given()) return;
 
