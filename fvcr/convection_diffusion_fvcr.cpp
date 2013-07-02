@@ -868,7 +868,7 @@ register_all_funcs(bool bHang)
 //	switch assemble functions
 	if(!bHang)
 	{
-		register_func<Edge, CRFVGeometry<Edge, dim> >();
+		UG_THROW("Crouxeiz-Raviart only senseful in dimension >= 2");
 	}
 	else
 	{

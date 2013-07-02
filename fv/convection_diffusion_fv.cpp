@@ -883,7 +883,7 @@ ex_value(number vValue[],
 	//	request for trial space
 		try{
 		const LocalShapeFunctionSet<dim>& rTrialSpace
-			 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
+			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
 		number vShape[numSH];
@@ -968,7 +968,7 @@ ex_grad(MathVector<dim> vValue[],
 	//	request for trial space
 		try{
 		const LocalShapeFunctionSet<dim>& rTrialSpace
-			 = LocalShapeFunctionSetProvider::get<dim>(roid, m_lfeID);
+			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
 		MathVector<refDim> vLocGrad[numSH];
