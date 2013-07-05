@@ -1017,10 +1017,9 @@ template<>
 void ConvectionDiffusionFV<Domain1d>::
 register_all_funcs(const LFEID& lfeID, const int quadOrder)
 {
-	const int order = lfeID.order();
-//	Edge
-	switch(order)
-	{}
+//	const int order = lfeID.order();
+//	typedef DimFVGeometry<dim> FVGeom;
+//	register_func<Edge, FVGeom >();
 }
 #endif
 
