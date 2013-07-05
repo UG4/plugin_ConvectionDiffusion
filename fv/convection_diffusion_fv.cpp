@@ -39,6 +39,10 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 		UG_THROW("ConvectionDiffusion: Wrong number of functions given. "
 				"Need exactly "<<1);
 
+//	check that Lagrange
+	if(vLfeID[0].type() != LFEID::LAGRANGE)
+		UG_THROW("ConvectionDiffusion: Only Lagrange supported.");
+
 //	check that not ADAPTIVE
 	if(vLfeID[0].order() < 1)
 		UG_THROW("ConvectionDiffusion: Adaptive order not implemented.");
