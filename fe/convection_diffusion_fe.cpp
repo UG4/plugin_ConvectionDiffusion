@@ -849,8 +849,6 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 
 //	Prism
 	switch(order) {
-		case 1:	{typedef FEGeometry<Prism, dim, LagrangeLSFS<ReferencePrism, 1>, GaussQuadrature<ReferencePrism, 2> > FEGeom;
-				 register_func<Prism, FEGeom >(); break;}
 		default: register_func<Prism, DimFEGeometry<dim> >();  break;
 	}
 
