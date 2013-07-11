@@ -762,8 +762,8 @@ lin_def_vector_source(const LocalVector& u,
 			VecScaleAppend( linDefect, 1.0, scvf.global_grad( sh ) );	// 1.0, because independent of solution
 
 		// add parts for both sides of scvf
-		vvvLinDef[ip][_C_][scvf.from()] += linDefect;
-		vvvLinDef[ip][_C_][scvf.to()] -= linDefect;
+		vvvLinDef[ip][_C_][scvf.from()] -= linDefect;
+		vvvLinDef[ip][_C_][scvf.to()] += linDefect;
 	}
 }
 
