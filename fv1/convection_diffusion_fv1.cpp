@@ -1052,11 +1052,13 @@ register_all_funcs(bool bHang)
 //	switch assemble functions
 	if(!bHang)
 	{
+		register_func<Edge, FV1Geometry<Edge, dim> >();
 		register_func<Triangle, FV1Geometry<Triangle, dim> >();
 		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
 	}
 	else
 	{
+		register_func<Edge, HFV1Geometry<Edge, dim> >();
 		register_func<Triangle, HFV1Geometry<Triangle, dim> >();
 		register_func<Quadrilateral, HFV1Geometry<Quadrilateral, dim> >();
 	}
@@ -1071,6 +1073,9 @@ register_all_funcs(bool bHang)
 //	switch assemble functions
 	if(!bHang)
 	{
+		register_func<Edge, FV1Geometry<Edge, dim> >();
+		register_func<Triangle, FV1Geometry<Triangle, dim> >();
+		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
 		register_func<Tetrahedron, FV1Geometry<Tetrahedron, dim> >();
 		register_func<Prism, FV1Geometry<Prism, dim> >();
 		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();
@@ -1078,6 +1083,9 @@ register_all_funcs(bool bHang)
 	}
 	else
 	{
+		register_func<Edge, HFV1Geometry<Edge, dim> >();
+		register_func<Triangle, HFV1Geometry<Triangle, dim> >();
+		register_func<Quadrilateral, HFV1Geometry<Quadrilateral, dim> >();
 		register_func<Tetrahedron, HFV1Geometry<Tetrahedron, dim> >();
 		register_func<Prism, HFV1Geometry<Prism, dim> >();
 		register_func<Pyramid, HFV1Geometry<Pyramid, dim> >();
