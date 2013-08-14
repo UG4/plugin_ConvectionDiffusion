@@ -621,8 +621,8 @@ ex_value(number vValue[],
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
-//	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
+//	reference dimension
+	static const int refDim = reference_element_traits<TElem>::dim;
 
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -649,11 +649,14 @@ ex_value(number vValue[],
 	{
 	//	request for trial space
 		try{
-		const LocalShapeFunctionSet<dim>& rTrialSpace
-			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
+		const LocalShapeFunctionSet<refDim>& rTrialSpace
+			 = LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
+
+	//	number of shape functions
+		const size_t numSH = rTrialSpace.num_sh();
 
 	//	storage for shape function at ip
-		number vShape[numSH];
+		std::vector<number> vShape(numSH);
 
 	//	loop ips
 		for(size_t ip = 0; ip < nip; ++ip)
@@ -702,9 +705,6 @@ ex_grad(MathVector<dim> vValue[],
 //	reference dimension
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-//	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
-
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
@@ -728,11 +728,14 @@ ex_grad(MathVector<dim> vValue[],
 	{
 	//	request for trial space
 		try{
-		const LocalShapeFunctionSet<dim>& rTrialSpace
-			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
+		const LocalShapeFunctionSet<refDim>& rTrialSpace
+			 = LocalFiniteElementProvider::get<refDim>(roid, m_lfeID);
+
+	//	number of shape functions
+		const size_t numSH = rTrialSpace.num_sh();
 
 	//	storage for shape function at ip
-		MathVector<refDim> vLocGrad[numSH];
+		std::vector<MathVector<refDim> > vLocGrad(numSH);
 		MathVector<refDim> locGrad;
 
 	//	Reference Mapping
@@ -783,6 +786,8 @@ template<>
 void ConvectionDiffusionFE<Domain2d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
+	register_func<Edge, DimFEGeometry<dim, 1> >();
+
 	const int order = lfeid.order();
 	if(quadOrder != 2*order+1 || lfeid.type() != LFEID::LAGRANGE)
 	{
@@ -823,6 +828,10 @@ template<>
 void ConvectionDiffusionFE<Domain3d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
+	register_func<Edge, DimFEGeometry<dim, 1> >();
+	register_func<Triangle, DimFEGeometry<dim, 2> >();
+	register_func<Quadrilateral, DimFEGeometry<dim, 2> >();
+
 	const int order = lfeid.order();
 	if(quadOrder != 2*order+1 || lfeid.type() != LFEID::LAGRANGE)
 	{
