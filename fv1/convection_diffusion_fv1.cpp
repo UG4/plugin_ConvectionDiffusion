@@ -879,7 +879,7 @@ ex_value(number vValue[],
 	else
 	{
 	//	get trial space
-		LagrangeP1<ref_elem_type> rTrialSpace = Provider<LagrangeP1<ref_elem_type> >::get();
+		LagrangeP1<ref_elem_type>& rTrialSpace = Provider<LagrangeP1<ref_elem_type> >::get();
 
 	//	storage for shape function at ip
 		number vShape[numSH];
