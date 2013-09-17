@@ -9,6 +9,7 @@
 
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/spatial_disc/disc_util/fvcr_geom.h"
+#include "lib_disc/spatial_disc/disc_util/hfvcr_geom.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
 namespace ug{
@@ -51,7 +52,7 @@ template<typename TDomain>
 bool ConvectionDiffusionFVCR<TDomain>::
 use_hanging() const
 {
-	return false;
+	return true;
 }
 
 
@@ -865,16 +866,7 @@ template<>
 void ConvectionDiffusionFVCR<Domain1d>::
 register_all_funcs(bool bHang)
 {
-//	switch assemble functions
-	if(!bHang)
-	{
-		UG_THROW("Crouxeiz-Raviart only senseful in dimension >= 2");
-	}
-	else
-	{
-		UG_THROW("ConvectionDiffusion"
-						" Hanging nodes not supported for CRFV discretization.");
-	}
+	UG_THROW("Crouxeiz-Raviart only senseful in dimension >= 2");
 }
 #endif
 
@@ -891,8 +883,8 @@ register_all_funcs(bool bHang)
 	}
 	else
 	{
-		UG_THROW("ConvectionDiffusion"
-						" Hanging nodes not supported for CRFV discretization.");
+		register_func<Triangle, HCRFVGeometry<Triangle, dim> >();
+		register_func<Quadrilateral, HCRFVGeometry<Quadrilateral, dim> >();
 	}
 }
 #endif
@@ -912,8 +904,10 @@ register_all_funcs(bool bHang)
 	}
 	else
 	{
-		UG_THROW("ConvectionDiffusion"
-						" Hanging nodes not supported for CRFV discretization.");
+		register_func<Tetrahedron, HCRFVGeometry<Tetrahedron, dim> >();
+		register_func<Prism, HCRFVGeometry<Prism, dim> >();
+		register_func<Pyramid, HCRFVGeometry<Pyramid, dim> >();
+		register_func<Hexahedron, HCRFVGeometry<Hexahedron, dim> >();
 	}
 }
 #endif
