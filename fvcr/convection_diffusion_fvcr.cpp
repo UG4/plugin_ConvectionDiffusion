@@ -147,20 +147,29 @@ prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCo
 		                       	                      geo.num_scv_ips());
 		m_imMass.template 	set_local_ips<refDim>(geo.scv_local_ips(),
 		                       	                      geo.num_scv_ips());
-		if(m_spConvShape.valid())
+/*		if(m_spConvShape.valid())
 			if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
 				UG_THROW("ConvectionDiffusion::prep_elem_loop:"
-								" Cannot init upwind for element type.");
+								" Cannot init upwind for element type.");*/
 	}
 
-//	set global positions
-	m_imDiffusion.	set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
-	m_imVelocity.	set_global_ips(geo.scvf_global_ips(), geo.num_scvf_ips());
-	m_imSource.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-	m_imReactionRate.set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-	m_imReaction.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-	m_imMassScale.	set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
-	m_imMass.		set_global_ips(geo.scv_global_ips(), geo.num_scv_ips());
+	//	set global positions
+	const MathVector<dim>* vSCVFip = geo.scvf_global_ips();
+	const size_t numSCVFip = geo.num_scvf_ips();
+	const MathVector<dim>* vSCVip = geo.scv_global_ips();
+	const size_t numSCVip = geo.num_scv_ips();
+	m_imDiffusion.			set_global_ips(vSCVFip, numSCVFip);
+	m_imVelocity.			set_global_ips(vSCVFip, numSCVFip);
+	// m_imFlux.				set_global_ips(vSCVFip, numSCVFip);
+	m_imSource.				set_global_ips(vSCVip, numSCVip);
+	// m_imVectorSource.		set_global_ips(vSCVFip, numSCVFip);
+	m_imReactionRate.		set_global_ips(vSCVip, numSCVip);
+	// m_imReactionRateExpl.	set_global_ips(vSCVip, numSCVip);
+	// m_imReactionExpl.		set_global_ips(vSCVip, numSCVip);
+	// m_imSourceExpl.			set_global_ips(vSCVip, numSCVip);
+	m_imReaction.			set_global_ips(vSCVip, numSCVip);
+	// m_imMassScale.			set_global_ips(vSCVip, numSCVip);
+	m_imMass.				set_global_ips(vSCVip, numSCVip);
 }
 
 template<typename TDomain>
@@ -224,6 +233,17 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 					J(_C_, scvf.to(),   _C_, sh) -= D_conv_flux;
 				}
 			}*/
+		}
+	}
+
+	// handle constrained dofs
+	if(TFVGeom::usesHangingNodes){
+		for (size_t i=0;i<geo.num_constrained_dofs();i++){
+			const typename TFVGeom::CONSTRAINED_DOF& cd = geo.constrained_dof(i);
+			const size_t index = cd.index();
+			J(_C_,index,_C_,index) = 1;
+			for (size_t j=0;j<cd.num_constraining_dofs();j++)
+				J(_C_, index, _C_, cd.constraining_dofs_index(j)) = -cd.constraining_dofs_weight(j);
 		}
 	}
 
@@ -371,6 +391,18 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, cons
 
 		// 	Add to local defect
 			d(_C_, co) += m_imReaction[ip] * scv.volume();
+		}
+	}
+
+	// handle constrained dofs, compute defect of interpolation equation
+	if(TFVGeom::usesHangingNodes){
+		for (size_t i=0;i<geo.num_constrained_dofs();i++){
+			const typename TFVGeom::CONSTRAINED_DOF& cd = geo.constrained_dof(i);
+			const size_t index = cd.index();
+			number defect = u(_C_,index);
+			for (size_t j=0;j<cd.num_constraining_dofs();j++)
+				defect -= cd.constraining_dofs_weight(j) * u(_C_,cd.constraining_dofs_index(j));
+			d(_C_,index) = defect;
 		}
 	}
 }
