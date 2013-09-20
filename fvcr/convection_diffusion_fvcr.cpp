@@ -242,13 +242,26 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 			const typename TFVGeom::CONSTRAINED_DOF& cd = geo.constrained_dof(i);
 			const size_t index = cd.index();
 			J(_C_,index,_C_,index) = 1;
-			for (size_t j=0;j<cd.num_constraining_dofs();j++)
+			for (size_t j=0;j<cd.num_constraining_dofs();j++){
 				J(_C_, index, _C_, cd.constraining_dofs_index(j)) = -cd.constraining_dofs_weight(j);
+				// insert interpolation equation directly into local stiffness matrix
+				number alpha=J(_C_,cd.constraining_dofs_index(j),_C_,index);
+				J(_C_,cd.constraining_dofs_index(j),_C_,index) = 0;
+				for (size_t k=0;k<cd.num_constraining_dofs();k++)
+					J(_C_,cd.constraining_dofs_index(j),_C_,cd.constraining_dofs_index(k)) += alpha*cd.constraining_dofs_weight(k);
+			}
 		}
 	}
 
-	// UG_LOG("Local Matrix is: \n"<<J<<"\n");
-
+/*	UG_LOG("Local Matrix is: \n");
+	size_t n = geo.num_scv()+geo.num_constrained_dofs();
+	UG_LOG("locA=[");
+	for (size_t i=0;i<n;i++){
+		for (size_t j=0;j<n;j++)
+			UG_LOG(J(0,i,0,j) << " ");
+		UG_LOG(";\n");
+	}
+	UG_LOG("]\n");*/
 ////////////////////////////////////////////////////
 // Reaction Term (using lumping)
 ////////////////////////////////////////////////////
