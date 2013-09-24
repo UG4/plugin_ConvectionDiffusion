@@ -212,9 +212,6 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 				// 	Add flux term to local matrix
 					J(_C_, scvf.from(), _C_, sh) -= D_diff_flux;
 					J(_C_, scvf.to()  , _C_, sh) += D_diff_flux;
-
-					// UG_LOG("\n m_imDiffusion[ip] "<<  m_imDiffusion[ip] << "\n scvf.global_grad(sh) " << scvf.global_grad(sh) << "\n scvf.normal()" << scvf.normal() <<"\n" << " D_diff_flux " << D_diff_flux << "\n\n\n" );
-
 				}
 			}
 
@@ -244,11 +241,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 			J(_C_,index,_C_,index) = 1;
 			for (size_t j=0;j<cd.num_constraining_dofs();j++){
 				J(_C_, index, _C_, cd.constraining_dofs_index(j)) = -cd.constraining_dofs_weight(j);
-				// insert interpolation equation directly into local stiffness matrix
+		/*		// insert interpolation equation directly into local stiffness matrix
 				number alpha=J(_C_,cd.constraining_dofs_index(j),_C_,index);
 				J(_C_,cd.constraining_dofs_index(j),_C_,index) = 0;
 				for (size_t k=0;k<cd.num_constraining_dofs();k++)
-					J(_C_,cd.constraining_dofs_index(j),_C_,cd.constraining_dofs_index(k)) += alpha*cd.constraining_dofs_weight(k);
+					J(_C_,cd.constraining_dofs_index(j),_C_,cd.constraining_dofs_index(k)) += alpha*cd.constraining_dofs_weight(k);*/
 			}
 		}
 	}
