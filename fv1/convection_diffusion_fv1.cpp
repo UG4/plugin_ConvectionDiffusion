@@ -750,20 +750,20 @@ lin_def_vector_source(const LocalVector& u,
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
+//	reset the values for the linearized defect
+	for(size_t ip = 0; ip < nip; ++ip)
+		for(size_t c = 0; c < vvvLinDef[ip].size(); ++c)
+			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
+				vvvLinDef[ip][c][sh] = 0.0;
+
 	// loop Sub Control Volumes Faces (SCVF)
 	for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
 		// get current SCVF
 		const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
 
-		// sum up contributions of convection shapes
-		MathVector<dim> linDefect;
-		VecSet( linDefect, 0.0 );
-		for ( size_t sh = 0; sh < scvf.num_sh(); ++sh )
-			VecScaleAppend( linDefect, 1.0, scvf.global_grad( sh ) );	// 1.0, because independent of solution
-
 		// add parts for both sides of scvf
-		vvvLinDef[ip][_C_][scvf.from()] -= linDefect;
-		vvvLinDef[ip][_C_][scvf.to()] += linDefect;
+		vvvLinDef[ip][_C_][scvf.from()] -= scvf.normal();
+		vvvLinDef[ip][_C_][scvf.to()] += scvf.normal();
 	}
 }
 
