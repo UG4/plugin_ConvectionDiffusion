@@ -239,13 +239,15 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, cons
 			const typename TFVGeom::CONSTRAINED_DOF& cd = geo.constrained_dof(i);
 			const size_t index = cd.index();
 			J(_C_,index,_C_,index) = 1;
-			for (size_t j=0;j<cd.num_constraining_dofs();j++){
+			for (size_t j=0;j<cd.num_constraining_dofs();j++)
 				J(_C_, index, _C_, cd.constraining_dofs_index(j)) = -cd.constraining_dofs_weight(j);
-		/*		// insert interpolation equation directly into local stiffness matrix
-				number alpha=J(_C_,cd.constraining_dofs_index(j),_C_,index);
-				J(_C_,cd.constraining_dofs_index(j),_C_,index) = 0;
+			// insert interpolation equation directly for all dofs
+			for (size_t j=0;j<geo.num_scv();j++){
+				const size_t nodeID = geo.scv(j).node_id();
+				number alpha=J(_C_,nodeID,_C_,index);
+				J(_C_,nodeID,_C_,index)=0;
 				for (size_t k=0;k<cd.num_constraining_dofs();k++)
-					J(_C_,cd.constraining_dofs_index(j),_C_,cd.constraining_dofs_index(k)) += alpha*cd.constraining_dofs_weight(k);*/
+					J(_C_,nodeID,_C_,cd.constraining_dofs_index(k)) += alpha*cd.constraining_dofs_weight(k);
 			}
 		}
 	}
