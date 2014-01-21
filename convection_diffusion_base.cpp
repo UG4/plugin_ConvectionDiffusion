@@ -32,7 +32,7 @@ template<typename TDomain>
 void ConvectionDiffusionBase<TDomain>::set_diffusion(number val)
 {
 	if(val == 0.0) set_diffusion(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >());
-	else set_diffusion(CreateSmartPtr(new ConstUserMatrix<dim>(val)));
+	else set_diffusion(make_sp(new ConstUserMatrix<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -117,7 +117,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_reaction_rate(number val)
 {
 	if(val == 0.0) set_reaction_rate(SmartPtr<CplUserData<number, dim> >());
-	else set_reaction_rate(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_reaction_rate(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -143,7 +143,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_reaction_rate_explicit(number val)
 {
 	if(val == 0.0) set_reaction_rate_explicit(SmartPtr<CplUserData<number, dim> >());
-	else set_reaction_rate_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_reaction_rate_explicit(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -169,7 +169,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_reaction(number val)
 {
 	if(val == 0.0) set_reaction(SmartPtr<CplUserData<number, dim> >());
-	else set_reaction(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_reaction(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -195,7 +195,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_reaction_explicit(number val)
 {
 	if(val == 0.0) set_reaction_explicit(SmartPtr<CplUserData<number, dim> >());
-	else set_reaction_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_reaction_explicit(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -222,7 +222,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_source(number val)
 {
 	if(val == 0.0) set_source(SmartPtr<CplUserData<number, dim> >());
-	else set_source(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_source(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -248,7 +248,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_source_explicit(number val)
 {
 	if(val == 0.0) set_source_explicit(SmartPtr<CplUserData<number, dim> >());
-	else set_source_explicit(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_source_explicit(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -304,7 +304,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_mass_scale(number val)
 {
 	if(val == 0.0) set_mass_scale(SmartPtr<CplUserData<number, dim> >());
-	else set_mass_scale(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_mass_scale(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
@@ -330,7 +330,7 @@ void ConvectionDiffusionBase<TDomain>::
 set_mass(number val)
 {
 	if(val == 0.0) set_mass(SmartPtr<CplUserData<number, dim> >());
-	else set_mass(CreateSmartPtr(new ConstUserNumber<dim>(val)));
+	else set_mass(make_sp(new ConstUserNumber<dim>(val)));
 }
 
 #ifdef UG_FOR_LUA
