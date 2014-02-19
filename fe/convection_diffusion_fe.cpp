@@ -776,8 +776,8 @@ template<>
 void ConvectionDiffusionFE<Domain1d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
-//	Edge
-	register_func<Edge, DimFEGeometry<dim> >();
+//	RegularEdge
+	register_func<RegularEdge, DimFEGeometry<dim> >();
 }
 #endif
 
@@ -786,7 +786,7 @@ template<>
 void ConvectionDiffusionFE<Domain2d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
-	register_func<Edge, DimFEGeometry<dim, 1> >();
+	register_func<RegularEdge, DimFEGeometry<dim, 1> >();
 
 	const int order = lfeid.order();
 	if(quadOrder != 2*order+1 || lfeid.type() != LFEID::LAGRANGE)
@@ -828,7 +828,7 @@ template<>
 void ConvectionDiffusionFE<Domain3d>::
 register_all_funcs(const LFEID& lfeid, const int quadOrder)
 {
-	register_func<Edge, DimFEGeometry<dim, 1> >();
+	register_func<RegularEdge, DimFEGeometry<dim, 1> >();
 	register_func<Triangle, DimFEGeometry<dim, 2> >();
 	register_func<Quadrilateral, DimFEGeometry<dim, 2> >();
 
