@@ -173,7 +173,7 @@ static TVector CalculateCenter(GridObject* o, const TVector* coords)
 	size_t numCoords = 0;
 	switch(o->base_object_id()){
 		case VERTEX: numCoords = 1; break;
-		case EDGE: numCoords = static_cast<EdgeBase*>(o)->num_vertices(); break;
+		case EDGE: numCoords = static_cast<Edge*>(o)->num_vertices(); break;
 		case FACE: numCoords = static_cast<Face*>(o)->num_vertices(); break;
 		case VOLUME: numCoords = static_cast<Volume*>(o)->num_vertices(); break;
 		default: UG_THROW("Unknown element type."); break;
