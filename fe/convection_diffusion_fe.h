@@ -83,7 +83,7 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFEGeom>
-		void prep_elem(const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFEGeom>
@@ -91,23 +91,23 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, typename TFEGeom>
-		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local mass matrix using a finite volume scheme
 		template <typename TElem, typename TFEGeom>
-		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, typename TFEGeom>
-		void add_def_A_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFEGeom>
-		void add_def_M_elem(LocalVector& d, const LocalVector& u, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local right hand side
 		template <typename TElem, typename TFEGeom>
-		void add_rhs_elem(LocalVector& d, GeometricObject* elem, const MathVector<dim> vCornerCoords[]);
+		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 		
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
@@ -191,7 +191,7 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 		              const MathVector<dim> vGlobIP[],
 		              number time, int si,
 		              const LocalVector& u,
-		              GeometricObject* elem,
+		              GridObject* elem,
 		              const MathVector<dim> vCornerCoords[],
 		              const MathVector<TFEGeom::dim> vLocIP[],
 		              const size_t nip,
@@ -204,7 +204,7 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 		             const MathVector<dim> vGlobIP[],
 		             number time, int si,
 		             const LocalVector& u,
-		             GeometricObject* elem,
+		             GridObject* elem,
 		             const MathVector<dim> vCornerCoords[],
 		             const MathVector<TFEGeom::dim> vLocIP[],
 		             const size_t nip,
