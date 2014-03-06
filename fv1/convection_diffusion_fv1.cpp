@@ -1103,7 +1103,7 @@ register_func()
 	typedef this_type T;
 	static const int refDim = reference_element_traits<TElem>::dim;
 
-	this->enable_fast_add_elem(true);
+	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
 	this->set_prep_elem_fct(	 id, &T::template prep_elem<TElem, TFVGeom>);
 	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop<TElem, TFVGeom>);
