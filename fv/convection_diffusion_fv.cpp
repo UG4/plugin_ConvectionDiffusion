@@ -828,9 +828,6 @@ ex_value(number vValue[],
 	typedef typename reference_element_traits<TElem>::reference_element_type
 			ref_elem_type;
 
-//	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
-
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
@@ -890,7 +887,7 @@ ex_value(number vValue[],
 			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
-		number vShape[numSH];
+		std::vector<number> vShape(rTrialSpace.num_sh());
 
 	//	loop ips
 		for(size_t ip = 0; ip < nip; ++ip)
@@ -900,14 +897,17 @@ ex_value(number vValue[],
 
 		//	compute concentration at ip
 			vValue[ip] = 0.0;
-			for(size_t sh = 0; sh < numSH; ++sh)
+			for(size_t sh = 0; sh < vShape.size(); ++sh)
 				vValue[ip] += u(_C_, sh) * vShape[sh];
 
 		//	compute derivative w.r.t. to unknowns iff needed
 		//	\todo: maybe store shapes directly in vvvDeriv
 			if(bDeriv)
-				for(size_t sh = 0; sh < numSH; ++sh)
+				for(size_t sh = 0; sh < vShape.size(); ++sh){
+					UG_ASSERT(_C_ < vvvDeriv[ip].size(), _C_<<", "<<vvvDeriv[ip].size());
+					UG_ASSERT(sh < vvvDeriv[ip][_C_].size(), sh<<", "<<vvvDeriv[ip][_C_].size());
 					vvvDeriv[ip][_C_][sh] = vShape[sh];
+				}
 		}
 		}
 		UG_CATCH_THROW("ConvectionDiffusion::ex_value: trial space missing.");
@@ -938,9 +938,6 @@ ex_grad(MathVector<dim> vValue[],
 
 //	reference dimension
 	static const int refDim = TElem::dim;
-
-//	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
 
 //	reference object id
 	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
@@ -975,7 +972,8 @@ ex_grad(MathVector<dim> vValue[],
 			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
-		MathVector<refDim> vLocGrad[numSH];
+		const size_t numSH = rTrialSpace.num_sh();
+		std::vector<MathVector<refDim> > vLocGrad(numSH);
 		MathVector<refDim> locGrad;
 
 	//	Reference Mapping
