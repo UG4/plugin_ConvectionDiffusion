@@ -1016,8 +1016,8 @@ void ConvectionDiffusionFV<Domain1d>::
 register_all_funcs(const LFEID& lfeID, const int quadOrder)
 {
 //	const int order = lfeID.order();
-//	typedef DimFVGeometry<dim> FVGeom;
-//	register_func<RegularEdge, FVGeom >();
+	typedef DimFVGeometry<dim> FVGeom;
+	register_func<RegularEdge, FVGeom >();
 }
 #endif
 
