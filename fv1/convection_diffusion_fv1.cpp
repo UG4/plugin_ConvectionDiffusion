@@ -586,7 +586,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 		static const int refDim = TElem::dim;
 
 		// get local IPs
-		std::size_t numSideIPs, numElemIPs;
+		size_t numSideIPs, numElemIPs;
 		const MathVector<refDim>* sideIPs;
 		const MathVector<refDim>* elemIPs;
 		try
@@ -622,9 +622,9 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
 
 		m_shapeValues.resize(numElemIPs, numSideIPs, trialSpace.num_sh());
-		for (std::size_t ip = 0; ip < numElemIPs; ip++)
+		for (size_t ip = 0; ip < numElemIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtElemIP(ip), elemIPs[ip]);
-		for (std::size_t ip = 0; ip < numSideIPs; ip++)
+		for (size_t ip = 0; ip < numSideIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
 	}
 }
@@ -652,7 +652,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 	{
 		static const int refDim = TElem::dim;
 
-		std::size_t numSideIPs, numElemIPs;
+		size_t numSideIPs, numElemIPs;
 		const MathVector<refDim>* sideIPs;
 		const MathVector<refDim>* elemIPs;
 		try
@@ -687,14 +687,14 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 					= Provider<LagrangeP1<typename reference_element_traits<TElem>::reference_element_type> >::get();
 
 		m_shapeValues.resize(numElemIPs, numSideIPs, trialSpace.num_sh());
-		for (std::size_t ip = 0; ip < numElemIPs; ip++)
+		for (size_t ip = 0; ip < numElemIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtElemIP(ip), elemIPs[ip]);
-		for (std::size_t ip = 0; ip < numSideIPs; ip++)
+		for (size_t ip = 0; ip < numSideIPs; ip++)
 			trialSpace.shapes(m_shapeValues.shapesAtSideIP(ip), sideIPs[ip]);
 	}
 
 //	set global positions
-	std::size_t numSideIPs, numElemIPs;
+	size_t numSideIPs, numElemIPs;
 	std::vector<MathVector<dim> > sideIPs;
 	std::vector<MathVector<dim> > elemIPs;
 
@@ -753,7 +753,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != ref_elem_type::numSides)
+	if (side_list.size() != (size_t) ref_elem_type::numSides)
 		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
 
 // 	some help variables
@@ -764,12 +764,12 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	const typename TFVGeom::SCVF& scvf = geo.scvf(0);
 
 	VecSet(gradC, 0.0);
-	for (std::size_t j=0; j<m_shapeValues.num_sh(); j++)
+	for (size_t j=0; j<m_shapeValues.num_sh(); j++)
 		VecScaleAppend(gradC, u(_C_,j), scvf.global_grad(j));
 
 // calculate flux through the sides
-	std::size_t passedIPs = 0;
-	for (std::size_t side=0; side<ref_elem_type::numSides; side++)
+	size_t passedIPs = 0;
+	for (size_t side=0; side < (size_t) ref_elem_type::numSides; side++)
 	{
 		// normal on side
 		SideNormal<ref_elem_type,dim>(normal, side, vCornerCoords);
@@ -777,9 +777,9 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 		try
 		{
-			for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+			for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
 			{
-				std::size_t ip = passedIPs + sip;
+				size_t ip = passedIPs + sip;
 
 				VecSet(fluxDensity, 0.0);
 
@@ -791,7 +791,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 				if (m_imVelocity.data_given())
 				{
 					number val = 0.0;
-					for (std::size_t sh = 0; sh < m_shapeValues.num_sh(); sh++)
+					for (size_t sh = 0; sh < m_shapeValues.num_sh(); sh++)
 						val += u(_C_,sh) * m_shapeValues.shapeAtSideIP(sh,sip);
 
 					VecScaleAppend(fluxDensity, val, m_imVelocity[ip]);
@@ -821,7 +821,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 	try
 	{
-		for (std::size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
+		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
 		{
 			number total = 0.0;
 
@@ -841,7 +841,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			if (m_imReactionRate.data_given())
 			{
 				number val = 0.0;
-				for (std::size_t sh = 0; sh < geo.num_sh(); sh++)
+				for (size_t sh = 0; sh < geo.num_sh(); sh++)
 					val += u(_C_,sh) * m_shapeValues.shapeAtElemIP(sh,ip);
 
 				total += m_imReactionRate[ip] * val;
@@ -883,7 +883,7 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 // 	loop integration points
 	try
 	{
-		for (std::size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
+		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
 		{
 			number total = 0.0;
 
@@ -891,7 +891,7 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 			if (m_imMassScale.data_given())
 			{
 				number val = 0.0;
-				for (std::size_t sh = 0; sh < geo.num_sh(); sh++)
+				for (size_t sh = 0; sh < geo.num_sh(); sh++)
 					val += u(_C_,sh) * m_shapeValues.shapeAtElemIP(sh,ip);
 
 				total += m_imMassScale[ip] * val;
@@ -929,12 +929,12 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 //	get the sides of the element
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != ref_elem_type::numSides)
+	if (side_list.size() != (size_t) ref_elem_type::numSides)
 		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
 
 // loop sides
-	std::size_t passedIPs = 0;
-	for (std::size_t side = 0; side < ref_elem_type::numSides; side++)
+	size_t passedIPs = 0;
+	for (size_t side = 0; side < (size_t) ref_elem_type::numSides; side++)
 	{
 		// normal on side
 		MathVector<dim> normal;
@@ -943,9 +943,9 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 
 		try
 		{
-			for (std::size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
+			for (size_t sip = 0; sip < err_est_data->num_side_ips(side_list[side]); sip++)
 			{
-				std::size_t ip = passedIPs + sip;
+				size_t ip = passedIPs + sip;
 
 			////// vector source //////
 				if (m_imVectorSource.data_given())
@@ -971,7 +971,7 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 ////// source //////
 	try
 	{
-		for (std::size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
+		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
 			(*err_est_data)(elem_list[0],ip) += scale * m_imSource[ip];
 	}
 	UG_CATCH_THROW("Values for the error estimator could not be assembled at every IP." << std::endl
