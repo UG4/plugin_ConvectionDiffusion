@@ -429,9 +429,9 @@ lin_def_diffusion(const LocalVector& u,
 	//	loop test spaces
 		for(size_t i = 0; i < geo.num_sh(); ++i)
 		{
-			for(size_t k=0; k < (size_t)dim; ++k)
+			for(size_t k = 0; k < (size_t)dim; ++k)
 				for(size_t j = 0; j < (size_t)dim; ++j)
-					(vvvLinDef[ip][_C_][i])(k,j) += grad_u[j] * geo.global_grad(ip, i)[k]
+					(vvvLinDef[ip][_C_][i])(k,j) = grad_u[j] * geo.global_grad(ip, i)[k]
 												* geo.weight(ip);
 		}
 	}
