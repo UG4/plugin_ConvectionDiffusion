@@ -642,10 +642,10 @@ lin_def_diffusion(const LocalVector& u,
 			for(size_t k=0; k < (size_t)dim; ++k)
 				for(size_t j = 0; j < (size_t)dim; ++j)
 				{
-					const number val = (scvf.normal())[j] * gradIP[k];
+					const number val = (scvf.normal())[k] * gradIP[j];
 
-					vvvLinDef[ip][_C_][scvf.from()](k,j) = val * scvf.weight(i);
-					vvvLinDef[ip][_C_][scvf.to()  ](k,j) -= val * scvf.weight(i);
+					vvvLinDef[ip][_C_][scvf.from()](k,j) = -val * scvf.weight(i);
+					vvvLinDef[ip][_C_][scvf.to()  ](k,j) = val * scvf.weight(i);
 				}
 		}
 	}
