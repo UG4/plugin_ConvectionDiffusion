@@ -695,18 +695,16 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 
 //	set global positions
 	size_t numSideIPs, numElemIPs;
-	std::vector<MathVector<dim> > sideIPs;
-	std::vector<MathVector<dim> > elemIPs;
+	const MathVector<dim>* sideIPs;
+	const MathVector<dim>* elemIPs;
 
 	try
 	{
 		numSideIPs = err_est_data->num_all_side_ips(roid);
 		numElemIPs = err_est_data->num_elem_ips(roid);
-		sideIPs = std::vector<MathVector<dim> >(numSideIPs);
-		elemIPs = std::vector<MathVector<dim> >(numElemIPs);
 
-		err_est_data->all_side_global_ips(&sideIPs[0], elem, vCornerCoords);
-		err_est_data->elem_global_ips(&elemIPs[0], elem, vCornerCoords);
+		sideIPs = err_est_data->all_side_global_ips(elem, vCornerCoords);
+		elemIPs = err_est_data->elem_global_ips(elem, vCornerCoords);
 	}
 	UG_CATCH_THROW("Global integration points for error estimator cannot be set.");
 
