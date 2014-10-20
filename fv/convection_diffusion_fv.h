@@ -80,7 +80,7 @@ class ConvectionDiffusionFV : public ConvectionDiffusionBase<TDomain>
 	 * The global ip positions are scheduled at the data imports.
 	 */
 		template <typename TElem, typename TFVGeom>
-		void prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+		void prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[]);
 
 	///	finishes the loop over all elements
 		template <typename TElem, typename TFVGeom>

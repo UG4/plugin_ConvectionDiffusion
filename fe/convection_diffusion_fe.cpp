@@ -108,7 +108,7 @@ fsh_elem_loop()
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
-prep_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 //	request geometry
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
