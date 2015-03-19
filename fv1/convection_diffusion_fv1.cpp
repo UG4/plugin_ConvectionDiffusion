@@ -549,8 +549,8 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 }
 
 
-////////////////////////////////////
-///   error estimation (begin)   ///
+// ////////////////////////////////
+//   error estimation (begin)   ///
 
 //	prepares the loop over all elements of one type for the computation of the error estimator
 template<typename TDomain>
@@ -735,9 +735,8 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 //	request geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-////////////////
+
 // SIDE TERMS //
-////////////////
 
 //	get the sides of the element
 	//	We have to cast elem to a pointer of type SideAndElemErrEstData::elem_type
@@ -781,11 +780,11 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 				VecSet(fluxDensity, 0.0);
 
-			////// diffusion //////
+			// diffusion //
 				if (m_imDiffusion.data_given())
 					MatVecScaleMultAppend(fluxDensity, -1.0, m_imDiffusion[ip], gradC);
 
-			////// convection //////
+			// convection //
 				if (m_imVelocity.data_given())
 				{
 					number val = 0.0;
@@ -795,7 +794,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 					VecScaleAppend(fluxDensity, val, m_imVelocity[ip]);
 				}
 
-			////// general flux //////
+			// general flux //
 				if (m_imFlux.data_given())
 					VecAppend(fluxDensity, m_imFlux[ip]);
 
@@ -808,9 +807,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 				<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
 	}
 
-//////////////////
 // VOLUME TERMS //
-//////////////////
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
 	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
@@ -823,19 +820,20 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 		{
 			number total = 0.0;
 
-		////// diffusion //////	TODO ONLY FOR (PIECEWISE) CONSTANT DIFFUSION TENSOR SO FAR!
-		// div(D*grad(c)) = div(v)*u + v*grad(c)
+		// diffusion //	TODO ONLY FOR (PIECEWISE) CONSTANT DIFFUSION TENSOR SO FAR!
+		// div(D*grad(c))
 		// nothing to do, as u is piecewise linear and div(D*grad(c)) disappears
 
-		////// convection ////// TODO ONLY FOR CONSTANT VELOCITY FIELDS SO FAR!
+		// convection // TODO ONLY FOR (PIECEWISE) CONSTANT OR DIVERGENCE-FREE
+					  //      VELOCITY FIELDS SO FAR!
 		// div(v*c) = div(v)*u + v*grad(c) -- gradC has been calculated above
 			if (m_imVelocity.data_given())
 				total += VecDot(m_imVelocity[ip], gradC);
 
-		////// general flux ////// TODO ONLY FOR DIVERGENCE-FREE FLUX FIELD SO FAR!
+		// general flux // TODO ONLY FOR DIVERGENCE-FREE FLUX FIELD SO FAR!
 		// nothing to do
 
-		////// reaction //////
+		// reaction //
 			if (m_imReactionRate.data_given())
 			{
 				number val = 0.0;
@@ -885,7 +883,7 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 		{
 			number total = 0.0;
 
-		////// mass scale //////
+		// mass scale //
 			if (m_imMassScale.data_given())
 			{
 				number val = 0.0;
@@ -895,7 +893,7 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 				total += m_imMassScale[ip] * val;
 			}
 
-		////// mass //////
+		// mass //
 			if (m_imMass.data_given())
 			{
 				total += m_imMass[ip];
@@ -921,9 +919,8 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
-////////////////
 // SIDE TERMS //
-////////////////
+
 //	get the sides of the element
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
@@ -945,7 +942,7 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 			{
 				size_t ip = passedIPs + sip;
 
-			////// vector source //////
+			// vector source //
 				if (m_imVectorSource.data_given())
 					(*err_est_data)(side_list[side],sip) += scale * VecDot(m_imVectorSource[ip], normal);
 			}
@@ -956,9 +953,8 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 				<< "Maybe wrong type of ErrEstData object? This implementation needs: SideAndElemErrEstData.");
 	}
 
-//////////////////
 // VOLUME TERMS //
-//////////////////
+
 	if (!m_imSource.data_given()) return;
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
@@ -966,7 +962,7 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 	if (elem_list.size() != 1)
 		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFV1::compute_err_est_elem'");
 
-////// source //////
+// source //
 	try
 	{
 		for (size_t ip = 0; ip < err_est_data->num_elem_ips(elem->reference_object_id()); ip++)
@@ -986,8 +982,8 @@ fsh_err_est_elem_loop()
 	this->template fsh_elem_loop<TElem, TFVGeom> ();
 };
 
-///   error estimation (end)     ///
-////////////////////////////////////
+//    error estimation (end)     ///
+// /////////////////////////////////
 
 //	computes the linearized defect w.r.t to the velocity
 template<typename TDomain>
@@ -1373,6 +1369,17 @@ ex_grad(MathVector<dim> vValue[],
 //	number of shape functions
 	static const size_t numSH =	ref_elem_type::numCorners;
 
+//	reset the values for the derivatives
+	// this is necessary as vvvDeriv comes uninitialized
+	// and in the case of hanging nodes, vvvDeriv[ip][c].size() may be
+	// larger than geo.scvf(ip).num_sh(), thus some uninit'ed values
+	// are never changed (resulting in solver breakdowns, NaNs etc.)
+	if (bDeriv)
+		for (size_t ip = 0; ip < nip; ++ip)
+			for (size_t c = 0; c < vvvDeriv[ip].size(); ++c)
+				for (size_t sh = 0; sh < vvvDeriv[ip][c].size(); ++sh)
+					vvvDeriv[ip][c][sh] = 0.0;
+
 //	FV1 SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
 	{
@@ -1383,12 +1390,15 @@ ex_grad(MathVector<dim> vValue[],
 			const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
 
 			VecSet(vValue[ip], 0.0);
+
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				VecScaleAppend(vValue[ip], u(_C_, sh), scvf.global_grad(sh));
 
 			if(bDeriv)
+			{
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					vvvDeriv[ip][_C_][sh] = scvf.global_grad(sh);
+			}
 		}
 	}
 // 	general case
