@@ -839,6 +839,7 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 		register_func<Prism, DimFEGeometry<dim> >();
 		register_func<Pyramid, DimFEGeometry<dim> >();
 		register_func<Hexahedron, DimFEGeometry<dim> >();
+		register_func<Octahedron, DimFEGeometry<dim> >();
 		return;
 	}
 
@@ -865,6 +866,12 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 	switch(order)
 	{
 		default: register_func<Pyramid, DimFEGeometry<dim> >();  break;
+	}
+
+//	Octahedron
+	switch(order)
+	{
+		default: register_func<Octahedron, DimFEGeometry<dim> >();  break;
 	}
 
 //	Hexahedron

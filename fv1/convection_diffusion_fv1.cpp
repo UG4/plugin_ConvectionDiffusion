@@ -15,6 +15,8 @@
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
+DebugID DID_CONV_DIFF_FV1("CONV_DIFF_FV1");
+
 ////////////////////////////////////////////////////////////////////////////////
 //	general
 ////////////////////////////////////////////////////////////////////////////////
@@ -114,6 +116,7 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	try{
+		UG_DLOG(DID_CONV_DIFF_FV1, 2, ">>OCT_DISC_DEBUG: " << "convection_diffusion_fv1.cpp: " << "prep_elem(): update(): "<< roid << std::endl);
 		geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}UG_CATCH_THROW("ConvectionDiffusionFV1::prep_elem:"
 						" Cannot update Finite Volume Geometry.");
@@ -216,6 +219,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		////////////////////////////////////////////////////
 			if(m_imDiffusion.data_given())
 			{
+			//	DID_CONV_DIFF_FV1
+				number D_diff_flux_sum = 0.0;
+
 			// 	loop shape functions
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 				{
@@ -224,6 +230,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 				//	Compute flux at IP
 					const number D_diff_flux = VecDot(Dgrad, scvf.normal());
+					UG_DLOG(DID_CONV_DIFF_FV1, 2, ">>OCT_DISC_DEBUG: " << "convection_diffusion_fv1.cpp: " << "add_jac_A_elem(): " << "sh # "  << sh << " ; normalSize scvf # " << ip << ": " << VecLength(scvf.normal()) << "; \t from "<< scvf.from() << "; to " << scvf.to() << "; D_diff_flux: " << D_diff_flux << "; scvf.global_grad(sh): " << scvf.global_grad(sh) << std::endl);
 
 				// 	Add flux term to local matrix // HIER MATRIXINDIZES!!!
 					UG_ASSERT((scvf.from() < J.num_row_dof(_C_)) && (scvf.to() < J.num_col_dof(_C_)),
@@ -232,7 +239,12 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 					J(_C_, scvf.from(), _C_, sh) -= D_diff_flux;
 					J(_C_, scvf.to()  , _C_, sh) += D_diff_flux;
+
+				//	DID_CONV_DIFF_FV1
+					D_diff_flux_sum += D_diff_flux;
 				}
+
+				UG_DLOG(DID_CONV_DIFF_FV1, 2, "D_diff_flux_sum = " << D_diff_flux_sum << std::endl << std::endl);
 			}
 
 		////////////////////////////////////////////////////
@@ -255,7 +267,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		}
 	}
 
-//	UG_LOG("Local Matrix is: \n"<<J<<"\n");
+	//UG_LOG("Local Matrix is: \n"<<J<<"\n");
 
 ////////////////////////////////////////////////////
 // Reaction Term (using lumping)
@@ -517,7 +529,6 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-
 	// get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
@@ -532,6 +543,7 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 
 			// Add to local rhs
 			d(_C_, co) += m_imSource[ip] * scv.volume();
+			//UG_LOG("d(_C_, co) = " << d(_C_, co) << "; \t ip " << ip << "; \t co " << co << "; \t scv_vol " << scv.volume() << "; \t m_imSource[ip] " << m_imSource[ip] << std::endl);
 		}
 	}
 
@@ -1531,6 +1543,7 @@ register_all_funcs(bool bHang)
 		register_func<Prism, FV1Geometry<Prism, dim> >();
 		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();
 		register_func<Hexahedron, FV1Geometry<Hexahedron, dim> >();
+		register_func<Octahedron, FV1Geometry<Octahedron, dim> >();
 	}
 	else
 	{
@@ -1541,6 +1554,7 @@ register_all_funcs(bool bHang)
 		register_func<Prism, HFV1Geometry<Prism, dim> >();
 		register_func<Pyramid, HFV1Geometry<Pyramid, dim> >();
 		register_func<Hexahedron, HFV1Geometry<Hexahedron, dim> >();
+		register_func<Octahedron, HFV1Geometry<Octahedron, dim> >();
 	}
 }
 #endif
