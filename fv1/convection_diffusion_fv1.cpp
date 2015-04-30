@@ -768,7 +768,12 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 // 	some help variables
 	MathVector<dim> fluxDensity, gradC, normal;
 
-// calculate grad u (take grad from first scvf ip (grad u is constant on the entire element))
+	// FIXME: The computation of the gradient has to be reworked.
+	// In the case of P1 shape functions, it is valid. For Q1 shape functions, however,
+	// the gradient is not constant (but bilinear) on the element - and along the sides.
+	// We cannot use the FVGeom here. Instead, we need to calculate the gradient in each IP!
+
+	// calculate grad u (take grad from first scvf ip (grad u is constant on the entire element))
 /*	if (geo.num_scvf() < 1) {UG_THROW("Element has no SCVFs!");}
 	const typename TFVGeom::SCVF& scvf = geo.scvf(0);
 
@@ -854,7 +859,8 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 		// diffusion //	TODO ONLY FOR (PIECEWISE) CONSTANT DIFFUSION TENSOR SO FAR!
 		// div(D*grad(c))
-		// nothing to do, as u is piecewise linear and div(D*grad(c)) disappears
+		// nothing to do, as c is piecewise linear and div(D*grad(c)) disappears
+		// if D is diagonal and c bilinear, this should also vanish (confirm this!)
 
 		// convection // TODO ONLY FOR (PIECEWISE) CONSTANT OR DIVERGENCE-FREE
 					  //      VELOCITY FIELDS SO FAR!
