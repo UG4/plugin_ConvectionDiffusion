@@ -769,12 +769,32 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	MathVector<dim> fluxDensity, gradC, normal;
 
 // calculate grad u (take grad from first scvf ip (grad u is constant on the entire element))
-	if (geo.num_scvf() < 1) {UG_THROW("Element has no SCVFs!");}
+/*	if (geo.num_scvf() < 1) {UG_THROW("Element has no SCVFs!");}
 	const typename TFVGeom::SCVF& scvf = geo.scvf(0);
 
 	VecSet(gradC, 0.0);
 	for (size_t j=0; j<m_shapeValues.num_sh(); j++)
-		VecScaleAppend(gradC, u(_C_,j), scvf.global_grad(j));
+		VecScaleAppend(gradC, u(_C_,j), scvf.global_grad(j));*/
+
+	// calculate grad u as average (over scvf)
+	VecSet(gradC, 0.0);
+	for(size_t ii = 0; ii < geo.num_scvf(); ++ii)
+	{
+		const typename TFVGeom::SCVF& scvf = geo.scvf(ii);
+		for (size_t j=0; j<m_shapeValues.num_sh(); j++)
+				VecScaleAppend(gradC, u(_C_,j), scvf.global_grad(j));
+	}
+	VecScale(gradC, gradC, (1.0/geo.num_scvf()));
+
+	/*VecSet(gradC, 0.0);
+	for(size_t ii = 0; ii < geo.num_scv(); ++ii)
+	{
+		const typename TFVGeom::SCV& scv = geo.scv(ii);
+			for (size_t j=0; j<m_shapeValues.num_sh(); j++)
+					VecScaleAppend(gradC, u(_C_,j), scv.global_grad(j));
+	}
+	VecScale(gradC, gradC, (1.0/geo.num_scvf()));
+*/
 
 // calculate flux through the sides
 	size_t passedIPs = 0;
