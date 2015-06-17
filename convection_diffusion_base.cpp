@@ -232,6 +232,13 @@ set_source(const char* fctName)
 {
 	set_source(LuaUserDataFactory<number,dim>::create(fctName));
 }
+
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_source(LuaFunctionHandle fct)
+{
+	set_source(make_sp(new LuaUserData<number,dim>(fct)));
+}
 #endif
 
 //////// Source explicit

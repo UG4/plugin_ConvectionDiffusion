@@ -156,6 +156,7 @@ class ConvectionDiffusionBase
 		void set_source(number val);
 #ifdef UG_FOR_LUA
 		void set_source(const char* fctName);
+		void set_source(LuaFunctionHandle fct);
 #endif
 	///	\}
 
