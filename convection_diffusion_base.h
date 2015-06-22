@@ -75,6 +75,7 @@ class ConvectionDiffusionBase
 		void set_diffusion(number val);
 #ifdef UG_FOR_LUA
 		void set_diffusion(const char* fctName);
+		void set_diffusion(LuaFunctionHandle fct);
 #endif
 	///	\}
 
@@ -88,6 +89,7 @@ class ConvectionDiffusionBase
 		void set_velocity(const std::vector<number>& vVel);
 #ifdef UG_FOR_LUA
 		void set_velocity(const char* fctName);
+		void set_velocity(LuaFunctionHandle fct);
 #endif
 	/// \}
 
@@ -101,6 +103,7 @@ class ConvectionDiffusionBase
 		void set_flux(const std::vector<number>& vVel);
 #ifdef UG_FOR_LUA
 		void set_flux(const char* fctName);
+		void set_flux(LuaFunctionHandle fct);
 #endif
 	/// \}
 
@@ -113,6 +116,7 @@ class ConvectionDiffusionBase
 		void set_reaction_rate(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction_rate(const char* fctName);
+		void set_reaction_rate(LuaFunctionHandle fct);
 #endif
 	///	\}
 
@@ -125,6 +129,7 @@ class ConvectionDiffusionBase
 		void set_reaction(number val);
 #ifdef UG_FOR_LUA
 		void set_reaction(const char* fctName);
+		void set_reaction(LuaFunctionHandle fct);
 #endif
 	///	\}
 
@@ -171,6 +176,7 @@ class ConvectionDiffusionBase
 		void set_vector_source(const std::vector<number>& vVel);
 #ifdef UG_FOR_LUA
 		void set_vector_source(const char* fctName);
+		void set_vector_source(LuaFunctionHandle fct);
 #endif
 	///	\}
 
@@ -183,6 +189,7 @@ class ConvectionDiffusionBase
 		void set_mass_scale(number val);
 #ifdef UG_FOR_LUA
 		void set_mass_scale(const char* fctName);
+		void set_mass_scale(LuaFunctionHandle fct);
 #endif
 	///	\}
 
@@ -195,6 +202,7 @@ class ConvectionDiffusionBase
 		void set_mass(number val);
 #ifdef UG_FOR_LUA
 		void set_mass(const char* fctName);
+		void set_mass(LuaFunctionHandle fct);
 #endif
 	///	\}
 

@@ -41,6 +41,11 @@ void ConvectionDiffusionBase<TDomain>::set_diffusion(const char* fctName)
 {
 	set_diffusion(LuaUserDataFactory<MathMatrix<dim,dim>, dim>::create(fctName));
 }
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::set_diffusion(LuaFunctionHandle fct)
+{
+	set_diffusion(make_sp(new LuaUserData<MathMatrix<dim,dim>, dim>(fct)));
+}
 #endif
 
 //////// Velocity
@@ -70,6 +75,12 @@ void ConvectionDiffusionBase<TDomain>::
 set_velocity(const char* fctName)
 {
 	set_velocity(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
+}
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_velocity(LuaFunctionHandle fct)
+{
+	set_velocity(make_sp(new LuaUserData<MathVector<dim>,dim>(fct)));
 }
 #endif
 
@@ -101,6 +112,12 @@ set_flux(const char* fctName)
 {
 	set_flux(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
 }
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_flux(LuaFunctionHandle fct)
+{
+	set_flux(make_sp(new LuaUserData<MathVector<dim>,dim>(fct)));
+}
 #endif
 
 //////// Reaction Rate
@@ -126,6 +143,12 @@ void ConvectionDiffusionBase<TDomain>::
 set_reaction_rate(const char* fctName)
 {
 	set_reaction_rate(LuaUserDataFactory<number,dim>::create(fctName));
+}
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_reaction_rate(LuaFunctionHandle fct)
+{
+	set_reaction_rate(make_sp(new LuaUserData<number,dim>(fct)));
 }
 #endif
 
@@ -178,6 +201,12 @@ void ConvectionDiffusionBase<TDomain>::
 set_reaction(const char* fctName)
 {
 	set_reaction(LuaUserDataFactory<number,dim>::create(fctName));
+}
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_reaction(LuaFunctionHandle fct)
+{
+	set_reaction(make_sp(new LuaUserData<number,dim>(fct)));
 }
 #endif
 
@@ -295,6 +324,12 @@ void ConvectionDiffusionBase<TDomain>::set_vector_source(const char* fctName)
 {
 	set_vector_source(LuaUserDataFactory<MathVector<dim>,dim>::create(fctName));
 }
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_vector_source(LuaFunctionHandle fct)
+{
+	set_vector_source(make_sp(new LuaUserData<MathVector<dim>,dim>(fct)));
+}
 #endif
 
 //////// Mass Scale
@@ -321,6 +356,12 @@ set_mass_scale(const char* fctName)
 {
 	set_mass_scale(LuaUserDataFactory<number,dim>::create(fctName));
 }
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_mass_scale(LuaFunctionHandle fct)
+{
+	set_mass_scale(make_sp(new LuaUserData<number,dim>(fct)));
+}
 #endif
 
 //////// Mass
@@ -346,6 +387,12 @@ void ConvectionDiffusionBase<TDomain>::
 set_mass(const char* fctName)
 {
 	set_mass(LuaUserDataFactory<number,dim>::create(fctName));
+}
+template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+set_mass(LuaFunctionHandle fct)
+{
+	set_mass(make_sp(new LuaUserData<number,dim>(fct)));
 }
 #endif
 
