@@ -201,7 +201,7 @@ static void Dimension(Registry& reg, string grp)
 	//	singular sources and sinks 
 	{
 		typedef SingularSourcesAndSinks<dim, 1> T;
-		string name = string("SingularSourcesAndSinks").append(dimSuffix);
+		string name = string("CdSingularSourcesAndSinks").append(dimSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&)>(&T::addps))
@@ -211,7 +211,7 @@ static void Dimension(Registry& reg, string grp)
 			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, LuaFunctionHandle)>(&T::addls))
 #endif
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "SingularSourcesAndSinks", dimTag);
+		reg.add_class_to_group(name, "CdSingularSourcesAndSinks", dimTag);
 	}
 }
 
