@@ -13,6 +13,8 @@
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
 
+#include "../d3f/sss.h"
+
 using namespace std;
 using namespace ug::bridge;
 
@@ -148,6 +150,7 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T::set_upwind)
+			.add_method("set_singular_sources_and_sinks", &T::set_sss, "", "Singular Sources and Sinks")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV1", tag);
 	}
@@ -187,7 +190,29 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
 	}
+}
 
+template <int dim>
+static void Dimension(Registry& reg, string grp)
+{
+	string dimSuffix = GetDimensionSuffix<dim>();
+	string dimTag = GetDimensionTag<dim>();
+
+	//	singular sources and sinks 
+	{
+		typedef SingularSourcesAndSinks<dim, 1> T;
+		string name = string("SingularSourcesAndSinks").append(dimSuffix);
+		reg.add_class_<T>(name, grp)
+			.add_constructor()
+			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&)>(&T::addps))
+			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, const std::vector<number>&)>(&T::addls))
+#ifdef UG_FOR_LUA
+			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, LuaFunctionHandle)>(&T::addps))
+			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, LuaFunctionHandle)>(&T::addls))
+#endif
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "SingularSourcesAndSinks", dimTag);
+	}
 }
 
 }; // end Functionality
@@ -208,6 +233,7 @@ InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 	typedef ConvectionDiffusionPlugin::Functionality Functionality;
 
 	try{
+		RegisterDimensionDependent<Functionality>(*reg,grp);
 		RegisterDomainDependent<Functionality>(*reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);

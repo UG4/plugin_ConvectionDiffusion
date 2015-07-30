@@ -12,6 +12,8 @@
 #include "../convection_diffusion_base.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
+#include "../../d3f/sss.h"
+
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
@@ -74,7 +76,13 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 	 */
 		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
 
+	/// set singular sources and sinks
+		void set_sss(SmartPtr<SingularSourcesAndSinks<dim, 1> > sss) { m_sss = sss; }
+
 	private:
+	/// prepares assembling
+		virtual void prep_assemble_loop();
+
 	///	prepares the loop over all elements
 	/**
 	 * This method prepares the loop over all elements. It resizes the Position
@@ -203,6 +211,9 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 	private:
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
+
+    /// singular sources and sinks
+		SmartPtr<SingularSourcesAndSinks<dim, 1> > m_sss;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;

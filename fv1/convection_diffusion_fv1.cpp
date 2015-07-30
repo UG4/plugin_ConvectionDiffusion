@@ -12,6 +12,8 @@
 #include "lib_disc/spatial_disc/disc_util/hfv1_geom.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape.h"
 
+#include "../../d3f/sss.h"
+
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
@@ -60,6 +62,14 @@ use_hanging() const
 ////////////////////////////////////////////////////////////////////////////////
 // Assembling functions
 ////////////////////////////////////////////////////////////////////////////////
+
+template<typename TDomain>
+void ConvectionDiffusionFV1<TDomain>::
+prep_assemble_loop()
+{
+	if (m_sss.valid())
+		m_sss->clear_markers();
+}
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
@@ -290,6 +300,27 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	}
 
 //	reaction term does not explicitly depend on the associated unknown function
+
+////////////////////////////////
+// Singular sources and sinks
+////////////////////////////////
+
+	if (m_sss.valid()) {
+		const typename TDomain::position_accessor_type& aaPos = this->domain()->position_accessor();
+		const typename TDomain::grid_type& grid = *this->domain()->grid();
+		const number time = this->time();
+		MathVector<1> out;
+		for(size_t i = 0; i < geo.num_scv(); i++) {
+			const typename TFVGeom::SCV& scv = geo.scv(i);
+			const int co = scv.node_id();
+			number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
+			if (len == 0.0) continue;
+			out[0] *= len;
+			if (out[0] < 0.0)
+			// sink
+				J(_C_, co, _C_, co) -= out[0];
+		}
+	}
 }
 
 
@@ -425,6 +456,30 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
 		// 	Add to local defect
 			d(_C_, co) += m_imReaction[ip] * scv.volume();
+		}
+	}
+
+////////////////////////////////
+// Singular sources and sinks
+////////////////////////////////
+
+	if (m_sss.valid()) {
+		const typename TDomain::position_accessor_type& aaPos = this->domain()->position_accessor();
+		const typename TDomain::grid_type& grid = *this->domain()->grid();
+		const number time = this->time();
+		MathVector<1> out;
+		for(size_t i = 0; i < geo.num_scv(); i++) {
+			const typename TFVGeom::SCV& scv = geo.scv(i);
+			const int co = scv.node_id();
+			number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
+			if (len == 0.0) continue;
+			out[0] *= len;
+			if (out[0] > 0.0)
+			// source
+				d(_C_, co) -= out[0];
+			else
+			// sink
+				d(_C_, co) -= out[0] * u(_C_, co);
 		}
 	}
 }
