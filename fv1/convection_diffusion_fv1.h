@@ -12,7 +12,7 @@
 #include "../convection_diffusion_base.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
-#include "../../d3f/sss.h"
+#include "lib_disc/spatial_disc/elem_disc/sss.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{

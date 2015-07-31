@@ -13,7 +13,7 @@
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
 
-#include "../d3f/sss.h"
+#include "lib_disc/spatial_disc/elem_disc/sss.h"
 
 using namespace std;
 using namespace ug::bridge;
