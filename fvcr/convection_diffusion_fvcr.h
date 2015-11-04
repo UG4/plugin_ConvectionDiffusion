@@ -1,3 +1,9 @@
+/*
+ * convection_diffusion_fvcr.h
+ *
+ *  Created on: 25.06.2012
+ *      Author: Christian Wehner
+ */
 
 #ifndef __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FVCR__
 #define __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FVCR__

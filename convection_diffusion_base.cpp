@@ -1,3 +1,9 @@
+/*
+ * convection_diffusion_base.cpp
+ *
+ *  Created on: 26.02.2010
+ *      Author: andreasvogel
+ */
 
 #include "convection_diffusion_base.h"
 #include "lib_disc/spatial_disc/user_data/const_user_data.h"
