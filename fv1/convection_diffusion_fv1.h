@@ -1,9 +1,3 @@
-/*
- * convection_diffusion_fv1.h
- *
- *  Created on: 26.02.2010
- *      Author: andreasvogel
- */
 
 #ifndef __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__
 #define __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__

@@ -1,8 +1,5 @@
 /**
- * author: andreasvogel
- *
  * File for registration of ConvectionDiffusion routines.
- *
  */
 
 #include "bridge/util.h"
