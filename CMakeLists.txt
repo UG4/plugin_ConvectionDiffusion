@@ -34,28 +34,31 @@
 # The ConvectionDiffusion plugin
 ################################################################################
 
+# Name of your plugin and sources.
+set(pluginName	ConvectionDiffusion)
+set(SOURCES		convection_diffusion_base.cpp
+				fv1/convection_diffusion_fv1.cpp
+				fe/convection_diffusion_fe.cpp
+				fvcr/convection_diffusion_fvcr.cpp
+				fv/convection_diffusion_fv.cpp
+				convection_diffusion_plugin.cpp)
+
+
+################################################################################
+# The code below doesn't have to be changed (usually)
+################################################################################
 cmake_minimum_required(VERSION 2.6)
 
-project(ConvectionDiffusion)
+project(UG_PLUGIN_${pluginName})
 
 # include the definitions and dependencies for ug-plugins.
-include("../../../cmake/ug_plugin_includes.cmake")
-
-
-# sources
-set(SOURCES	convection_diffusion_base.cpp
-            fv1/convection_diffusion_fv1.cpp
-            fe/convection_diffusion_fe.cpp
-            fvcr/convection_diffusion_fvcr.cpp
-            fv/convection_diffusion_fv.cpp
-            convection_diffusion_plugin.cpp)
-
-
+include(${UG_ROOT_CMAKE_PATH}/ug_plugin_includes.cmake)
 
 if(buildEmbeddedPlugins)
 	# add the sources to ug4's sources
-	EXPORTSOURCES(plugins/core/convection_diffusion ${SOURCES})
+	EXPORTSOURCES(${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES})
 else(buildEmbeddedPlugins)
-	add_library(ConvectionDiffusion SHARED ${SOURCES})
-	target_link_libraries (ConvectionDiffusion ug4)
+	# create a shared library from the sources and link it against ug4.
+	add_library(${pluginName} SHARED ${SOURCES})
+	target_link_libraries (${pluginName} ug4)
 endif(buildEmbeddedPlugins)
