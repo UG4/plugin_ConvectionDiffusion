@@ -45,7 +45,6 @@
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
-// \ingroup lib_disc_elem_disc
 /// \addtogroup convection_diffusion
 /// \{
 

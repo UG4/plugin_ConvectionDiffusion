@@ -52,7 +52,7 @@ namespace ConvectionDiffusionPlugin{
 
 /** 
  *  \defgroup convection_diffusion Convection Diffusion
- *  \ingroup plugins_core
+ *  \ingroup plugins
  *  This plugin provides the discretization of convection and diffusion problems.
  *  \{
  */
