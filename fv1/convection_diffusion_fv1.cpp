@@ -942,7 +942,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 		// convection // TODO ONLY FOR (PIECEWISE) CONSTANT OR DIVERGENCE-FREE
 					  //      VELOCITY FIELDS SO FAR!
-		// div(v*c) = div(v)*u + v*grad(c) -- gradC has been calculated above
+		// div(v*c) = div(v)*c + v*grad(c) -- gradC has been calculated above
 			if (m_imVelocity.data_given())
 				total += VecDot(m_imVelocity[ip], gradC);
 
