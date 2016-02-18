@@ -306,22 +306,22 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 // Reaction Term (using lumping)
 ////////////////////////////////////////////////////
 
-//	if no data for reaction rate given, return
-	if(!m_imReactionRate.data_given()) return;
-
-// 	loop Sub Control Volume (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+	if(m_imReactionRate.data_given())
 	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-	// 	get associated node
-		const int co = scv.node_id();
-
-	// 	Add to local matrix
-		J(_C_, co, _C_, co) += m_imReactionRate[ip] * scv.volume();
+	// 	loop Sub Control Volume (SCV)
+		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+		{
+		// 	get current SCV
+			const typename TFVGeom::SCV& scv = geo.scv(ip);
+			
+		// 	get associated node
+			const int co = scv.node_id();
+			
+		// 	Add to local matrix
+			J(_C_, co, _C_, co) += m_imReactionRate[ip] * scv.volume();
+		}
 	}
-
+	
 //	reaction term does not explicitly depend on the associated unknown function
 
 ////////////////////////////////
@@ -336,7 +336,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		for(size_t i = 0; i < geo.num_scv(); i++) {
 			const typename TFVGeom::SCV& scv = geo.scv(i);
 			const int co = scv.node_id();
-			number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
+			const number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
 			if (len == 0.0) continue;
 			out[0] *= len;
 			if (out[0] < 0.0)
@@ -494,7 +494,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		for(size_t i = 0; i < geo.num_scv(); i++) {
 			const typename TFVGeom::SCV& scv = geo.scv(i);
 			const int co = scv.node_id();
-			number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
+			const number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
 			if (len == 0.0) continue;
 			out[0] *= len;
 			if (out[0] > 0.0)
