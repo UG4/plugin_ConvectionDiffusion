@@ -1395,6 +1395,7 @@ ex_value(number vValue[],
 //	number of shape functions
 	static const size_t numSH =	ref_elem_type::numCorners;
 
+
 //	FV1 SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
 	{
@@ -1411,22 +1412,41 @@ ex_value(number vValue[],
 
 		//	compute derivative w.r.t. to unknowns iff needed
 			if(bDeriv)
+			{
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					vvvDeriv[ip][_C_][sh] = scvf.shape(sh);
+
+				// do not forget that number of DoFs (== vvvDeriv[ip][_C_])
+				// might be > scvf.num_sh() in case of hanging nodes!
+				size_t ndof = vvvDeriv[ip][_C_].size();
+				for (size_t sh = scvf.num_sh(); sh < ndof; ++sh)
+					vvvDeriv[ip][_C_][sh] = 0.0;
+			}
 		}
 	}
 //	FV1 SCV ip
 	else if(vLocIP == geo.scv_local_ips())
 	{
-	//	solution at ip
-		for(size_t sh = 0; sh < numSH; ++sh)
-			vValue[sh] = u(_C_, sh);
+	//	Loop Sub Control Volumes (SCV)
+		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+		{
+		// 	Get current SCV
+			const typename TFVGeom::SCV& scv = geo.scv(ip);
 
-	//	set derivatives if needed
-		if(bDeriv)
-			for(size_t sh = 0; sh < numSH; ++sh)
-				for(size_t sh2 = 0; sh2 < numSH; ++sh2)
-					vvvDeriv[sh][_C_][sh2] = (sh==sh2) ? 1.0 : 0.0;
+		//	get corner of SCV
+			const size_t co = scv.node_id();
+
+		//	solution at ip
+			vValue[ip] = u(_C_, co);
+
+		//	set derivatives if needed
+			if(bDeriv)
+			{
+				size_t ndof = vvvDeriv[ip][_C_].size();
+				for(size_t sh = 0; sh < ndof; ++sh)
+					vvvDeriv[ip][_C_][sh] = (sh==co) ? 1.0 : 0.0;
+			}
+		}
 	}
 // 	general case
 	else
@@ -1451,8 +1471,15 @@ ex_value(number vValue[],
 		//	compute derivative w.r.t. to unknowns iff needed
 		//	\todo: maybe store shapes directly in vvvDeriv
 			if(bDeriv)
+			{
 				for(size_t sh = 0; sh < numSH; ++sh)
 					vvvDeriv[ip][_C_][sh] = vShape[sh];
+
+				// beware of hanging nodes!
+				size_t ndof = vvvDeriv[ip][_C_].size();
+				for (size_t sh = numSH; sh < ndof; ++sh)
+					vvvDeriv[ip][_C_][sh] = 0.0;
+			}
 		}
 	}
 }
@@ -1485,16 +1512,6 @@ ex_grad(MathVector<dim> vValue[],
 //	number of shape functions
 	static const size_t numSH =	ref_elem_type::numCorners;
 
-//	reset the values for the derivatives
-	// this is necessary as vvvDeriv comes uninitialized
-	// and in the case of hanging nodes, vvvDeriv[ip][c].size() may be
-	// larger than geo.scvf(ip).num_sh(), thus some uninit'ed values
-	// are never changed (resulting in solver breakdowns, NaNs etc.)
-	if (bDeriv)
-		for (size_t ip = 0; ip < nip; ++ip)
-			for (size_t c = 0; c < vvvDeriv[ip].size(); ++c)
-				for (size_t sh = 0; sh < vvvDeriv[ip][c].size(); ++sh)
-					vvvDeriv[ip][c][sh] = 0.0;
 
 //	FV1 SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
@@ -1514,6 +1531,11 @@ ex_grad(MathVector<dim> vValue[],
 			{
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
 					vvvDeriv[ip][_C_][sh] = scvf.global_grad(sh);
+
+				// beware of hanging nodes!
+				size_t ndof = vvvDeriv[ip][_C_].size();
+				for (size_t sh = scvf.num_sh(); sh < ndof; ++sh)
+					vvvDeriv[ip][_C_][sh] = 0.0;
 			}
 		}
 	}
@@ -1548,8 +1570,15 @@ ex_grad(MathVector<dim> vValue[],
 
 		//	compute derivative w.r.t. to unknowns iff needed
 			if(bDeriv)
+			{
 				for(size_t sh = 0; sh < numSH; ++sh)
 					MatVecMult(vvvDeriv[ip][_C_][sh], JTInv, vLocGrad[sh]);
+
+				// beware of hanging nodes!
+				size_t ndof = vvvDeriv[ip][_C_].size();
+				for (size_t sh = numSH; sh < ndof; ++sh)
+					vvvDeriv[ip][_C_][sh] = 0.0;
+			}
 		}
 	}
 };

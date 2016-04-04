@@ -908,8 +908,8 @@ ex_value(number vValue[],
 	{
 	//	request for trial space
 		try{
-		const LocalShapeFunctionSet<dim>& rTrialSpace
-			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
+		const LocalShapeFunctionSet<TFVGeom::dim>& rTrialSpace
+			 = LocalFiniteElementProvider::get<TFVGeom::dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
 		std::vector<number> vShape(rTrialSpace.num_sh());
@@ -993,8 +993,8 @@ ex_grad(MathVector<dim> vValue[],
 	{
 	//	request for trial space
 		try{
-		const LocalShapeFunctionSet<dim>& rTrialSpace
-			 = LocalFiniteElementProvider::get<dim>(roid, m_lfeID);
+		const LocalShapeFunctionSet<TFVGeom::dim>& rTrialSpace
+			 = LocalFiniteElementProvider::get<TFVGeom::dim>(roid, m_lfeID);
 
 	//	storage for shape function at ip
 		const size_t numSH = rTrialSpace.num_sh();
@@ -1054,6 +1054,19 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	const int order = lfeID.order();
 	if(quadOrder == order+1 && lfeID.type() == LFEID::LAGRANGE)
 	{
+	//	RegularEdge
+		switch(order)
+		{
+			case 1:	{typedef FVGeometry<1, RegularEdge, dim> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+			case 2:	{typedef FVGeometry<2, RegularEdge, dim> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+			case 3:	{typedef FVGeometry<3, RegularEdge, dim> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+			default: {typedef DimFVGeometry<dim, 1> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+		}
+
 	//	Triangle
 		switch(order)
 		{
@@ -1081,6 +1094,8 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	}
 	else
 	{
+		register_func<RegularEdge, DimFVGeometry<dim, 1> >();
+
 		typedef DimFVGeometry<dim> FVGeom;
 		register_func<Triangle, FVGeom >();
 		register_func<Quadrilateral, FVGeom >();
@@ -1096,6 +1111,19 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	const int order = lfeID.order();
 	if(quadOrder == order+1 && lfeID.type() == LFEID::LAGRANGE)
 	{
+	//	RegularEdge
+		switch(order)
+		{
+			case 1:	{typedef FVGeometry<1, RegularEdge, dim> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+			case 2:	{typedef FVGeometry<2, RegularEdge, dim> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+			case 3:	{typedef FVGeometry<3, RegularEdge, dim> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+			default: {typedef DimFVGeometry<dim, 1> FVGeom;
+					 register_func<RegularEdge, FVGeom >(); break;}
+		}
+
 	//	Tetrahedron
 		switch(order)
 		{
