@@ -80,6 +80,9 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	///	Own type
 		typedef ConvectionDiffusionFE<TDomain> this_type;
 
+	/// error estimator type
+		typedef SideAndElemErrEstData<TDomain> err_est_type;
+
 	public:
 	///	World dimension
 		static const int dim = base_type::dim;
@@ -133,7 +136,31 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 	///	assembles the local right hand side
 		template <typename TElem, typename TFEGeom>
 		void add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-		
+
+	///	prepares the loop over all elements of one type for the computation of the error estimator
+		template <typename TElem, typename TFEGeom>
+		void prep_err_est_elem_loop(const ReferenceObjectID roid, const int si);
+
+	///	prepares the element for assembling the error estimator
+		template <typename TElem, typename TFEGeom>
+		void prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+
+	///	computes the error estimator contribution for one element
+		template <typename TElem, typename TFEGeom>
+		void compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	computes the error estimator contribution for one element
+		template <typename TElem, typename TFEGeom>
+		void compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	computes the error estimator contribution for one element
+		template <typename TElem, typename TFEGeom>
+		void compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale);
+
+	///	postprocesses the loop over all elements of one type in the computation of the error estimator
+		template <typename TElem, typename TFEGeom>
+		void fsh_err_est_elem_loop();
+
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFEGeom>
@@ -256,6 +283,31 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 		void register_all_funcs(const LFEID& lfeid, const int quadOrder);
 		template <typename TElem, typename TFEGeom> void register_func();
 	/// \}
+
+	private:
+		/// struct holding values of shape functions in IPs
+		struct ShapeValues
+		{
+			public:
+				void resize(std::size_t nEip, std::size_t nSip, std::size_t _nSh)
+				{
+					nSh = _nSh;
+					elemVals.resize(nEip);
+					sideVals.resize(nSip);
+					for (std::size_t i = 0; i < nEip; i++) elemVals[i].resize(nSh);
+					for (std::size_t i = 0; i < nSip; i++) sideVals[i].resize(nSh);
+				}
+				number& shapeAtElemIP(std::size_t sh, std::size_t ip) {return elemVals[ip][sh];}
+				number& shapeAtSideIP(std::size_t sh, std::size_t ip) {return sideVals[ip][sh];}
+				number* shapesAtElemIP(std::size_t ip) {return &elemVals[ip][0];}
+				number* shapesAtSideIP(std::size_t ip) {return &sideVals[ip][0];}
+				std::size_t num_sh() {return nSh;}
+			private:
+				std::size_t nSh;
+				std::vector<std::vector<number> > elemVals;
+				std::vector<std::vector<number> > sideVals;
+		} m_shapeValues;
+
 };
 
 // end group convection_diffusion
