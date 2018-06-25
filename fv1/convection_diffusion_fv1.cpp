@@ -1609,7 +1609,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 	//	update convection shapes
 		if(!m_spConvShape->update(&geo, m_imVelocity.values(), vDiffusion, true))
 		{
-			UG_LOG("ERROR in 'ConvectionDiffusionFV1::add_jac_A_elem': "
+			UG_LOG("ERROR in 'ConvectionDiffusionFV1::get_updated_conv_shapes': "
 					"Cannot compute convection shapes.\n");
 		}
 	}

@@ -70,7 +70,6 @@ namespace ConvectionDiffusionPlugin{
  * </ul>
  *
  * \tparam	TDomain		Domain
- * \tparam	TAlgebra	Algebra
  */
 template<	typename TDomain>
 class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
