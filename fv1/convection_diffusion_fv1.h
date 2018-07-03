@@ -33,11 +33,12 @@
 #ifndef __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__
 #define __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__
 
-// library intern headers
-#include "../convection_diffusion_base.h"
+// ug4 headers
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
-
 #include "lib_disc/spatial_disc/elem_disc/sss.h"
+
+// plugin's internal headers
+#include "../convection_diffusion_base.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
