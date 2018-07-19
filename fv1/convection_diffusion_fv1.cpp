@@ -101,6 +101,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
 
 //	check, that upwind has been set
+//TODO: It is really used only if we have the convection
 	if(m_spConvShape.invalid())
 		UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
 						" Upwind has not been set.");
@@ -177,7 +178,7 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 
 		if(m_spConvShape.valid())
 			if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
-				UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
+				UG_THROW("ConvectionDiffusionFV1::prep_elem:"
 								" Cannot init upwind for element type.");
 	}
 
@@ -236,7 +237,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	MathVector<dim> Dgrad;
 
 //	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
+	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo, false);
 
 //	Diffusion and Velocity Term
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given())
@@ -383,7 +384,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
+	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo, false);
 
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given() || m_imFlux.data_given())
 	{
@@ -1113,7 +1114,7 @@ lin_def_velocity(const LocalVector& u,
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
+	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo, true);
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -1151,7 +1152,7 @@ lin_def_diffusion(const LocalVector& u,
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
+	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo, true);
 
 //	reset the values for the linearized defect
 	for(size_t ip = 0; ip < nip; ++ip)
@@ -1216,6 +1217,7 @@ lin_def_flux(const LocalVector& u,
 		vvvLinDef[ip][_C_][scvf.to()] -= scvf.normal();
 	}
 }
+
 //	computes the linearized defect w.r.t to the reaction rate
 template<typename TDomain>
 template <typename TElem, typename TFVGeom>
@@ -1595,7 +1597,7 @@ set_upwind(SmartPtr<IConvectionShapes<dim> > shapes) {m_spConvShape = shapes;}
 template<typename TDomain>
 const typename ConvectionDiffusionFV1<TDomain>::conv_shape_type&
 ConvectionDiffusionFV1<TDomain>::
-get_updated_conv_shapes(const FVGeometryBase& geo)
+get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv)
 {
 //	compute upwind shapes for transport equation
 //	\todo: we should move this computation into the preparation part of the
@@ -1607,7 +1609,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 		if(m_imDiffusion.data_given()) vDiffusion = m_imDiffusion.values();
 
 	//	update convection shapes
-		if(!m_spConvShape->update(&geo, m_imVelocity.values(), vDiffusion, true))
+		if(!m_spConvShape->update(&geo, m_imVelocity.values(), vDiffusion, compute_deriv))
 		{
 			UG_LOG("ERROR in 'ConvectionDiffusionFV1::get_updated_conv_shapes': "
 					"Cannot compute convection shapes.\n");

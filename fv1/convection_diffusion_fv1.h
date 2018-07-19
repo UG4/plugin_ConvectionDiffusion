@@ -185,13 +185,13 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                      const size_t nip);
 
-	///	computes the linearized defect w.r.t to the velocity
+	///	computes the linearized defect w.r.t to the diffusion
 		template <typename TElem, typename TFVGeom>
 		void lin_def_diffusion(const LocalVector& u,
 		                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                       const size_t nip);
 
-	///	computes the linearized defect w.r.t to the velocity
+	///	computes the linearized defect w.r.t to the flux
 		template <typename TElem, typename TFVGeom>
 		void lin_def_flux(const LocalVector& u,
 		                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
@@ -262,7 +262,7 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 
 	///	returns the updated convection shapes
 		typedef IConvectionShapes<dim> conv_shape_type;
-		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
+		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv);
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
