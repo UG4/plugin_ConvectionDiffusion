@@ -633,8 +633,9 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 			const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
 
 			// Add to local rhs
-			d(_C_, scvf.from()) -= VecDot(m_imVectorSource[ip], scvf.normal() );
-			d(_C_, scvf.to()  ) += VecDot(m_imVectorSource[ip], scvf.normal() );
+			number flux = VecDot(m_imVectorSource[ip], scvf.normal());
+			d(_C_, scvf.from()) -= flux;
+			d(_C_, scvf.to()  ) += flux;
 		}
 	}
 }
