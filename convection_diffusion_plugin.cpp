@@ -41,6 +41,7 @@
 #include "fe/convection_diffusion_fe.h"
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
+#include "fractfv1/convection_diffusion_fractfv1.h"
 
 #include "lib_disc/spatial_disc/elem_disc/sss.h"
 
@@ -218,6 +219,18 @@ static void Domain(Registry& reg, string grp)
 			.add_method("set_quad_order", &T::set_quad_order)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
+	}
+	
+//	Convection Diffusion FV1 for fractures
+	{
+		typedef ConvectionDiffusionFractFV1<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFractFV1").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_upwind", &T::set_upwind)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionFractFV1", tag);
 	}
 }
 
