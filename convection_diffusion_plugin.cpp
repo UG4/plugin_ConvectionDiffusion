@@ -220,18 +220,6 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
 	}
-	
-//	Convection Diffusion FV1 for fractures
-	{
-		typedef ConvectionDiffusionFractFV1<TDomain> T;
-		typedef ConvectionDiffusionBase<TDomain> TBase;
-		string name = string("ConvectionDiffusionFractFV1").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
-			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-			.add_method("set_upwind", &T::set_upwind)
-			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "ConvectionDiffusionFractFV1", tag);
-	}
 }
 
 template <int dim>
@@ -259,6 +247,44 @@ static void Dimension(Registry& reg, string grp)
 
 }; // end Functionality
 
+/**
+ * Class exporting the functionality of the plugin restricted to 2 and 3 spatial
+ * dimensions. All functionality that is to be used in scripts or visualization
+ * only in 2d and 3d must be registered here.
+ */
+struct Functionality2d3d
+{
+
+/**
+ * Function called for the registration of Domain dependent parts
+ * of the plugin. All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
+{
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
+	
+//	Convection Diffusion FV1 for the low-dimensional fractures
+	{
+		typedef ConvectionDiffusionFractFV1<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFractFV1").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_upwind", &T::set_upwind)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionFractFV1", tag);
+	}
+}
+
+}; // end Functionality2d3d
+
 // end group convection_diffusion
 /// \}
 
@@ -273,10 +299,12 @@ InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 {
 	grp.append("/SpatialDisc/ElemDisc");
 	typedef ConvectionDiffusionPlugin::Functionality Functionality;
+	typedef ConvectionDiffusionPlugin::Functionality2d3d Functionality2d3d;
 
 	try{
 		RegisterDimensionDependent<Functionality>(*reg,grp);
 		RegisterDomainDependent<Functionality>(*reg,grp);
+		RegisterDomain2d3dDependent<Functionality2d3d>(*reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }

@@ -1350,9 +1350,6 @@ void ConvectionDiffusionFractFV1<TDomain>::register_all_funcs ()
 //	explicit template instantiations
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef UG_DIM_1
-template class ConvectionDiffusionFractFV1<Domain1d>;
-#endif
 #ifdef UG_DIM_2
 template class ConvectionDiffusionFractFV1<Domain2d>;
 #endif
