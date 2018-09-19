@@ -97,21 +97,20 @@ template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 prep_elem_loop(const ReferenceObjectID roid, const int si)
 {
-	if(	m_imSourceExpl.data_given() ||
-		m_imReactionExpl.data_given() ||
-		m_imReactionRateExpl.data_given())
-		UG_THROW("ConvectionDiffusionFE: Explicit terms not implemented.");
+	// Check for explicit terms.
+	UG_COND_THROW(m_imSourceExpl.data_given() || m_imReactionExpl.data_given() || m_imReactionRateExpl.data_given(),
+			"ConvectionDiffusionFE: Explicit terms not implemented.");
 
-//	request geometry
+	// Request geometry.
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
-//	prepare geometry for type and order
+	//	Prepare geometry for type and order.
 	try{
 		geo.update_local(roid, m_lfeID, m_quadOrder);
-	}UG_CATCH_THROW("ConvectionDiffusion::prep_elem_loop:"
+	} UG_CATCH_THROW("ConvectionDiffusion::prep_elem_loop:" <<
 					" Cannot update Finite Element Geometry.");
 
-//	set local positions
+	//	Set local positions.
 	static const int refDim = TElem::dim;
 	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
@@ -389,18 +388,14 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
-	if (this->m_spErrEstData.get() == NULL)
-	{
-		UG_THROW("No ErrEstData object has been given to this ElemDisc!");
-	}
+	UG_COND_THROW(this->m_spErrEstData.get() == NULL,
+				  "No ErrEstData object has been given to this ElemDisc!");
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
-	if (!err_est_data)
-	{
-		UG_THROW("Dynamic cast to SideAndElemErrEstData failed."
-				<< std::endl << "Make sure you handed the correct type of ErrEstData to this discretization.");
-	}
+	UG_COND_THROW(!err_est_data, "Dynamic cast to SideAndElemErrEstData failed." << std::endl
+				  << "Make sure you handed the correct type of ErrEstData to this discretization.");
+
 
 //	set local positions
 	static const int refDim = TElem::dim;
@@ -496,11 +491,11 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	UG_COND_THROW(err_est_data->surface_view().get() == NULL, "Error estimator has NULL surface view.");
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
-//	request geometry
+	// Request geometry.
 	static const TFEGeom& geo = GeomProvider<TFEGeom>::get();
 
 
@@ -521,7 +516,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	if (side_list.size() != (size_t) ref_elem_type::numSides)
 		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
 
-// 	some help variables
+	// 	Some auxiliary variables.
 	MathVector<dim> fluxDensity, gradC, normal;
 
 	// FIXME: The computation of the gradient has to be reworked.
@@ -529,7 +524,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	// the gradient is not constant (but bilinear) on the element - and along the sides.
 	// We cannot use the FVGeom here. Instead, we need to calculate the gradient in each IP!
 
-	// calculate grad u as average (over scvf)
+	// Calculate grad(u) as average (over scvf).
 	VecSet(gradC, 0.0);
 	for(size_t ii = 0; ii < geo.num_ip(); ++ii)
 	{
@@ -538,7 +533,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 	}
 	VecScale(gradC, gradC, (1.0/geo.num_ip()));
 
-// calculate flux through the sides
+	// Calculate flux through the sides.
 	size_t passedIPs = 0;
 	for (size_t side=0; side < (size_t) ref_elem_type::numSides; side++)
 	{
@@ -585,8 +580,7 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
 	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
-	if (elem_list.size() != 1)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
+	UG_COND_THROW (elem_list.size() != 1, "Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
 
 	try
 	{
