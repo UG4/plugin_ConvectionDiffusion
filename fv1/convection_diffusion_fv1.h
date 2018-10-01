@@ -33,11 +33,12 @@
 #ifndef __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__
 #define __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__
 
-// library intern headers
-#include "../convection_diffusion_base.h"
+// ug4 headers
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
-
 #include "lib_disc/spatial_disc/elem_disc/sss.h"
+
+// plugin's internal headers
+#include "../convection_diffusion_base.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
@@ -52,25 +53,24 @@ namespace ConvectionDiffusionPlugin{
  * assemblings for the convection diffusion equation.
  * The Equation has the form
  * \f[
- * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c \right - \vec{F}) +
- * 		r1 \cdot c + r2 = f + f2
+ * 	\partial_t (m_1 c + m_2) - \nabla \cdot \left ( D \nabla c - \vec{v} c - \vec{F} \right )
+ * 		+ r_1 \cdot c + r_2 = f + \nabla \cdot \vec{f}_2
  * \f]
  * with
  * <ul>
  * <li>	\f$ c \f$ is the unknown solution
- * <li>	\f$ m1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
- * <li>	\f$ m2 \equiv m(\vec{x},t) \f$ is the Mass Term
+ * <li>	\f$ m_1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
+ * <li>	\f$ m_2 \equiv m(\vec{x},t) \f$ is the Mass Term
  * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
  * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
  * <li>	\f$ F \equiv \vec{F}(\vec{x},t) \f$ is the Flux
- * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
- * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
+ * <li>	\f$ r_1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
+ * <li>	\f$ r_2 \equiv r(\vec{x},t) \f$ is a Reaction Term
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
- * <li> \f$ f2 \equiv f_2(\vec{x},t) \f$ is a Vector Source Term
+ * <li> \f$ \vec{f}_2 \equiv \vec{f}_2(\vec{x},t) \f$ is a Vector Source Term
  * </ul>
  *
  * \tparam	TDomain		Domain
- * \tparam	TAlgebra	Algebra
  */
 template<	typename TDomain>
 class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
@@ -185,13 +185,13 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                      const size_t nip);
 
-	///	computes the linearized defect w.r.t to the velocity
+	///	computes the linearized defect w.r.t to the diffusion
 		template <typename TElem, typename TFVGeom>
 		void lin_def_diffusion(const LocalVector& u,
 		                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                       const size_t nip);
 
-	///	computes the linearized defect w.r.t to the velocity
+	///	computes the linearized defect w.r.t to the flux
 		template <typename TElem, typename TFVGeom>
 		void lin_def_flux(const LocalVector& u,
 		                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
@@ -262,7 +262,7 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 
 	///	returns the updated convection shapes
 		typedef IConvectionShapes<dim> conv_shape_type;
-		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
+		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv);
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>
