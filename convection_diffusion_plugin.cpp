@@ -39,6 +39,7 @@
 #include "convection_diffusion_base.h"
 #include "fv1/convection_diffusion_fv1.h"
 #include "fe/convection_diffusion_fe.h"
+#include "fe/convection_diffusion_stab_fe.h"
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
 
@@ -167,7 +168,12 @@ static void Domain(Registry& reg, string grp)
 #endif
 
 			.add_method("value", &T::value)
-			.add_method("gradient", &T::gradient);
+		  .add_method("gradient", &T::gradient);
+		  /*
+			.add_method("set_partial_velocity", &T::set_partial_velocity)
+			.add_method("set_partial_flux", &T::set_partial_flux)
+			.add_method("set_partial_mass", &T::set_partial_mass);
+		  */
 		reg.add_class_to_group(name, "ConvectionDiffusionBase", tag);
 	}
 
@@ -195,6 +201,21 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFE", tag);
 	}
+
+//	Convection Diffusion (FE) stabilization
+	{
+		typedef ConvectionDiffusionStabFE<TDomain> T;
+		typedef IElemDisc<TDomain> TBase;
+		string name = string("ConvectionDiffusionStabFE").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.template add_constructor<void (*)(const char*,const char*,number)>("Function(s)#Subset(s)#stabilization")
+			.template add_constructor<void (*)(const char*,const char*,number,number)>("Function(s)#Subset(s)#stabilization")
+			.add_method("set_quad_order", &T::set_quad_order)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionStabFE", tag);
+	}
+
 
 //	Convection Diffusion FVCR
 	{
