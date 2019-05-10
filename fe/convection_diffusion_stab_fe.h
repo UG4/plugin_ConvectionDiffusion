@@ -100,12 +100,12 @@ class ConvectionDiffusionStabFE : public IElemDisc<TDomain>
 		template <typename TElem, typename TFEGeom>
 		void fsh_elem_loop();
 
+		template <typename TElem, typename TFEGeom>
+		void add_jac_X_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], double stab);
+
 	///	assembles the local stiffness matrix using a finite volume scheme
 		template <typename TElem, typename TFEGeom>
 		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-
-		template <typename TElem, typename TFEGeom>
-		void add_jac_X_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], double stab);
 
 	///	assembles the stiffness part of the local defect
 		template <typename TElem, typename TFEGeom>
@@ -117,7 +117,7 @@ class ConvectionDiffusionStabFE : public IElemDisc<TDomain>
 
 	///	assembles the mass part of the local defect
 		template <typename TElem, typename TFEGeom>
-		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]){};
+		void add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
 	///	assembles the local right hand side
 		template <typename TElem, typename TFEGeom>

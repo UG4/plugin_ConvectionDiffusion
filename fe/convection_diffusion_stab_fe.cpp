@@ -32,11 +32,14 @@
 
 #include "convection_diffusion_stab_fe.h"
 
+
 #include "lib_disc/spatial_disc/disc_util/fe_geom.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
 #include "lib_disc/local_finite_element/lagrange/lagrange.h"
 #include "lib_disc/local_finite_element/lagrange/lagrangep1.h"
 #include "lib_disc/quadrature/gauss/gauss_quad.h"
+
+#include "lib_grid/algorithms/volume_calculation.h"   			// For computing bounding box
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
@@ -160,23 +163,49 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 }
 
 
-template<int dim>
-void PointsBoundingBox(size_t npoints, const MathVector<dim> points[], MathVector<dim> &vMinBB, MathVector<dim> &vMaxBB)
+/*!
+ * Assemble contribution: \sigma \int_{tau}  \sum h_i^2 \partial_i u^k \partial_i v
+ */
+template<typename TDomain>
+template<typename TElem, typename TFEGeom>
+void ConvectionDiffusionStabFE<TDomain>::
+add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	// determine bounding box
-	vMinBB= points[0];
-	vMaxBB = points[0];
+	const TFEGeom& geo =   // Geometry
+			GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
+	/* const number scale =   // Scaling factor
+			ElementDiameterSq<GridObject, TDomain>(*elem, *this->domain()); */
 
-	for(size_t ii = 1; ii < npoints; ++ii)
+	MathVector<dim> vBoundingBox[2]; // Element bounding box
+	CalculateBoundingBox<dim>(NumVertices((TElem*)elem), vCornerCoords, vBoundingBox[0], vBoundingBox[1]);
+
+	MathVector<dim> gradU; // Temporary
+
+	//	Loop integration points.
+	for (size_t ip = 0; ip < geo.num_ip(); ++ip)
 	{
-		for(int i = 0; i < dim; ++i)
+		//	Loop trial space
+		VecSet(gradU, 0.0);
+		for (size_t psh = 0; psh < geo.num_sh(); ++psh)
+			VecScaleAppend(gradU, u(_C_, psh), geo.global_grad(ip, psh)); // * scale
+
+		// Scale gradient
+		for(size_t i = 0; i < dim; ++i)
 		{
-			const MathVector<dim>& v = points[ii];
-			if(v[i] < vMinBB[i]) vMinBB[i] = v[i];
-			else if(v[i] > vMaxBB[i]) vMaxBB[i] = v[i];
+			double hi = vBoundingBox[1][i] - vBoundingBox[0][i];
+			gradU[i] *= (hi*hi);
+		}
+
+		for (size_t psh = 0; psh < geo.num_sh(); ++psh)
+		{
+			d(_C_, psh) +=
+				m_stabParamM * VecDot(geo.global_grad(ip, psh), gradU) * geo.weight(ip);
 		}
 	}
+
 }
+
+
 
 template<typename TDomain>
 template<typename TElem, typename TFEGeom>
@@ -186,26 +215,27 @@ add_jac_X_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	const TFEGeom& geo = //	request geometry
 				GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 	/* const number scale = // Scaling factor
-				m_stabParam *ElementDiameterSq<GridObject, TDomain>(*elem, *this->domain()); */
-
+			ElementDiameterSq<GridObject, TDomain>(*elem, *this->domain());*/
 
 	MathVector<dim> vBoundingBox[2];
-	PointsBoundingBox<dim>(NumVertices((TElem*)elem), vCornerCoords, vBoundingBox[0], vBoundingBox[1]);
+	CalculateBoundingBox<dim>(NumVertices((TElem*)elem), vCornerCoords, vBoundingBox[0], vBoundingBox[1]);
 
 	// rescale using bounding box
 	for (size_t ip = 0; ip < geo.num_ip(); ++ip){
 		for (size_t psh = 0; psh < geo.num_sh(); ++psh){
-			for (size_t psh2 = 0; psh2 < geo.num_sh(); ++psh2){
 
-				MathVector<dim> grad = geo.global_grad(ip, psh); // *scale
-				for(size_t i = 0; i < dim; ++i)
-				{
-					double hi = vBoundingBox[1][i] - vBoundingBox[0][i];
-					grad[i] *= (hi*hi);
-				}
+			// Rescaled gradient (using bounding box)
+			MathVector<dim> grad = geo.global_grad(ip, psh); // *scale
+			for(size_t i = 0; i < dim; ++i)
+			{
+				double hi = vBoundingBox[1][i] - vBoundingBox[0][i];
+				grad[i] *= (hi*hi);
+			}
 
-				J(_C_, psh, _C_, psh2) += m_stabParam* VecDot(grad, geo.global_grad(ip, psh2))
-											* geo.weight(ip);
+			for (size_t psh2 = 0; psh2 < geo.num_sh(); ++psh2)
+			{
+				J(_C_, psh, _C_, psh2) += //* scale
+						m_stabParam* VecDot(grad, geo.global_grad(ip, psh2)) * geo.weight(ip);
 			}
 		}
 	}
@@ -227,34 +257,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 {
 	if (m_stabParamA != 0.0) add_jac_X_elem<TElem,TFEGeom>(J, u, elem,vCornerCoords, m_stabParamA);
 }
-/*
-template<typename TDomain>
-template<typename TElem, typename TFEGeom>
-void ConvectionDiffusionStabFE<TDomain>::
-add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
-{
-	const TFEGeom& geo =   // Geometry
-			GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
-	const number scale =   // Scaling factor
-			m_stabParam * ElementDiameterSq<GridObject, TDomain>(*elem, *this->domain());
-	MathVector<dim> gradU; // Temporary
 
-	//	Loop integration points.
-	for (size_t ip = 0; ip < geo.num_ip(); ++ip)
-	{
-		//	Loop trial space
-		VecSet(gradU, 0.0);
-		for (size_t psh = 0; psh < geo.num_sh(); ++psh)
-			VecScaleAppend(gradU, u(_C_, psh), geo.global_grad(ip, psh));
-
-		for (size_t psh = 0; psh < geo.num_sh(); ++psh)
-		{
-			d(_C_, psh) += scale * VecDot(geo.global_grad(ip, psh), gradU) * geo.weight(ip);
-		}
-	}
-
-}
-*/
 
 
 
