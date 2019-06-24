@@ -288,9 +288,10 @@ struct Functionality2d3d
 template <typename TDomain>
 static void Domain(Registry& reg, string grp)
 {
+	static const int dim = TDomain::dim;
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
-	
+
 //	Convection Diffusion FV1 for the low-dimensional fractures
 	{
 		typedef ConvectionDiffusionFractFV1<TDomain> T;
@@ -298,7 +299,26 @@ static void Domain(Registry& reg, string grp)
 		string name = string("ConvectionDiffusionFractFV1").append(suffix);
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_fract_manager", static_cast<void (T::*)(SmartPtr<DegeneratedLayerManager<dim> >)>(&T::set_fract_manager), "Sets the fracture manager", "Deg. fracture manager")
 			.add_method("set_upwind", &T::set_upwind)
+			.add_method("set_aperture", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_aperture), "", "Fract. aperture")
+			.add_method("set_aperture", static_cast<void (T::*)(number)>(&T::set_aperture), "", "Fract. aperture")
+#ifdef UG_FOR_LUA
+			.add_method("set_aperture", static_cast<void (T::*)(const char*)>(&T::set_aperture), "", "Fract. aperture")
+			.add_method("set_aperture", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_aperture), "", "Fract. aperture")
+#endif
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(number)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+#ifdef UG_FOR_LUA
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(const char*)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+#endif
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(number)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+#ifdef UG_FOR_LUA
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(const char*)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+#endif
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFractFV1", tag);
 	}

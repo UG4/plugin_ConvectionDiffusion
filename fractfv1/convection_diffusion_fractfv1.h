@@ -148,8 +148,50 @@ class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 		{
 			set_aperture(LuaUserDataFactory<number, dim>::create(fctName));
 		}
+		void set_aperture(LuaFunctionHandle fct)
+		{
+			set_aperture(make_sp(new LuaUserData<number,dim>(fct)));
+		}
 	#endif
-	
+
+		void set_ortho_velocity(SmartPtr<CplUserData<number, dim> > user)
+		{
+			m_imOrthoVelocity.set_data(user);
+		}
+		void set_ortho_velocity(number val)
+		{
+			set_ortho_velocity(make_sp(new ConstUserNumber<dim>(val)));
+		}
+    #ifdef UG_FOR_LUA
+		void set_ortho_velocity(const char* fctName)
+		{
+			set_ortho_velocity(LuaUserDataFactory<number,dim>::create(fctName));
+		}
+		void set_ortho_velocity(LuaFunctionHandle fct)
+		{
+			set_ortho_velocity(make_sp(new LuaUserData<number,dim>(fct)));
+		}
+    #endif
+
+		void set_ortho_diffusion(SmartPtr<CplUserData<number, dim> > user)
+		{
+			m_imOrthoDiffusion.set_data(user);
+		}
+		void set_ortho_diffusion(number val)
+		{
+			set_ortho_diffusion(make_sp(new ConstUserNumber<dim>(val)));
+		}
+    #ifdef UG_FOR_LUA
+		void set_ortho_diffusion(const char* fctName)
+		{
+			set_ortho_diffusion(LuaUserDataFactory<number,dim>::create(fctName));
+		}
+		void set_ortho_diffusion(LuaFunctionHandle fct)
+		{
+			set_ortho_diffusion(make_sp(new LuaUserData<number,dim>(fct)));
+		}
+    #endif
+
 	///	hanging nodes are not allowed in this discretization
 		virtual bool use_hanging() const {return false;}
 	
