@@ -90,8 +90,9 @@ template<typename TDomain>
 void ConvectionDiffusionFV1<TDomain>::
 prep_assemble_loop()
 {
-	if (m_sss.valid())
-		m_sss->clear_markers();
+	if (m_sss_mngr.valid ())
+	//	reset the markers of the point sources and sinks (as there are no marks for the lines)
+		m_sss_mngr->init_all_point_sss ();
 }
 
 template<typename TDomain>
@@ -228,6 +229,26 @@ static TVector CalculateCenter(GridObject* o, const TVector* coords)
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
+add_sss_jac_elem
+(
+	LocalMatrix& J, ///< the matrix to update
+	const LocalVector& u, ///< current solution
+	GridObject* elem, ///< the element
+	const TFVGeom& geo, ///< the FV geometry for that element
+	size_t i, ///< index of the SCV
+	number flux ///< flux through source/sink (premultiplied by the length for lines)
+)
+{
+	size_t co = geo.scv(i).node_id ();
+	
+	if (flux < 0.0)
+		// sink
+		J(_C_, co, _C_, co) -= flux;
+}
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void ConvectionDiffusionFV1<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // get finite volume geometry
@@ -329,22 +350,45 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 // Singular sources and sinks
 ////////////////////////////////
 
-	if (m_sss.valid()) {
-		const typename TDomain::position_accessor_type& aaPos = this->domain()->position_accessor();
-		const typename TDomain::grid_type& grid = *this->domain()->grid();
-		const number time = this->time();
-		MathVector<1> out;
-		for(size_t i = 0; i < geo.num_scv(); i++) {
-			const typename TFVGeom::SCV& scv = geo.scv(i);
-			const int co = scv.node_id();
-			const number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
-			if (len == 0.0) continue;
-			out[0] *= len;
-			if (out[0] < 0.0)
-			// sink
-				J(_C_, co, _C_, co) -= out[0];
+	if (m_sss_mngr.valid () && (m_sss_mngr->num_points () != 0 || m_sss_mngr->num_lines () != 0))
+    {
+    	typedef typename TDomain::position_accessor_type t_pos_accessor;
+    	typedef typename CDSingularSourcesAndSinks<dim>::template
+    		point_iterator<TElem,t_pos_accessor,TFVGeom> t_pnt_sss_iter;
+    	typedef typename CDSingularSourcesAndSinks<dim>::template
+    		line_iterator<TElem,t_pos_accessor,TFVGeom> t_lin_sss_iter;
+
+		t_pos_accessor& aaPos = this->domain()->position_accessor();
+		Grid& grid = (Grid&) *this->domain()->grid();
+		
+		for(size_t i = 0; i < geo.num_scv(); i++)
+		{
+			size_t co = geo.scv(i).node_id ();
+			
+		//	point sources
+			for (t_pnt_sss_iter pnt (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
+				! pnt.is_over (); ++pnt)
+			{
+				FVPointSourceOrSink<dim, cd_point_sss_data<dim> > * pnt_sss = *pnt;
+				if (! pnt_sss->marked_for (elem, co))
+					continue;
+				pnt_sss->compute (pnt_sss->position (), this->time (), -1); //TODO: set the subset id instead of -1
+				this->template add_sss_jac_elem<TElem, TFVGeom> (J, u, elem, geo, i,
+					pnt_sss->flux ());
+			}
+			
+		//	line sources
+			for (t_lin_sss_iter line (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
+				! line.is_over (); ++line)
+			{
+				FVLineSourceOrSink<dim, cd_line_sss_data<dim> > * line_sss = *line;
+				number len = VecDistance (line.seg_start (), line.seg_end ());
+				line_sss->compute (line.seg_start (), this->time (), -1); //TODO: set the subset id instead of -1
+				this->template add_sss_jac_elem<TElem, TFVGeom> (J, u, elem, geo, i,
+					line_sss->flux () * len);
+			}
 		}
-	}
+    }
 }
 
 
@@ -374,6 +418,29 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 //	m_imMass part does not explicitly depend on associated unknown function
 }
 
+
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void ConvectionDiffusionFV1<TDomain>::
+add_sss_def_elem
+(
+	LocalVector& d, ///< the defect to update
+	const LocalVector& u, ///< current solution
+	GridObject* elem, ///< the element
+	const TFVGeom& geo, ///< the FV geometry for that element
+	size_t i, ///< index of the SCV
+	number flux ///< flux through source/sink (premultiplied by the length for lines)
+)
+{
+	size_t co = geo.scv(i).node_id ();
+
+	if (flux > 0.0)
+		// source
+		d(_C_, co) -= flux;
+	else
+		// sink
+		d(_C_, co) -= flux * u(_C_, co);
+}
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
@@ -487,25 +554,45 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 // Singular sources and sinks
 ////////////////////////////////
 
-	if (m_sss.valid()) {
-		const typename TDomain::position_accessor_type& aaPos = this->domain()->position_accessor();
-		const typename TDomain::grid_type& grid = *this->domain()->grid();
-		const number time = this->time();
-		MathVector<1> out;
-		for(size_t i = 0; i < geo.num_scv(); i++) {
-			const typename TFVGeom::SCV& scv = geo.scv(i);
-			const int co = scv.node_id();
-			const number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
-			if (len == 0.0) continue;
-			out[0] *= len;
-			if (out[0] > 0.0)
-			// source
-				d(_C_, co) -= out[0];
-			else
-			// sink
-				d(_C_, co) -= out[0] * u(_C_, co);
+    if (m_sss_mngr.valid () && (m_sss_mngr->num_points () != 0 || m_sss_mngr->num_lines () != 0))
+    {
+    	typedef typename TDomain::position_accessor_type t_pos_accessor;
+    	typedef typename CDSingularSourcesAndSinks<dim>::template
+    		point_iterator<TElem,t_pos_accessor,TFVGeom> t_pnt_sss_iter;
+    	typedef typename CDSingularSourcesAndSinks<dim>::template
+    		line_iterator<TElem,t_pos_accessor,TFVGeom> t_lin_sss_iter;
+    	
+		t_pos_accessor& aaPos = this->domain()->position_accessor();
+		Grid& grid = (Grid&) *this->domain()->grid();
+		
+		for(size_t i = 0; i < geo.num_scv(); i++)
+		{
+			size_t co = geo.scv(i).node_id ();
+			
+		//	point sources
+			for (t_pnt_sss_iter pnt (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
+				! pnt.is_over (); ++pnt)
+			{
+				FVPointSourceOrSink<dim, cd_point_sss_data<dim> > * pnt_sss = *pnt;
+				if (! pnt_sss->marked_for (elem, co))
+					continue;
+				pnt_sss->compute (pnt_sss->position (), this->time (), -1); //TODO: set the subset id instead of -1
+				this->template add_sss_def_elem<TElem, TFVGeom> (d, u, elem, geo, i,
+					pnt_sss->flux ());
+			}
+			
+		//	line sources
+			for (t_lin_sss_iter line (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
+				! line.is_over (); ++line)
+			{
+				FVLineSourceOrSink<dim, cd_line_sss_data<dim> > * line_sss = *line;
+				number len = VecDistance (line.seg_start (), line.seg_end ());
+				line_sss->compute (line.seg_start (), this->time (), -1); //TODO: set the subset id instead of -1
+				this->template add_sss_def_elem<TElem, TFVGeom> (d, u, elem, geo, i,
+					line_sss->flux () * len);
+			}
 		}
-	}
+    }
 }
 
 template<typename TDomain>

@@ -37,14 +37,13 @@
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
 #include "convection_diffusion_base.h"
+#include "convection_diffusion_sss.h"
 #include "fv1/convection_diffusion_fv1.h"
 #include "fe/convection_diffusion_fe.h"
 #include "fe/convection_diffusion_stab_fe.h"
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
 #include "fractfv1/convection_diffusion_fractfv1.h"
-
-#include "lib_disc/spatial_disc/elem_disc/sss.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -186,7 +185,8 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T::set_upwind)
-			.add_method("set_singular_sources_and_sinks", &T::set_sss, "", "Singular Sources and Sinks")
+			.add_method("set_singular_sources_and_sinks", &T::set_sss_manager, "", "Sets the singular sources and sinks manager")
+			.add_method("singular_sources_and_sinks", &T::sss_manager, "", "Returns the singular sources and sinks manager")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV1", tag);
 	}
@@ -251,18 +251,33 @@ static void Dimension(Registry& reg, string grp)
 
 	//	singular sources and sinks 
 	{
-		typedef SingularSourcesAndSinks<dim, 1> T;
-		string name = string("CdSingularSourcesAndSinks").append(dimSuffix);
+		typedef CDSingularSourcesAndSinks<dim> T;
+		typedef typename T::point_sss_type TPointSSS;
+		typedef typename T::line_sss_type TLineSSS;
+
+		string point_name = string("CDPointSourcesSink").append(dimSuffix);
+		reg.add_class_<TPointSSS>(point_name, grp)
+			.template add_constructor<void (*) (const std::vector<number>&)> ()
+			.add_method ("set", static_cast<void (TPointSSS::*) (number)> (&TPointSSS::set))
+			.add_method ("set", static_cast<void (TPointSSS::*) (LuaFunctionHandle)> (&TPointSSS::set))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(point_name, "CDPointSourcesSink", dimTag);
+
+		string line_name = string("CDLineSourcesSink").append(dimSuffix);
+		reg.add_class_<TLineSSS>(line_name, grp)
+			.template add_constructor<void (*) (const std::vector<number>&, const std::vector<number>&)> ()
+			.add_method ("set", static_cast<void (TLineSSS::*) (number)> (&TLineSSS::set))
+			.add_method ("set", static_cast<void (TLineSSS::*) (LuaFunctionHandle)> (&TLineSSS::set))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(line_name, "CDLineSourcesSink", dimTag);
+
+		string name = string("CDSingularSourcesAndSinks").append(dimSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
-			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&)>(&T::addps))
-			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, const std::vector<number>&)>(&T::addls))
-#ifdef UG_FOR_LUA
-			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, LuaFunctionHandle)>(&T::addps))
-			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, LuaFunctionHandle)>(&T::addls))
-#endif
+			.add_method ("add_point", static_cast<void (T::*) (SmartPtr<TPointSSS>)> (&T::add_point))
+			.add_method ("add_line", static_cast<void (T::*) (SmartPtr<TLineSSS>)> (&T::add_line))
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "CdSingularSourcesAndSinks", dimTag);
+		reg.add_class_to_group(name, "CDSingularSourcesAndSinks", dimTag);
 	}
 }
 

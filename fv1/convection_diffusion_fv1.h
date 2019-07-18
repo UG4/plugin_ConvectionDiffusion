@@ -35,10 +35,10 @@
 
 // ug4 headers
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
-#include "lib_disc/spatial_disc/elem_disc/sss.h"
 
 // plugin's internal headers
 #include "../convection_diffusion_base.h"
+#include "../convection_diffusion_sss.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
@@ -102,7 +102,10 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
 
 	/// set singular sources and sinks
-		void set_sss(SmartPtr<SingularSourcesAndSinks<dim, 1> > sss) { m_sss = sss; }
+		void set_sss_manager(SmartPtr<CDSingularSourcesAndSinks<dim> > sss_mngr) {m_sss_mngr = sss_mngr;}
+
+	/// get singular sources and sinks
+		SmartPtr<CDSingularSourcesAndSinks<dim> > sss_manager() {return m_sss_mngr;}
 
 	private:
 	/// prepares assembling
@@ -178,6 +181,32 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void fsh_err_est_elem_loop();
 
+    private:
+
+	///	adds contributions of a singular source or sink to the matrix
+		template<typename TElem, typename TFVGeom>
+		void add_sss_jac_elem
+		(
+			LocalMatrix& J, ///< the matrix to update
+			const LocalVector& u, ///< current solution
+			GridObject* elem, ///< the element
+			const TFVGeom& geo, ///< the FV geometry for that element
+			size_t i, ///< index of the SCV
+			number flux ///< flux through source/sink (premultiplied by the length for lines)
+		);
+	
+	///	adds contributions of a singular source or sink to the defect
+		template<typename TElem, typename TFVGeom>
+		void add_sss_def_elem
+		(
+			LocalVector& d, ///< the defect to update
+			const LocalVector& u, ///< current solution
+			GridObject* elem, ///< the element
+			const TFVGeom& geo, ///< the FV geometry for that element
+			size_t i, ///< index of the SCV
+			number flux ///< flux through source/sink (premultiplied by the length for lines)
+		);
+
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
@@ -237,8 +266,8 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
 
-    /// singular sources and sinks
-		SmartPtr<SingularSourcesAndSinks<dim, 1> > m_sss;
+    /// singular sources and sinks manager
+		SmartPtr<CDSingularSourcesAndSinks<dim> > m_sss_mngr;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;
