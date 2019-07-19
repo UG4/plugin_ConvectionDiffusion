@@ -290,6 +290,23 @@ void ConvectionDiffusionFractFV1<TDomain>::add_jac_A_elem
 	this->template fract_bulk_add_jac_A_elem<TElem> (J, u, pElem, vCornerCoords);
 }
 
+/// assembles a singular source or sink in the jacobian
+template<typename TDomain>
+template<typename TElem>
+void ConvectionDiffusionFractFV1<TDomain>::add_sss_jac_elem
+(
+	LocalMatrix& J, ///< the matrix to update
+	const LocalVector& u, ///< current solution
+	TElem* pElem, ///< the element
+	size_t co, ///< corner for the source/sink
+	number flux ///< flux through the source/sink (premultiplied by the length for lines)
+)
+{
+	if (flux < 0.0)
+		// sink
+		J(_C_, co, _C_, co) -= flux;
+}
+
 /// computes the local stiffness matrix on a fracture element
 template<typename TDomain>
 template<typename TElem>
@@ -378,6 +395,37 @@ void ConvectionDiffusionFractFV1<TDomain>::fract_add_jac_A_elem
 	}
 	
 //	Reaction term does not explicitly depend on the associated unknown function
+
+//	Assemble the singular sources and sinks
+    if (m_sss_mngr.valid () && m_sss_mngr->num_lines () != 0)
+    {
+    	typedef typename domain_type::position_accessor_type t_pos_accessor;
+    	typedef typename CDSingularSourcesAndSinks<dim>::template
+    		line_iterator<side_type,t_pos_accessor,TFractFVGeom> t_lin_sss_iter;
+    	
+		t_pos_accessor& aaPos = this->domain()->position_accessor ();
+		Grid& grid = (Grid&) *this->domain()->grid ();
+		
+		for(size_t ip = 0; ip < m_pFractGeo->num_scv(); ip++)
+		{
+		//	Get the corner of the face
+			size_t side_co = m_pFractGeo->scv(ip).node_id ();
+		// 	Get associated node of the element (not side!)
+			size_t co = m_innerSideCo [m_pFractGeo->scv(ip).node_id ()];
+			
+		//	line sources (that correspond to the point sources)
+			for (t_lin_sss_iter line (m_sss_mngr.get (), m_innerFractSide, grid, aaPos, *m_pFractGeo, side_co);
+				! line.is_over (); ++line)
+			{
+				FVLineSourceOrSink<dim, cd_line_sss_data<dim> > * line_sss = *line;
+				if (! line_sss->marked_for (m_innerFractSide, side_co))
+					continue;
+				line_sss->compute (line.seg_start (), this->time (), -1); //TODO: set the subset id instead of -1
+				add_sss_jac_elem (J, u, pElem, co, line_sss->flux () / 2);
+				/* Remark: "/ 2" because the source is taken into account twice. */
+			}
+		}
+	}
 }
 
 /// computes the local stiffness matrix of the fracture-bulk interaction terms on a fracture element
@@ -476,6 +524,26 @@ void ConvectionDiffusionFractFV1<TDomain>::add_def_A_elem
 
 	this->template fract_add_def_A_elem<TElem> (d, u, pElem, vCornerCoords);
 	this->template fract_bulk_add_def_A_elem<TElem> (d, u, pElem, vCornerCoords);
+}
+
+/// assembles a singular source or sink in the defect
+template<typename TDomain>
+template<typename TElem>
+void ConvectionDiffusionFractFV1<TDomain>::add_sss_def_elem
+(
+	LocalVector& d, ///< the defect to update
+	const LocalVector& u, ///< current solution
+	TElem * pElem, ///< the element
+	size_t co, ///< corner for the source/sink
+	number flux ///< flux through the source/sink (premultiplied by the length for lines)
+)
+{
+	if (flux > 0.0)
+		// source
+		d(_C_, co) -= flux;
+	else
+		// sink
+		d(_C_, co) -= flux * u(_C_, co);
 }
 
 /// computes the stiffness part of the local defect on a fracture element
@@ -596,6 +664,37 @@ void ConvectionDiffusionFractFV1<TDomain>::fract_add_def_A_elem
 
 		// 	Add to local defect
 			d(_C_, co) += m_imReaction[ip] * scv.volume () * half_fr_width;
+		}
+	}
+
+//	Assemble the singular sources and sinks
+    if (m_sss_mngr.valid () && m_sss_mngr->num_lines () != 0)
+    {
+    	typedef typename domain_type::position_accessor_type t_pos_accessor;
+    	typedef typename CDSingularSourcesAndSinks<dim>::template
+    		line_iterator<side_type,t_pos_accessor,TFractFVGeom> t_lin_sss_iter;
+    	
+		t_pos_accessor& aaPos = this->domain()->position_accessor ();
+		Grid& grid = (Grid&) *this->domain()->grid ();
+		
+		for(size_t ip = 0; ip < m_pFractGeo->num_scv(); ip++)
+		{
+		//	Get the corner of the face
+			size_t side_co = m_pFractGeo->scv(ip).node_id ();
+		// 	Get associated node of the element (not side!)
+			size_t co = m_innerSideCo [m_pFractGeo->scv(ip).node_id ()];
+			
+		//	line sources (that correspond to the point sources)
+			for (t_lin_sss_iter line (m_sss_mngr.get (), m_innerFractSide, grid, aaPos, *m_pFractGeo, side_co);
+				! line.is_over (); ++line)
+			{
+				FVLineSourceOrSink<dim, cd_line_sss_data<dim> > * line_sss = *line;
+				if (! line_sss->marked_for (m_innerFractSide, side_co))
+					continue;
+				line_sss->compute (line.seg_start (), this->time (), -1); //TODO: set the subset id instead of -1
+				add_sss_def_elem (d, u, pElem, co, line_sss->flux () / 2);
+				/* Remark: "/ 2" because the source is taken into account twice. */
+			}
 		}
 	}
 }

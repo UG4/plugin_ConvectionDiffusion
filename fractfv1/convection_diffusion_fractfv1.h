@@ -40,6 +40,7 @@
 
 // plugin's internal headers
 #include "../convection_diffusion_base.h"
+#include "../convection_diffusion_sss.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
@@ -191,6 +192,12 @@ class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 			set_ortho_diffusion(make_sp(new LuaUserData<number,dim>(fct)));
 		}
     #endif
+
+	/// set singular sources and sinks
+		void set_sss_manager(SmartPtr<CDSingularSourcesAndSinks<dim> > sss_mngr) {m_sss_mngr = sss_mngr;}
+
+	/// get singular sources and sinks
+		SmartPtr<CDSingularSourcesAndSinks<dim> > sss_manager() {return m_sss_mngr;}
 
 	///	hanging nodes are not allowed in this discretization
 		virtual bool use_hanging() const {return false;}
@@ -364,6 +371,12 @@ class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 
 		template <typename TElem>
 		inline void fract_bulk_add_rhs_elem(LocalVector& b, TElem* elem, const position_type vCornerCoords[]);
+
+		template <typename TElem>
+		inline void add_sss_def_elem(LocalVector& d, const LocalVector& u, TElem* pElem, size_t co, number flux);
+	
+		template <typename TElem>
+		inline void add_sss_jac_elem(LocalMatrix& J, const LocalVector& u, TElem* pElem, size_t co, number flux);
 	
 	private:
 	///	returns the updated convection shapes
@@ -394,10 +407,15 @@ class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 		DataImport<number, dim> m_imOrthoVelocity; ///< convection velocity through the fracture-bulk interface
 		DataImport<number, dim> m_imOrthoFlux; ///< flux through the fracture-bulk interface
 		DataImport<number, dim> m_imOrthoVectorSource; ///< vector through the fracture-bulk interface
+
+    private:
+
+// 	singular sources and sinks manager
+		SmartPtr<CDSingularSourcesAndSinks<dim> > m_sss_mngr;		
 		
 	protected:
 	
-	//	Parameters of the discretization:
+//	Parameters of the discretization:
 		SmartPtr<fract_manager_type> m_spFractManager; ///< degenerated fracture manager (may be SPNULL)
 		SmartPtr<conv_shape_type> m_spConvShape; ///< method to compute the upwind shapes
 
