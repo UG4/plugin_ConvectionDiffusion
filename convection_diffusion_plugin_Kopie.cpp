@@ -36,17 +36,11 @@
 
 #include "bridge/util.h"
 #include "bridge/util_domain_dependent.h"
-#include "bridge/util_domain_algebra_dependent.h"
 #include "convection_diffusion_base.h"
 #include "fv1/convection_diffusion_fv1.h"
-#include "fv1_cutElem/convection_diffusion_fv1_cutElem.h"
 #include "fe/convection_diffusion_fe.h"
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
-
-#include "fv1_cutElem/diffusion_interface/diffusion_interface.h"
-
-//#include "lib_disc/spatial_disc/immersed_util/interface_handler/interface_handler_two_sided_cut/interface_handler_diffusion.h"
 
 #include "lib_disc/spatial_disc/elem_disc/sss.h"
 
@@ -189,20 +183,7 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV1", tag);
 	}
-    
-//	Convection Diffusion FV1 non-conforming Boundary
-    {
-        typedef ConvectionDiffusionFV1_cutElem<TDomain> T;
-        typedef ConvectionDiffusionBase<TDomain> TBase;
-        string name = string("ConvectionDiffusionFV1_cutElem").append(suffix);
-        reg.add_class_<T, TBase >(name, grp)
-        .template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
-        .add_method("set_upwind", &T::set_upwind)
-        .add_method("set_singular_sources_and_sinks", &T::set_sss, "", "Singular Sources and Sinks")
-        .set_construct_as_smart_pointer(true);
-        reg.add_class_to_group(name, "ConvectionDiffusionFV1_cutElem", tag);
-    }
-    
+
 //	Convection Diffusion FE
 	{
 		typedef ConvectionDiffusionFE<TDomain> T;
@@ -240,61 +221,13 @@ static void Domain(Registry& reg, string grp)
 	}
 }
 
-    /**
-     * Function called for the registration of Domain and Algebra dependent parts
-     * of the plugin. All Functions and Classes depending on both Domain and Algebra
-     * are to be placed here when registering. The method is called for all
-     * available Domain and Algebra types, based on the current build options.
-     *
-     * @param reg				registry
-     * @param parentGroup		group for sorting of functionality
-     */
-    template <typename TDomain, typename TAlgebra>
-    static void DomainAlgebra(Registry& reg, string grp)
-    {
-        string suffix = GetDomainAlgebraSuffix<TDomain,TAlgebra>();
-        string tag = GetDomainAlgebraTag<TDomain,TAlgebra>();
-        
-        typedef ApproximationSpace<TDomain> approximation_space_type;
-        typedef GridFunction<TDomain, TAlgebra> function_type;
-        
-        
-        //	MovingInterfaceDiffusion
-        {
-            
-            typedef MovingInterfaceDiffusion<TDomain, TAlgebra> T;
-            typedef IMovingInterface<TDomain, TAlgebra> TBase;
-            string name = string("MovingInterfaceDiffusion").append(suffix);
-            reg.add_class_<T, TBase>(name, grp)
-            .template add_constructor<void (*)(SmartPtr<IAssemble<TAlgebra> > ass,
-                                               SmartPtr<ConvectionDiffusionPlugin::ConvectionDiffusionFV1_cutElem<TDomain> > spMaster,
-                                               SmartPtr<DiffusionInterfaceProvider<TDomain::dim> > interfaceProvider,
-                                               SmartPtr<CutElementHandlerImmersed<TDomain::dim> > cutElementHandler)>("domain disc, global handler")
-            .add_method("init", &T::init)
-            .add_method("set_source_data", &T::set_source_data)
-            .add_method("set_jump_data", &T::set_jump_data)
-            .add_method("set_jump_grad_data", &T::set_jump_grad_data)
-            .add_method("set_diffusion_data", &T::set_diffusion_data)
-            .add_method("get_integral", &T::get_integral)
-            .add_method("get_numDoFs", &T::get_numDoFs)
-            .add_method("set_Nitsche", &T::set_Nitsche)
-            .add_method("adjust_for_error", &T::adjust_for_error)
-            .add_method("initialize_threshold", &T::initialize_threshold)
-            .add_method("set_threshold", &T::set_threshold, "", "Set Threshold")
-            .add_method("set_analytic_solution", &T::set_analytic_solution, "", "Set Threshold")
-            .set_construct_as_smart_pointer(true);
-            reg.add_class_to_group(name, "MovingInterfaceDiffusion", tag);
-        }
-    }
-    
-        
 template <int dim>
 static void Dimension(Registry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
-    
-	//	singular sources and sinks
+
+	//	singular sources and sinks 
 	{
 		typedef SingularSourcesAndSinks<dim, 1> T;
 		string name = string("CdSingularSourcesAndSinks").append(dimSuffix);
@@ -309,30 +242,6 @@ static void Dimension(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "CdSingularSourcesAndSinks", dimTag);
 	}
-    
-    // CutElementHandlerImmersed
-    {
-        typedef CutElementHandlerImmersed<dim> T;
-        string name = string("CutElementHandlerImmersed").append(dimSuffix);
-        reg.add_class_<T>(name, grp)
-        .template add_constructor<void (*)(SmartPtr<MultiGrid> mg, const char*, SmartPtr<DiffusionInterfaceProvider<dim> >)>("multigrid, fct names")
-        .set_construct_as_smart_pointer(true);
-        reg.add_class_to_group(name, "CutElementHandlerImmersed", dimTag);
-    }
-    
-    // DiffusionInterfaceProvider
-    {
-        typedef DiffusionInterfaceProvider<dim> T;
-        string name = string("DiffusionInterfaceProvider").append(dimSuffix);
-        reg.add_class_<T>(name, grp)
-        .template add_constructor<void (*)( )>("")
-        .add_method("print", &T::print)
-        .add_method("add", &T::add)
-        .set_construct_as_smart_pointer(true);
-        reg.add_class_to_group(name, "DiffusionInterfaceProvider", dimTag);
-    }
-    
-    
 }
 
 }; // end Functionality
@@ -355,8 +264,6 @@ InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 	try{
 		RegisterDimensionDependent<Functionality>(*reg,grp);
 		RegisterDomainDependent<Functionality>(*reg,grp);
-        RegisterDomainAlgebraDependent<Functionality>(*reg,grp);
-
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
