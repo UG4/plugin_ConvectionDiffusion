@@ -38,10 +38,12 @@
 set(pluginName	ConvectionDiffusion)
 set(SOURCES		convection_diffusion_base.cpp
 				fv1/convection_diffusion_fv1.cpp
-                		fv1_cutElem/convection_diffusion_fv1_cutElem.cpp
+                fv1_cutElem/convection_diffusion_fv1_cutElem.cpp
 				fe/convection_diffusion_fe.cpp
+				fe/convection_diffusion_stab_fe.cpp
 				fvcr/convection_diffusion_fvcr.cpp
 				fv/convection_diffusion_fv.cpp
+				fractfv1/convection_diffusion_fractfv1.cpp
 				convection_diffusion_plugin.cpp)
 
 

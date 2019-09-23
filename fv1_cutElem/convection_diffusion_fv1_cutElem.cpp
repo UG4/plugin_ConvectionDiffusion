@@ -30,6 +30,9 @@
  * GNU Lesser General Public License for more details.
  */
 
+#ifndef __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1_CUTELEM_IMPL
+#define __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1_CUTELEM_IMPL
+
 
 #include "convection_diffusion_fv1_cutElem.h"
 
@@ -42,6 +45,13 @@ namespace ConvectionDiffusionPlugin{
 
 DebugID DID_CONV_DIFF_FV1_CUTELEM("CONV_DIFF_FV1_CUTELEM");
 
+enum testCase
+{
+    GANGL_CENTER = 0,
+    GANGL_OFF_CENTER,
+    FEDKIW_EX5,
+};
+    
 ////////////////////////////////////////////////////////////////////////////////
 //	helper function
 ////////////////////////////////////////////////////////////////////////////////
@@ -50,13 +60,10 @@ DebugID DID_CONV_DIFF_FV1_CUTELEM("CONV_DIFF_FV1_CUTELEM");
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
-get_local_data(TFVGeom& geo, const LocalVector& u, LocalVector& locUOut, MathMatrix<dim, dim> diffusionOut, LocalVector& jumpOut, LocalVector& jump_gradOut, LocalVector& sourceOut)
+get_local_data(TFVGeom& geo, const LocalVector& u, const LocalIndices& ind, LocalVector& locUOut, MathMatrix<dim, dim>& diffusionOut, LocalVector& jumpOut, LocalVector& jump_gradOut, LocalVector& sourceOut)
 {
     const bool bElementIsCut = geo.get_element_modus();
     
-    LocalIndices ind = u.get_indices();
-    jumpOut.resize(ind); jump_gradOut.resize(ind); sourceOut.resize(ind);
-
     const int orientation = geo.get_orientation();
 
     std::vector<double> imSource;
@@ -72,11 +79,10 @@ get_local_data(TFVGeom& geo, const LocalVector& u, LocalVector& locUOut, MathMat
         diffusionOut *= geo.get_diffusion(geo.get_boolian_for_diffusion());
         
      // set boundary condition values source, jump, jump_grad
+        jumpOut.resize(ind); jump_gradOut.resize(ind);
         jumpOut = 0.0; jump_gradOut = 0.0;
-        sourceOut = geo.set_source(imSource, ind, 3, false);
-        LocalVector source = geo.set_source(imSource, ind, 3, false);
+        geo.set_source(imSource, sourceOut, ind, 3, false);
         
-        int s = 0;
     }
 // B. set data for cut element
     else
@@ -88,16 +94,19 @@ get_local_data(TFVGeom& geo, const LocalVector& u, LocalVector& locUOut, MathMat
         int indexSize = 3;
         if ( geo.get_roid() == ROID_QUADRILATERAL )
             indexSize = 4;
-            
+
+    // data for cut elements is stored in the InterfaceHandlerLocal and
+    // accessable by ElemDisc via the TFVGeom geometry class
         geo.set_local_sol(locUOut, indexSize, u, orientation);
-            
-        jumpOut      = geo.set_jump_values(ind, indexSize);
-        jump_gradOut = geo.set_jump_grad_values(ind, indexSize);
-        sourceOut    = geo.set_source(imSource, ind, indexSize, true);
+        geo.set_jump_values(jumpOut, ind, indexSize);
+        geo.set_jump_grad_values(jump_gradOut, ind, indexSize);
+        geo.set_source(imSource, sourceOut, ind, indexSize, true);
     }
+   
+    return;
     
 }
-        
+    
 ////////////////////////////////////////////////////////////////////////////////
 //	general
 ////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +116,8 @@ ConvectionDiffusionFV1_cutElem<TDomain>::
 ConvectionDiffusionFV1_cutElem(const char* functions, const char* subsets)
  : ConvectionDiffusionBase<TDomain>(functions,subsets),
    m_spConvShape(new ConvectionShapesNoUpwind<dim>),
-   m_bNonRegularGrid(false)
+   m_bNonRegularGrid(false),
+   m_testCase(0)
 {
 	register_all_funcs(m_bNonRegularGrid);
 }
@@ -148,8 +158,7 @@ template<typename TDomain>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
 prep_assemble_loop()
 {
-	if (m_sss.valid())
-		m_sss->clear_markers();
+	
 }
 
 template<typename TDomain>
@@ -206,9 +215,8 @@ void ConvectionDiffusionFV1_cutElem<TDomain>::
 prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, const MathVector<dim> vCornerCoords[])
 {
 // 	Update Geometry for this element
-    //static TFVGeom& geo = GeomProvider<TFVGeom>::get();
+//static TFVGeom& geo = GeomProvider<TFVGeom>::get();
     TFVGeom& geo = GeomProvider<TFVGeom>::get(m_LFEID,1);
-    //TFVGeom& geo = GeomProvider<TFVGeom>::get(LFEID(LFEID::LAGRANGE, dim, 1),1);
     
 // fix: set orientation initially globally!
     geo.set_orientation(1);
@@ -216,7 +224,6 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
     
 	try{
 		UG_DLOG(DID_CONV_DIFF_FV1_CUTELEM, 2, ">>OCT_DISC_DEBUG: " << "convection_diffusion_fv1.cpp: " << "prep_elem(): update(): "<< roid << std::endl);
-//        geo.update(elem, roid, vCornerCoords, &(this->subset_handler()));
         geo.update(elem, vCornerCoords, &(this->subset_handler()));
 	}UG_CATCH_THROW("ConvectionDiffusionFV1_cutElem::prep_elem:"
 						" Cannot update Finite Volume Geometry.");
@@ -298,149 +305,115 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
 add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-    
-    bool debug = false;
-    bool boundary = false;
-        
-    // get finite volume geometry
-    //	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+// get finite volume geometry
     TFVGeom& geo = GeomProvider<TFVGeom>::get(m_LFEID,1);
+    
+// get the modus of the current element
     const bool bElementIsCut = geo.get_element_modus();
     
-    // First call with orientation = 1:
-    int orientation = 1;
-    geo.set_orientation(orientation);
-    
-    geo.init_integral();
-    
-    // normal assembling if not cut by interface:
+////////////////////////////////////////////////////////////////////////////
+// (A) usual assembling for non-cut element:
     if ( !bElementIsCut )
     {
-        LocalVector dummyU;
-        LocalIndices ind = u.get_indices();
-        dummyU.resize(ind);
-        dummyU = 0;
-        
+        LocalVector dummyU = u;
         this->template add_jac_A_elem_local<TElem,TFVGeom> (geo, u, J, dummyU, elem, vCornerCoords);
         return;
     }
-        
-    // get data:
+
+////////////////////////////////////////////////////////////////////////////
+// (B) call 'add_jac_A_elem_local_cut()', which handles the adaptions
+//      necessary for the cut element
+    
+// initialize cut element data:
+    geo.L2Error_init();
     geo.resize_local_data(u);
-    LocalMatrix& locJ_tri  = geo.get_jacobian_tri();
-    LocalMatrix& locJ_quad = geo.get_jacobian_quad();
     
-    LocalVector& locU_tri  = geo.get_solution_tri();
-    LocalVector& locU_quad = geo.get_solution_quad();
+
+////////////////////////////////////////////////////////////////////////////
+// (B1) First: call of 'add_jac_A_elem_local_cut()' with orientation = 1:
+    int orientation = 1;
+    geo.set_orientation(orientation);
     
-    // reset data:
-    locJ_tri = 0;
-    locJ_quad = 0;
+    add_jac_A_elem_local_cut<TElem,TFVGeom>(geo, u, elem, vCornerCoords);
     
-    LocalIndices ind = u.get_indices();
-    
-    // call elem disc twice:
-    
-    if ( debug ) geo.print_InterfaceIDdata();
-        
-    ReferenceObjectID roidCheck = geo.get_roid();
-    if ( roidCheck == ROID_TRIANGLE )
-    {
-        geo.set_local_sol(locU_tri, 3, u, orientation);
-        LocalVector jump_tri = geo.set_jump_values(ind, 3);
-        
-        this->template add_jac_A_elem_local<TElem,TFVGeom> (geo, u, locJ_tri, locU_tri, elem, vCornerCoords);
-        
-        if ( boundary )
-        {
-            geo.reset_jacobian_on_interface(locJ_tri, 3);
-            this->template add_jac_A_elem_boundary<TElem,TFVGeom> (geo, locJ_tri, locU_tri, elem, vCornerCoords);
-        }
-        
-        geo.set_jacobian_tri(locJ_tri);
-        geo.set_DoF_tag_tri(false);
-    }
-    if ( roidCheck == ROID_QUADRILATERAL )
-    {
-        geo.set_local_sol(locU_quad, 4, u, orientation);
-        LocalVector jump_quad = geo.set_jump_values(ind, 4);
-        
-        this->template add_jac_A_elem_local<TElem,TFVGeom> (geo, u, locJ_quad, locU_quad, elem, vCornerCoords);
-        
-        if ( boundary )
-        {
-            geo.reset_jacobian_on_interface(locJ_quad, 4);
-            this->template add_jac_A_elem_boundary<TElem,TFVGeom> (geo, locJ_quad, locU_quad, elem, vCornerCoords);
-        }
-        
-        geo.set_jacobian_quad(locJ_quad);
-        geo.set_DoF_tag_quad(false);
-    }
-        
-        
-    // Second call with orientation = 1:
-    bool shiftTag = geo.get_bScaleDoFs(); // shiftTag = true in case of double DoFs on interface!
-    
+////////////////////////////////////////////////////////////////////////////
+// (B2) Second: call of 'add_jac_A_elem_local_cut()' with orientation = -1:
     orientation *= -1;
     geo.set_orientation(orientation);
+    
+// recompute local data on cut element due to new orientation: the local
+//  TFVGeom geometry data of the other part of the cut element will be computed
     try{
         geo.update(elem, vCornerCoords, &(this->subset_handler()));
     }UG_CATCH_THROW("ConvectionDiffusionFV1_cutElem::update:"
                     " Cannot update Finite Volume Geometry.");
     
-    if ( debug ) geo.print_InterfaceIDdata();
+    add_jac_A_elem_local_cut<TElem,TFVGeom>(geo, u, elem, vCornerCoords);
     
-    roidCheck = geo.get_roid();
-    if ( roidCheck == ROID_TRIANGLE )
+    
+}
+    
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void ConvectionDiffusionFV1_cutElem<TDomain>::
+add_jac_A_elem_local_cut(TFVGeom& geo, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+    bool boundary = false;
+    
+// shiftTag = true: in case of double DoFs on interface (for strong discontinuity on the interface)
+    bool shiftTag = geo.get_bScaleDoFs();
+
+    ReferenceObjectID roidCheck = geo.get_roid();
+    int indexSize = 3;
+    if ( roidCheck == ROID_QUADRILATERAL ) indexSize = 4;
+    
+// get the pointer for access and storage into 'InterfaceHandlerLocalDiffusion' class
+    LocalMatrix& locJ = geo.get_jacobian(roidCheck);
+    LocalVector& locU = geo.get_solution(roidCheck);
+    
+    locJ = 0;
+    
+// finally: compute the local stiffness matrix on the cut element
+    this->template add_jac_A_elem_local<TElem,TFVGeom> (geo, u, locJ, locU, elem, vCornerCoords);
+    
+// compute the boundary condition on the interface of the cut element
+    if ( boundary )
     {
-        geo.set_local_sol(locU_tri, 3, u, orientation);
-        LocalVector jump_tri = geo.set_jump_values(ind, 3);
-        
-        this->template add_jac_A_elem_local<TElem,TFVGeom> (geo, u, locJ_tri, locU_tri, elem, vCornerCoords);
-        
-        if ( boundary )
-        {
-            geo.reset_jacobian_on_interface(locJ_tri, 3);
-            this->template add_jac_A_elem_boundary<TElem,TFVGeom> (geo, locJ_tri, locU_tri, elem, vCornerCoords);
-        }
-        
-        geo.set_jacobian_tri(locJ_tri);
-        geo.set_DoF_tag_tri(shiftTag);
-        
-    }
-    if ( roidCheck == ROID_QUADRILATERAL )
-    {
-        geo.set_local_sol(locU_quad, 4, u, orientation);
-        LocalVector jump_quad = geo.set_jump_values(ind, 4);
-        
-        this->template add_jac_A_elem_local<TElem,TFVGeom> (geo, u, locJ_quad, locU_quad, elem, vCornerCoords);
-        
-        if ( boundary )
-        {
-            geo.reset_jacobian_on_interface(locJ_quad, 4);
-            this->template add_jac_A_elem_boundary<TElem,TFVGeom> (geo, locJ_quad, locU_quad, elem, vCornerCoords);
-        }
-        
-        geo.set_jacobian_quad(locJ_quad);
-        geo.set_DoF_tag_quad(shiftTag);
+        geo.reset_jacobian_on_interface(locJ, indexSize);
+        this->template add_jac_A_elem_boundary<TElem,TFVGeom> (geo, locJ, locU, elem, vCornerCoords);
     }
     
-        
+// write computed local stiffness matrix to data storage in class 'InterfaceHandlerLocalDiffusion'
+    geo.set_jacobian(locJ, roidCheck);
+    
+// shiftTag necessary for local to global mapping
+    geo.set_DoF_tag(shiftTag, roidCheck);
+    
+    
 }
     
     
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
-add_jac_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalMatrix& J, LocalVector& locU, GridObject* elem, const MathVector<dim> vCornerCoords[])
+add_jac_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalMatrix& J, LocalVector& locU,
+                     GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+////////////////////////////////////////////////////////////////////////
+// Pre-processing for assembling on cut Element:
+    
     MathMatrix<dim, dim> diffusion;
     MatSet(diffusion, 0);
     MatDiagSet(diffusion, 1.0);
     
     LocalVector source, jump;
+
+// get the local data (jump, source) on the cut element
+    get_local_data<TElem,TFVGeom>(geo, u, u.get_indices(), locU, diffusion, jump, jump, jump);
     
-    get_local_data<TElem,TFVGeom>(geo, u, locU, diffusion, jump, jump, jump);
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//  NOW: Standard ConvectionDiffusionFV1-assembling starts here:
     
     
 //	Diff. Tensor times Gradient
@@ -555,28 +528,7 @@ add_jac_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalMatrix& J, LocalVe
 		}
 	}
 	
-//	reaction term does not explicitly depend on the associated unknown function
 
-////////////////////////////////
-// Singular sources and sinks
-////////////////////////////////
-
-	if (m_sss.valid()) {
-		const typename TDomain::position_accessor_type& aaPos = this->domain()->position_accessor();
-		const typename TDomain::grid_type& grid = *this->domain()->grid();
-		const number time = this->time();
-		MathVector<1> out;
-		for(size_t i = 0; i < geo.num_scv(); i++) {
-			const typename TFVGeom::SCV& scv = geo.scv(i);
-			const int co = scv.node_id();
-			const number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
-			if (len == 0.0) continue;
-			out[0] *= len;
-			if (out[0] < 0.0)
-			// sink
-				J(_C_, co, _C_, co) -= out[0];
-		}
-	}
 }
     
 template<typename TDomain>
@@ -584,31 +536,36 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
 add_jac_A_elem_boundary(TFVGeom& geo, LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+// get parameter
     double diffusion = 0.0;
-    
     if ( !geo.get_element_modus() )
         diffusion = geo.get_diffusion(geo.get_boolian_for_diffusion());
     else
         diffusion = geo.get_diffusion();
-        
+    
+// get inner boundary faces for assembling (stored in 'InterfaceHandlerLocalDiffusion' class)
     std::vector<typename TFVGeom::BF>& vBF = geo.get_boundary_faces();
-        
     if ( vBF.size() > 2 )
-        UG_THROW("add_def_A_elem(): vBF.size() is greater than 2: " << vBF.size() << "\n");
-        
-    //	loop integration points
+        UG_THROW("add_jac_A_elem_boundary(): vBF.size() is greater than 2: " << vBF.size() << "\n");
+ 
+    if ( vBF.size() == 0 && geo.get_element_modus() )
+        UG_THROW("add_jac_A_elem_boundary(): Error! If vBF.size() == 0, then the element is cut!\n");
+
+////////////////////////////////////////////////////////////////////////////////
+//	REMARK: NO loop integration points!
+//	/* for(size_t ip = 0; ip < vBF.size(); ++ip) */
+// 	Reason: the length of the normal is already the length of the total face (NOT the scvf!)
+////////////////////////////////////////////////////////////////////////////////
+
+//	loop integration points
     for(size_t ip = 0; ip < vBF.size(); ++ip)
     {
         typename TFVGeom::BF bf = vBF[ip];
         
-        //	loop trial space
+    //	loop trial space
         for(size_t sh = 0; sh < bf.num_sh(); ++sh)
         {
-            UG_LOG("bf.node_id(): " << bf.node_id() << "\n");
-            UG_LOG("bf.global_grad(sh): " << bf.global_grad(sh) << "\n");
-            UG_LOG("normal(): " << bf.normal() << "\n");
-                
-            //	add to local matrix
+        //	add to local matrix
             J(_C_, bf.node_id(), _C_, sh) += VecDot(bf.global_grad(sh), bf.normal());
             J(_C_, bf.node_id(), _C_, sh) *= diffusion;
         }
@@ -623,7 +580,6 @@ void ConvectionDiffusionFV1_cutElem<TDomain>::
 add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
 // 	get finite volume geometry
-    //	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
     static const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_LFEID,1);
 
 	if(!m_imMassScale.data_given()) return;
@@ -641,7 +597,6 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		J(_C_, co, _C_, co) += scv.volume() * m_imMassScale[ip];
 	}
 
-//	m_imMass part does not explicitly depend on associated unknown function
 }
 
 template<typename TDomain>
@@ -649,225 +604,126 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
 add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-    bool output = false;
-    bool output_integral = false;
-        
-    bool debug = false;
-    bool boundary = false;
-    bool add = true;
-    
-    // get finite volume geometry
-    //	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
+// get finite volume geometry
     TFVGeom& geo = GeomProvider<TFVGeom>::get(m_LFEID,1);
+    
+// get the modus of the current element
     const bool bElementIsCut = geo.get_element_modus();
-    
-    // First call with orientation = 1:
-    int orientation = 1;
-    geo.set_orientation(orientation);
-    
-    // necessary for call of 'get_solution_tri' an 'get_solution_quad':
-    geo.resize_local_data(u);
+
     std::vector<double> imSource;
     if ( m_imSource.data_given() ) {
         for ( size_t i = 0; i < 3; ++i )
             imSource.push_back(m_imSource[i]);
     }
     
-    // normal assembling if not cut by interface:
+////////////////////////////////////////////////////////////////////////
+// (A) usual assembling for non-cut elements
     if ( !bElementIsCut )
     {
-        LocalVector dummyU;
-        LocalIndices ind = d.get_indices();
-        dummyU.resize(ind);
-        dummyU = 0;
-        LocalVector source = geo.set_source(imSource, ind, 3, false);
-        
-        if ( output )
-        {
-            for ( size_t i = 0; i < 3; ++i)
-                UG_LOG("*** corner" << vCornerCoords[i][0] << " and " << vCornerCoords[i][1] << "\n" );
-            UG_LOG("\n" );
-        }
-        
+        LocalVector dummyU = u;
         this->template add_def_A_elem_local<TElem,TFVGeom> (geo, u, d, dummyU, elem, vCornerCoords);
         
         number intValElem = this->template add_l2error_A_elem<TElem,TFVGeom> (geo, ROID_TRIANGLE, d, u, elem);
-        geo.add_to_integral(intValElem);
-        if ( output_integral )
-            UG_LOG("------------------> usual: integral = " << sqrt(geo.get_integral()) << "\n");
-        
+        geo.L2Error_add(intValElem);
+
         return;
     }
-        
-    // get data:
-    LocalVector& locD_tri  = geo.get_defect_tri();
-    LocalVector& locD_quad = geo.get_defect_quad();
     
-    LocalVector& locU_tri  = geo.get_solution_tri();
-    LocalVector& locU_quad = geo.get_solution_quad();
+/////////////////////////////////////////////////////////////////////////////
+// (B) call 'add_def_A_elem_local_cut()', which handles the adaptions
+//      due to the cut element
     
-    // reset data:
-    locD_tri = 0;
-    locD_quad = 0;
-    
-    // call elem disc twice:
-    
-    if ( debug ) geo.print_InterfaceIDdata();
-    
-    LocalIndices ind = d.get_indices();
-    
-    ReferenceObjectID roidCheck = geo.get_roid();
-    if ( roidCheck == ROID_TRIANGLE )
-    {
-        geo.set_local_sol(locU_tri, 3, u, orientation);
-        
-        LocalVector jump_tri = geo.set_jump_values(ind, 3);
-        LocalVector jump_tri_grad = geo.set_jump_grad_values(ind, 3);
-        LocalVector source_tri = geo.set_source(imSource, ind, 3, true);
-        
-        if ( output ) UG_LOG(" tri 1: orientaten: " << orientation << "\n");
-        
-        this->template add_def_A_elem_local<TElem,TFVGeom> (geo, u, locD_tri, locU_tri, elem, vCornerCoords);
-            
-        if ( boundary )
-        {
-            geo.reset_defect_on_interface(locD_tri, 3);
-            this->template add_def_A_elem_boundary<TElem,TFVGeom> (geo, locD_tri, locU_tri, elem, vCornerCoords);
-        }
-        
-        if ( output )
-        {
-            for ( size_t i = 0; i < 3; ++i)
-            UG_LOG("corner" << vCornerCoords[i][0] << " and " << vCornerCoords[i][1] << "\n" );
-            UG_LOG("\n" );
-        }
-        
-        number intValElem = this->template add_l2error_A_elem<TElem,TFVGeom> (geo, ROID_TRIANGLE, locD_tri, locU_tri, elem);
-        if ( add ) geo.add_to_integral(intValElem);
-        
-        if ( output_integral ) UG_LOG("------------------> tri1: integral = " << sqrt(geo.get_integral()) << "\n");
-        
-        geo.set_defect_tri(locD_tri);
-        geo.set_DoF_tag_tri(false);
-            
-    }
-    if ( roidCheck == ROID_QUADRILATERAL )
-    {
-        geo.set_local_sol(locU_quad, 4, u, orientation);
-        
-        LocalVector jump_quad = geo.set_jump_values(ind, 4);
-        LocalVector jump_quad_grad = geo.set_jump_grad_values(ind, 4);
-        LocalVector source_quad = geo.set_source(imSource, ind, 4, true);
-        
-        if ( output ) UG_LOG(" quad 1: orientaten: " << orientation << "\n");
-        this->template add_def_A_elem_local<TElem,TFVGeom> (geo, u, locD_quad, locU_quad, elem, vCornerCoords);
-            
-        if ( boundary )
-        {
-            geo.reset_defect_on_interface(locD_quad, 4);
-            this->template add_def_A_elem_boundary<TElem,TFVGeom> (geo, locD_quad, locU_quad, elem, vCornerCoords);
-        }
-        
-        number intValElem = this->template add_l2error_A_elem<TElem,TFVGeom> (geo, ROID_QUADRILATERAL, locD_quad, locU_quad, elem);
-        if ( add ) geo.add_to_integral(intValElem);
-        
-        if ( output_integral ) UG_LOG("------------------> quad1: integral = " << sqrt(geo.get_integral()) << "\n");
-        
-        
-        geo.set_defect_quad(locD_quad);
-        geo.set_DoF_tag_quad(false);
-        
-    }
-    
-    
-    // Second call with orientation = -1:
-    bool shiftTag = geo.get_bScaleDoFs();	// shiftTag = true in case of double DoFs on interface!
-    
-    orientation *= -1;
-    if ( output ) UG_LOG(" ____2: orientaten: " << orientation << "\n");
-    
+// initialize cut element data:
+    geo.resize_local_data(u);
+   
+//////////////////////////////////////////////////////////////////////////////
+// (B1) First: call of 'add_def_A_elem_local_cut()' with orientation = 1:
+    int orientation = 1;
     geo.set_orientation(orientation);
+    
+    add_def_A_elem_local_cut<TElem,TFVGeom> (geo, u, elem, vCornerCoords);
+
+    
+/////////////////////////////////////////////////////////////////////////////
+// (B2) Second: call of 'add_def_A_elem_local_cut()' with orientation = -1:
+    orientation *= -1;
+    geo.set_orientation(orientation);
+    
+// recompute local data on cut element due to new orientation: the local
+//  TFVGeom geometry data of the other part of the cut element will be computed
     try{
         geo.update(elem, vCornerCoords, &(this->subset_handler()));
     }UG_CATCH_THROW("ConvectionDiffusionFV1_cutElem::update:"
                         " Cannot update Finite Volume Geometry.");
-        
-    if ( debug ) geo.print_InterfaceIDdata();
-        
-    roidCheck = geo.get_roid();
-    if ( roidCheck == ROID_TRIANGLE )
-    {
-        geo.set_local_sol(locU_tri, 3, u, orientation);
-        LocalVector jump_tri = geo.set_jump_values(ind, 3);
-        LocalVector jump_tri_grad = geo.set_jump_grad_values(ind, 3);
-        LocalVector source_tri = geo.set_source(imSource, ind, 3, true);
-        
-        if ( output ) UG_LOG(" tri 2: orientaten: " << orientation << "\n");
-        
-        this->template add_def_A_elem_local<TElem,TFVGeom> (geo, u, locD_tri, locU_tri, elem, vCornerCoords);
-            
-        if ( boundary )
-        {
-            geo.reset_defect_on_interface(locD_tri, 3);
-            this->template add_def_A_elem_boundary<TElem,TFVGeom> (geo, locD_tri, locU_tri, elem, vCornerCoords);
-        }
-        
-        number intValElem = this->template add_l2error_A_elem<TElem,TFVGeom> (geo, ROID_TRIANGLE, locD_tri, locU_tri, elem);
-        if ( add ) geo.add_to_integral(intValElem);
-        
-        if ( output ) UG_LOG("------------------> tri2: integral = " << sqrt(geo.get_integral()) << "\n");
-        
-        
-        geo.set_defect_tri(locD_tri);
-        geo.set_DoF_tag_tri(shiftTag);
-    }
-    if ( roidCheck == ROID_QUADRILATERAL )
-    {
-        geo.set_local_sol(locU_quad, 4, u, orientation);
-        LocalVector jump_quad = geo.set_jump_values(ind, 4);
-        LocalVector jump_quad_grad = geo.set_jump_grad_values(ind, 4);
-        LocalVector source_quad = geo.set_source(imSource, ind, 4, true);
-        
-        if ( output ) UG_LOG(" quad 2: orientaten: " << orientation << "\n");
-        
-        this->template add_def_A_elem_local<TElem,TFVGeom> (geo, u, locD_quad, locU_quad, elem, vCornerCoords);
-            
-        if ( boundary )
-        {
-            geo.reset_defect_on_interface(locD_quad, 4);
-            this->template add_def_A_elem_boundary<TElem,TFVGeom> (geo, locD_quad, locU_quad, elem, vCornerCoords);
-        }
-        
-        number intValElem = this->template add_l2error_A_elem<TElem,TFVGeom> (geo, ROID_QUADRILATERAL, locD_quad, locU_quad, elem);
-        if ( add ) geo.add_to_integral(intValElem);
-        
-        if ( output_integral ) UG_LOG("------------------> quad2: integral = " << sqrt(geo.get_integral()) << "\n");
-        
-        geo.set_defect_quad(locD_quad);
-        geo.set_DoF_tag_quad(shiftTag);
-        
-    }
+    
+    add_def_A_elem_local_cut<TElem,TFVGeom> (geo, u, elem, vCornerCoords);
+
+    
 }
 
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+void ConvectionDiffusionFV1_cutElem<TDomain>::
+add_def_A_elem_local_cut(TFVGeom& geo, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
+{
+    bool boundary = false;
+    bool add = true;
+    
+// get data
+    ReferenceObjectID roidCheck = geo.get_roid();
+    bool shiftTag = geo.get_bScaleDoFs();           // bScaleDoFs = true: in case of double DoFs on interface!
+    int indexSize = 3;
+    if ( roidCheck == ROID_QUADRILATERAL ) indexSize = 4;
+    
+// get the pointer for access and storage into 'InterfaceHandlerLocalDiffusion' class
+    LocalVector& locD = geo.get_defect(roidCheck);
+    LocalVector& locU = geo.get_solution(roidCheck);
+    
+    locD = 0;
+    
+// finally: compute the local defect on the cut element
+    this->template add_def_A_elem_local<TElem,TFVGeom> (geo, u, locD, locU, elem, vCornerCoords);
+    
+// compute the boundary condition on the interface of the cut element
+    if ( boundary )
+    {
+        geo.reset_defect_on_interface(locD, indexSize);
+        this->template add_def_A_elem_boundary<TElem,TFVGeom> (geo, locD, locU, elem, vCornerCoords);
+    }
+    
+// write computed local defect to data storage in class 'InterfaceHandlerLocalDiffusion'
+    geo.set_defect(locD, roidCheck);
+    
+// shiftTag necessary for local to global mapping
+    geo.set_DoF_tag(shiftTag, roidCheck);
+    
+//  compute the l2Error on the cut element
+    number intValElem = this->template add_l2error_A_elem<TElem,TFVGeom> (geo, roidCheck, locD, locU, elem);
+    if ( add ) geo.L2Error_add(intValElem);
+    
+}
     
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
 add_def_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalVector& d, LocalVector& locU, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+////////////////////////////////////////////////////////////////////////
+// Pre-processing for assembling on cut Element:
     
     MathMatrix<dim, dim> diffusion;
     MatSet(diffusion, 0);
     MatDiagSet(diffusion, 1.0);
     
     LocalVector jump, jump_grad, source;
+   
+// get the local data (jump, jump_grad, source) on the cut element
+    get_local_data<TElem,TFVGeom>(geo, u, u.get_indices(), locU, diffusion, jump, jump_grad, source);
     
-    get_local_data<TElem,TFVGeom>(geo, u, locU, diffusion, jump, jump_grad, source);
-
+////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////
+//  NOW: Standard ConvectionDiffusionFV1-assembling starts here:
     
-//	get conv shapes
-	const IConvectionShapes<dim>& convShape = get_updated_conv_shapes(geo);
-
 	if(m_imDiffusion.data_given() || m_imVelocity.data_given() || m_imFlux.data_given())
 	{
 	// 	loop Sub Control Volume Faces (SCVF)
@@ -904,113 +760,72 @@ add_def_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalVector& d, LocalVe
         // Additional diffusive Term due to jump in solution at the interface
         // u^+ - u^- = jump
         /////////////////////////////////////////////////////////////////////////////
-            if ( 1 )
-            {
-                // scale diffusion by jump in solution:
-                //	const double jump = 2.0;
-                //	diffusion *= jump;
                 
-                //	to compute D \nabla c=Id_interface
-                MathVector<dim> Dgrad, grad;
+        //	to compute D \nabla c=Id_interface
+            MathVector<dim> Dgrad, grad;
                 
-                // 	compute gradient and shape at ip
-                VecSet(grad, 0.0);
-                for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-                    VecScaleAppend(grad, jump(_C_,sh), scvf.global_grad(sh));
+        // 	compute gradient and shape at ip
+            VecSet(grad, 0.0);
+            for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+                VecScaleAppend(grad, jump(_C_,sh), scvf.global_grad(sh));
                 
-                //	scale by diffusion tensor
-                MatVecMult(Dgrad, diffusion, grad);
+        //	scale by diffusion tensor
+            MatVecMult(Dgrad, diffusion, grad);
                 
-                // 	Compute flux
-                const number diff_flux = VecDot(Dgrad, scvf.normal());
+        // 	Compute flux
+            const number diff_flux = VecDot(Dgrad, scvf.normal());
                 
-                // 	Add to local defect
-                d(_C_, scvf.from()) -= diff_flux;
-                d(_C_, scvf.to()  ) += diff_flux;
-                
-            }
+        // 	Add to local defect
+            d(_C_, scvf.from()) -= diff_flux;
+            d(_C_, scvf.to()  ) += diff_flux;
+            
         }
 
 	}
 
     /////////////////////////////////////////////////////
     // add rhs during same method!
-    // --> in elem_disc_assemble_util, the method 'add_rhs_elem()' adds the local vector otherwise! NOT functional!!
+    // --> in elem_disc_assemble_util, the method 'add_rhs_elem()'
+    //       adds the local vector otherwise! NOT functional!!
     /////////////////////////////////////////////////////
     
-    if ( 1 )
-    { //m_imSource.data_given() ) {
-        for ( size_t ip = 0; ip < geo.num_scv(); ++ip )
-        {
-            // get current SCV
-            const typename TFVGeom::SCV& scv = geo.scv( ip );
+//	loop integration points
+    for ( size_t ip = 0; ip < geo.num_scv(); ++ip )
+    {
+    // get current SCV
+        const typename TFVGeom::SCV& scv = geo.scv( ip );
             
-            // get associated node
-            int co = scv.node_id();
-            d(_C_, co) -= source(_C_, co) * scv.volume();
-            
-            // Add to local rhs
-            /*			if ( co > 2 )
-             {
-             d(_C_, co) -= m_imSource[2] * scv.volume();
-             UG_LOG("m_imSource[2] * scv.volume(): " << m_imSource[2]  << "\n");
-             UG_LOG("source(_C_, co) * scv.volume(): " << source(_C_, co)  << "\n");
-             }
-             else
-             {
-             d(_C_, co) -= m_imSource[co] * scv.volume();
-             UG_LOG("m_imSource[co] * scv.volume(): " << m_imSource[co]  << "\n");
-             UG_LOG("source(_C_, co) * scv.volume(): " << source(_C_, co)  << "\n");
-             }
-             
-             */
-        }
+    // get associated node
+        int co = scv.node_id();
+        
+    // Add to local rhs
+        d(_C_, co) -= source(_C_, co) * scv.volume();
     }
+
     
     /////////////////////////////////////////////////////////////////////////////
     // Additional source Term due to jump in gradient at the interface
     // (\nabla u^+ - \nabla u^-)\cdot n = h(x) * |n|
     /////////////////////////////////////////////////////////////////////////////
-    if ( 1 )
+
+    std::vector<typename TFVGeom::BF>& vBF = geo.get_boundary_faces();
+
+// some checks:
+    if ( vBF.size() > 2 )
+        UG_THROW("add_def_A_elem_local(): vBF.size() is greater than 2: " << vBF.size() << "\n");
+    if ( vBF.size() == 0 && geo.get_element_modus() )
+        UG_THROW("add_def_A_elem_local(): Error! If vBF.size() == 0, then the element is cut!\n");
+
+//	loop integration points
+    for(size_t ip = 0; ip < vBF.size(); ++ip)
     {
-        std::vector<typename TFVGeom::BF>& vBF = geo.get_boundary_faces();
-        MathVector<dim> Dgrad;
-        VecSet(Dgrad, 0.0);
+        typename TFVGeom::BF bf = vBF[ip];
         
-        if ( vBF.size() > 2 )
-            UG_THROW("add_def_A_elem(): vBF.size() is greater than 2: " << vBF.size() << "\n");
-        //	loop integration points
-        for(size_t ip = 0; ip < vBF.size(); ++ip)
-        {
-            typename TFVGeom::BF bf = vBF[ip];
-            // Add to local rhs
-            d(_C_, bf.node_id()) += jump_grad(_C_,bf.node_id()) * bf.Vol;
-        }
+    // Add to local rhs
+        d(_C_, bf.node_id()) += jump_grad(_C_,bf.node_id()) * bf.Vol;
     }
 
-////////////////////////////////
-// Singular sources and sinks
-////////////////////////////////
 
-	if (m_sss.valid()) {
-		const typename TDomain::position_accessor_type& aaPos = this->domain()->position_accessor();
-		const typename TDomain::grid_type& grid = *this->domain()->grid();
-		const number time = this->time();
-		MathVector<1> out;
-		for(size_t i = 0; i < geo.num_scv(); i++) {
-			const typename TFVGeom::SCV& scv = geo.scv(i);
-			const int co = scv.node_id();
-			const number len = m_sss->get_contrib_of_scv((TElem*)elem, (Grid&)grid, aaPos, geo, co, time, out);
-			if (len == 0.0) continue;
-			out[0] *= len;
-			if (out[0] > 0.0)
-			// source
-				d(_C_, co) -= out[0];
-			else
-			// sink
-				d(_C_, co) -= out[0] * locU(_C_, co);
-		}
-	}
 }
 
 template<typename TDomain>
@@ -1018,77 +833,60 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1_cutElem<TDomain>::
 add_def_A_elem_boundary(TFVGeom& geo, LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
+// get parameter
     double diffusion = 0.0;
-    
     if ( !geo.get_element_modus() )
         diffusion = geo.get_diffusion(geo.get_boolian_for_diffusion());
     else
         diffusion = geo.get_diffusion();
     
+// get inner boundary faces for assembling (stored in 'InterfaceHandlerLocalDiffusion' class)
     std::vector<typename TFVGeom::BF>& vBF = geo.get_boundary_faces();
-    MathVector<dim> Dgrad;
-    VecSet(Dgrad, 0.0);
-    
-    UG_LOG("---------- vBF.size(): " << vBF.size() << "\n");
-    
     if ( vBF.size() > 2 )
         UG_THROW("add_def_A_elem(): vBF.size() is greater than 2: " << vBF.size() << "\n");
     
-    // set solution
-    /*	for(size_t sh = 0; sh < geo.num_sh(); ++sh)
-        {
-        u(_C_, sh) = 1.0;
-        u(_C_, sh) -= corners[sh][0]*(2*corners[sh][0] - 1.0);
-        u(_C_, sh) -= corners[sh][1]*(2*corners[sh][1] - 1.0);
-        }
-        */
-    //		u(_C_, sh) = 1 - 2*(corners[sh][0]*corners[sh][0] + corners[sh][1]*corners[sh][1]) - (corners[sh][0]+corners[sh][1]);
-    //		u(_C_, sh) = corners[sh][1]*(2*corners[sh][1] - 1.0);
-    //		u(_C_, sh) = (1.0 - corners[sh][0] - corners[sh][1]) * (1.0 - 2*corners[sh][0] - 2*corners[sh][1]);
-    //		u(_C_, sh) = corners[sh][1];
-    //		for(size_t sh = 0; sh < geo.num_sh(); ++sh)
-    //			u(_C_, sh) = corners[sh][0]*(2*corners[sh][0] - 1.0); //corners[sh][0];
-    //	u(_C_, sh) = corners[sh][0]*(2* corners[sh][0]-1);
+    if ( vBF.size() == 0 && geo.get_element_modus() )
+        UG_THROW("add_def_A_elem_boundary(): Error! If vBF.size() == 0, then the element is cut!\n");
+
+    MathVector<dim> Dgrad;
+    VecSet(Dgrad, 0.0);
+
+   
+////////////////////////////////////////////////////////////////////////////////
+//	REMARK: NO loop integration points!
+//	/* for(size_t ip = 0; ip < vBF.size(); ++ip) */
+// 	Reason: the length of the normal is already the length of the total face (NOT the scvf!)
+////////////////////////////////////////////////////////////////////////////////
     
-    ////////////////////////////////////////////////////////////////////////////////
-    //	NO loop integration points!
-    //	/* for(size_t ip = 0; ip < vBF.size(); ++ip) */
-    // 	Reason: the length of the normal is already the length of the total face (NOT the scvf!)
-    ////////////////////////////////////////////////////////////////////////////////
-    
-    //	loop integration points
+//	loop integration points
     for(size_t ip = 0; ip < vBF.size(); ++ip)
     {
         typename TFVGeom::BF bf = vBF[ip];
         VecSet(Dgrad, 0.0);
         
-        //	loop trial space
+    //	loop trial space
         for(size_t sh = 0; sh < bf.num_sh(); ++sh)
         {
-            //	Diffusion
-            UG_LOG("bf.num_sh(): " << bf.num_sh() << "\n");
-            UG_LOG("Dgrad: " << Dgrad << "\n");
-            UG_LOG("bf.normal(): " << bf.normal() << "\n");
-            UG_LOG("bf.global_grad(ip, sh): " << bf.global_grad(sh) << "\n");
-            
-            UG_LOG("u(_C_, sh): " << u(_C_, sh) << "\n");
-            
+        //	Diffusion
             VecScaleAppend(Dgrad, diffusion * u(_C_, sh), bf.global_grad(sh));
         }
         
-        //	add to local vector
+    //	add to local vector
         d(_C_, bf.node_id()) += VecDot(Dgrad, bf.normal());
         
     }
-        
-    UG_LOG("---------- end ----------- \n\n");
-        
+    
 }
 
     
 ////////////////////////////////////////////////////////////////////////////////
 ///
 ///     methods for cut element error computation via 'add_l2error_A_elem()'
+///     --> hard coded c++ functions for some numerical test examples
+///         (not optimal handling of user data)
+///     --> the choice of different test examples can be handled via lua:
+///             --> lua-call: 'elemDisc:set_testCase(int testCase)'
+///                     testCase-enumerator, see top of that file! 
 ///
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -1098,31 +896,47 @@ number get_exact_sol_test(MathVector<dim> position)
     return sin(2*M_PI*position[0]) + sin(2*M_PI*position[1]);
 }
     
+
+
 template <int dim>
-number get_exact_sol_Gangl(MathVector<dim> position)
+number get_exact_sol_Gangl(MathVector<dim> position, size_t testCase)
 {
-    double kappa_2 = 10.0;
-    double dist_x = position[0] - 0.0;
-    double dist_y = position[1] - 0.0;
-    double sqR = 0.4*0.4;
+    MathVector<2> center(0.0);
+    if (testCase == GANGL_OFF_CENTER )
+    {
+        center[0] = -0.08;
+        center[1] = 0.3;
+    }
     
+    double kappa_2 = 10.0;
+    double dist_x = position[0] - center[0];
+    double dist_y = position[1] - center[1];
+    double sqR = 0.4*0.4;
+        
     double sqDist = dist_x*dist_x + dist_y*dist_y;
     double dist = sqrt(sqDist);
-    
+        
     double returnValue = -4*kappa_2*kappa_2*sqR*sqDist + 2*sqR*sqR*kappa_2*(2*kappa_2 - 1);
     
     if ( dist >= 0.4 )
         returnValue = -2*kappa_2*sqDist*sqDist;
-        
+    
     return returnValue;
 }
-
+    
 template <int dim>
-MathVector<dim> get_exact_grad_Gangl(MathVector<dim> position)
+MathVector<dim> get_exact_grad_Gangl(MathVector<dim> position, size_t testCase)
 {
+    MathVector<2> center(0.0);
+    if (testCase == GANGL_OFF_CENTER )
+    {
+        center[0] = -0.08;
+        center[1] = 0.3;
+    }
+    
     double kappa_2 = 10.0;
-    double dist_x = position[0] - 0.0;
-    double dist_y = position[1] - 0.0;
+    double dist_x = position[0] - center[0];
+    double dist_y = position[1] - center[1];
     double sqR = 0.4*0.4;
     
     double sqDist = dist_x*dist_x + dist_y*dist_y;
@@ -1169,27 +983,6 @@ MathVector<dim> get_exact_grad_FedkiwEx5(MathVector<dim> position)
     return returnVector;
     
 }
-    
-template <int dim>
-number get_exact_sol_FedkiwEx6(MathVector<dim> position)
-{
-    double center_x = 0.0;
-    double center_y = 0.0;
-    double radius = 0.5;
-    
-    double dist_x = position[0] - center_x;
-    double dist_y = position[1] - center_y;
-    
-    double sqDist = dist_x*dist_x + dist_y*dist_y;
-    double dist = sqrt(sqDist);
-    
-    double returnValue = 0.0;
-    
-    if ( dist <= radius )
-        returnValue = exp(position[0])*cos(position[1]);
-    
-    return returnValue;
-}
 
 template <int dim>
 number get_exact_sol_FedkiwEx5(MathVector<dim> position)
@@ -1234,11 +1027,6 @@ number get_exact_sol_FedkiwEx3(MathVector<dim> position)
     return returnValue;
 }
     
-template <int dim>
-MathVector<dim> get_exact_grad(MathVector<dim> position)
-{
-        
-}
     
 //////////////////////////////////////////////////////////////////////
 // code see ugbase/lib_disc/function_spaces/integrate.h: evaluate() for
@@ -1257,10 +1045,9 @@ template<typename TElem, typename TFVGeom>
 number ConvectionDiffusionFV1_cutElem<TDomain>::
 add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const LocalVector& u, GridObject* elem)
 {
-    bool output = false;
-        
-   // number integral = 0;
-    
+  // get the flag for the choice of numerical example to be used as analytical solution
+    size_t testCase = get_testCase();
+
     std::vector<MathVector<dim> > vCorner;
     std::vector<MathVector<dim> > vGlobIP;
     std::vector<MathVector<dim> > vLocIP;
@@ -1290,13 +1077,7 @@ add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const L
     // 	remember global position of nodes
     for(size_t i = 0; i < rRefElem.num(0); ++i)
         vCorner.push_back(geo.get_corner(i));
-    
-    if ( output )
-    {
-        for ( size_t i = 0; i < rRefElem.num(0); ++i)
-            UG_LOG("vCorner" << vCorner[i][0] << " and " << vCorner[i][1] << "\n" );
-        UG_LOG("\n" );
-    }
+
     
     //	update the reference mapping for the corners
     mapping.update(vCorner);
@@ -1305,16 +1086,10 @@ add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const L
     vGlobIP.resize(numIP);
     mapping.local_to_global(&(vGlobIP[0]), rQuadRule.points(), numIP);
     
-    if ( output ) UG_LOG("vGlobIP" << vGlobIP[0][0] << " and " << vGlobIP[0][1] << "\n" );
-    if ( output ) UG_LOG("\n" );
-    
     //	compute local integration points
     vLocIP.resize(numIP);
     for(size_t ip = 0; ip < numIP; ++ip)
         vLocIP[ip] = rQuadRule.points()[ip];
-    
-    if ( output ) UG_LOG("vLocIP" << vLocIP[0][0] << " and " << vLocIP[0][1] << "\n" );
-    if ( output ) UG_LOG("\n" );
     
     
     //	compute transformation matrices
@@ -1330,19 +1105,28 @@ add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const L
     vValue.resize(numIP);
     vValueGrad.resize(numIP);
     
+    number exactSolIP;
+    MathVector<dim> exactGradIP;
     try
     {
-        //	loop all integration points
+    //	loop all integration points
         for(size_t ip = 0; ip < numIP; ++ip)
         {
-            //	compute exact solution at integration point
-//            number exactSolIP = get_exact_sol_FedkiwEx5<dim>(vGlobIP[ip]);
-            number exactSolIP = get_exact_sol_Gangl<dim>(vGlobIP[ip]);
+        //	compute exact solution at integration point
+            if ( testCase == GANGL_CENTER || testCase == GANGL_OFF_CENTER )
+                exactSolIP = get_exact_sol_Gangl<dim>(vGlobIP[ip], testCase);
+            else if ( testCase == FEDKIW_EX5 )
+                exactSolIP = get_exact_sol_FedkiwEx5<dim>(vGlobIP[ip]);
+
             
-            //	compute exact gradient at integration point
-            MathVector<dim> exactGradIP = get_exact_grad_FedkiwEx5<dim>(vGlobIP[ip]);
+        //	compute exact gradient at integration point
+            if ( testCase == GANGL_CENTER || testCase == GANGL_OFF_CENTER )
+                exactGradIP = get_exact_grad_Gangl<dim>(vGlobIP[ip], testCase);
+            else if ( testCase == FEDKIW_EX5 )
+                exactGradIP = get_exact_grad_FedkiwEx5<dim>(vGlobIP[ip]);
+
             
-            // 	compute approximated solution at integration point
+        // 	compute approximated solution at integration point
             number approxSolIP = 0.0;
             MathVector<dim> locTmp; VecSet(locTmp, 0.0);
             
@@ -1350,24 +1134,24 @@ add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const L
             
             for(size_t sh = 0; sh < num_sh; ++sh)
             {
-                //	add shape fct at ip * value at shape
+            //	add shape fct at ip * value at shape
                 approxSolIP += u(_C_,sh) * geo.get_shape(sh, vLocIP[ip], roid);
                 
-                //	add gradient at ip
+            //	add gradient at ip
                 VecScaleAppend(locTmp, u(_C_,sh), scv.local_grad(sh));
             }
             
-            //	get squared of difference
+        //	get squared of difference
             vValue[ip] = (exactSolIP - approxSolIP);
             vValue[ip] *= vValue[ip];
             
-            //	compute global gradient
+        //	compute global gradient
             MathVector<dim> approxGradIP;
             MathMatrix<dim, dim> JTInv;
             Inverse(JTInv, vJT[ip]);
             MatVecMult(approxGradIP, JTInv, locTmp);
             
-            // get error of gradient
+        // get error of gradient
             vValueGrad[ip] = VecDistanceSq(approxGradIP, exactGradIP);
             
             
@@ -1399,8 +1183,6 @@ add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const L
     }
     
     //	add to global sum
-    
-    if ( output ) UG_LOG("added: " <<  intValElem << "\n\n");
     
     return intValElem;
 }
@@ -1530,7 +1312,6 @@ add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoor
 
 			// Add to local rhs
 			d(_C_, co) += m_imSource[ip] * scv.volume();
-			//UG_LOG("d(_C_, co) = " << d(_C_, co) << "; \t ip " << ip << "; \t co " << co << "; \t scv_vol " << scv.volume() << "; \t m_imSource[ip] " << m_imSource[ip] << std::endl);
 		}
 	}
 
@@ -1677,7 +1458,6 @@ register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
 	typedef this_type T;
-	static const int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
@@ -1709,3 +1489,4 @@ template class ConvectionDiffusionFV1_cutElem<Domain3d>;
 } // end namespace ConvectionDiffusionPlugin
 } // namespace ug
 
+#endif /* __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1_CUTELEM_IMPL  */

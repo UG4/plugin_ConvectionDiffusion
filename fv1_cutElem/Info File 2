@@ -1,0 +1,39 @@
+/* Info File for 'DiffusionInterfaceMapper' class: */
+
+
+Influence of the local-to-global mapping on the mathematical ansatz space:
+
+
+On a cut element, local couplings will be computed for all the intersection points of the interface with the edges of the cut element. The mapping of these couplings to its associated global indices finally defines the property of the underlying finite element space:
+
+Case 1: If each coupling entry is mapped to a distinguished global index, i.e. DoF, the resulting space will be the usual finite element space on that interface adaped grid containing additional nodes along the interface and consisting (virtually) of cut elements and original elements.
+
+Case 2: If the coupling entry of an intersection point is mapped onto the global index of the original node, which lies accross the interface, but on the corner of the element, the finite element space will be potentially smaller, since two intersection points can share the same node accross the interface. The resulting space is a so called "flat top" space, since it results in piecewise constant solutions along the connecting line between these intersection points.
+
+
+The 'ParticleMapper' class is of type case 2:
+It maps all couplings of intersection points to the same translational (and in analogy to the rotational) global index of a particle. Therefore, the 'ParticleMapper' is a flat-top mapper.
+
+In contrast, the 'DiffusionInterfaceMapper' is of type case 1:
+The resulting space is an interface adapted space.
+
+
+In particular, the 'DiffusionInterfaceMapper' is a 'TWO-SIDES' mapper: As described in the 'Info File 1' within this folder, the local couplings of BOTH parts of the cut element will be mapped onto the global matrix and vectors. As a consequence, the mapping will be performed TWICE.
+
+
+The important methods are:
+
+---> 'add_local_mat_to_global_interface()', which performs the local-to-global mapping first for a triangle and second for a quadrilateral, as the two parts of a 2d cut element.
+
+---> 'add_local_vec_to_global_interface()', which performs the local-to-global mapping first for a triangle and second for a quadrilateral, as the two parts of a 2d cut element.
+
+
+---> modify_GlobalSol(): writes the solution within the additional interface nodes into data structures of the 'InterfaceHandlerLocal' 'in order  provide global access
+
+
+
+Remark:
+The 'modify_LocalData()' will NOT be used. It enables the resizing of the local data (LocalMatrix or LocalVecor) BEFORE starting the assembling on (potentially more nodes containing) cut the element.
+
+
+

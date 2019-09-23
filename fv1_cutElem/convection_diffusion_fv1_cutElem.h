@@ -36,10 +36,10 @@
 
 // ug4 headers
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
-#include "lib_disc/spatial_disc/elem_disc/sss.h"
 
 // plugin's internal headers
 #include "../convection_diffusion_base.h"
+
 
 #include "lib_disc/spatial_disc/disc_util/fv1Cut_geom.h"
 #include "lib_disc/spatial_disc/disc_util/geom_provider.h"
@@ -104,10 +104,7 @@ class ConvectionDiffusionFV1_cutElem : public ConvectionDiffusionBase<TDomain>
 	 * \param	shapes		upwind method
 	 */
 		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
-
-	/// set singular sources and sinks
-		void set_sss(SmartPtr<SingularSourcesAndSinks<dim, 1> > sss) { m_sss = sss; }
-
+ 
 	private:
 	/// prepares assembling
 		virtual void prep_assemble_loop();
@@ -134,13 +131,25 @@ class ConvectionDiffusionFV1_cutElem : public ConvectionDiffusionBase<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void fsh_elem_loop();
 
-	///	assembles the local stiffness matrix using a finite volume scheme
+	///	wrapper method for assembly of the local stiffness matrix using a finite volume scheme
 		template <typename TElem, typename TFVGeom>
 		void add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+    
+    ///	adapts local data for cut element assemling and calls 'add_jac_A_elem_local_local()' and 'add_jac_A_elem_local_boundary()'
+    ///  for the assembly of the local stiffness matrix
         template <typename TElem, typename TFVGeom>
-        void add_jac_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalMatrix& J, LocalVector& locU, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+        void add_jac_A_elem_local_cut(TFVGeom& geo, const LocalVector& u, GridObject* elem,
+                                  const MathVector<dim> vCornerCoords[]);
+    
+    ///	assembles the local stiffness matrix for locally adapted data due to a cut element
         template <typename TElem, typename TFVGeom>
-        void add_jac_A_elem_boundary(TFVGeom& geo, LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+        void add_jac_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalMatrix& J, LocalVector& locU, GridObject* elem,
+                                  const MathVector<dim> vCornerCoords[]);
+    
+    ///	assembles the boundary condition on a cut element
+        template <typename TElem, typename TFVGeom>
+        void add_jac_A_elem_boundary(TFVGeom& geo, LocalMatrix& J, const LocalVector& u, GridObject* elem,
+                                     const MathVector<dim> vCornerCoords[]);
     
     
 	///	assembles the local mass matrix using a finite volume scheme
@@ -148,14 +157,25 @@ class ConvectionDiffusionFV1_cutElem : public ConvectionDiffusionBase<TDomain>
 		void add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
     
-	///	assembles the stiffness part of the local defect
+    ///	wrapper method for assembly of the local defect using a finite volume scheme
 		template <typename TElem, typename TFVGeom>
 		void add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
-    ///	assembles the stiffness part of the local defect
+    
+    ///	adapts local data for cut element assembling, calls 'add_def_A_elem_local_local()', 'add_def_A_elem_local_boundary()'
+    ///  and 'add_l2error_A_elem()' for the assembly of the local defect
         template <typename TElem, typename TFVGeom>
-        void add_def_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalVector& d, LocalVector& locU, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+        void add_def_A_elem_local_cut(TFVGeom& geo, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+    
+    ///	assembles the local stiffness matrix for locally adapted data due to a cut element
+        template <typename TElem, typename TFVGeom>
+        void add_def_A_elem_local(TFVGeom& geo, const LocalVector& u, LocalVector& d, LocalVector& locU, GridObject* elem,
+                                  const MathVector<dim> vCornerCoords[]);
+    ///	assembles the boundary condition on a cut element
         template <typename TElem, typename TFVGeom>
         void add_def_A_elem_boundary(TFVGeom& geo, LocalVector& d, LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[]);
+    
+    /// computes the l2 error on each element => also on the 2 parts of a cut element
+    ///     --> used for an interface-adapted l2 error computation
         template <typename TElem, typename TFVGeom>
         number add_l2error_A_elem(TFVGeom& geo, ReferenceObjectID roid, LocalVector& d, const LocalVector& u, GridObject* elem);
     
@@ -174,16 +194,18 @@ class ConvectionDiffusionFV1_cutElem : public ConvectionDiffusionBase<TDomain>
         template <typename TElem, typename TFVGeom>
         void add_rhs_elem_local(TFVGeom& geo, LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[]);
 
-    /// helper function to prepare data for 'add_def_A_elem_local()' and 'add_jac_A_elem_local()'
+    /// helper function to prepare local data due to a cut element for 'add_def_A_elem_local()' and 'add_jac_A_elem_local()'
         template <typename TElem, typename TFVGeom>
-        void get_local_data(TFVGeom& geo, const LocalVector& u, LocalVector& locUOut, MathMatrix<dim, dim> diffusionOut, LocalVector& jumpOut, LocalVector& jump_gradOut, LocalVector& sourceOut);
+        void get_local_data(TFVGeom& geo, const LocalVector& u, const LocalIndices& ind, LocalVector& locUOut, MathMatrix<dim, dim>& diffusionOut, LocalVector& jumpOut, LocalVector& jump_gradOut, LocalVector& sourceOut);
+    
+    public:
+    /// flag to set the analytical solution for the l2error computation within 'add_l2error_A_elem()'
+        size_t get_testCase() { return m_testCase; }
+        void set_testCase(size_t testCase) { m_testCase = testCase; }
     
 	private:
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
-
-    /// singular sources and sinks
-		SmartPtr<SingularSourcesAndSinks<dim, 1> > m_sss;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;
@@ -222,6 +244,9 @@ class ConvectionDiffusionFV1_cutElem : public ConvectionDiffusionBase<TDomain>
 
     ///	current shape function set (needed for GeomProvider::get())
         LFEID m_LFEID;
+    
+    /// flag to set the analytical solution for the l2error computation within 'add_l2error_A_elem()'
+        size_t m_testCase;
     
 	///	register utils
 	///	\{
