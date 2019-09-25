@@ -46,6 +46,7 @@
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
 #include "fv1_cutElem/diffusion_interface/diffusion_interface.h"
+#include "lib_disc/spatial_disc/elem_disc/sss.h"
 #include "fractfv1/convection_diffusion_fractfv1.h"
 
 using namespace std;
