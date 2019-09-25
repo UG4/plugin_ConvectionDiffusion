@@ -35,10 +35,10 @@
 
 // ug4 headers
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
-#include "lib_disc/spatial_disc/elem_disc/sss.h"
 
 // plugin's internal headers
 #include "../convection_diffusion_base.h"
+#include "../convection_diffusion_sss.h"
 
 namespace ug{
 namespace ConvectionDiffusionPlugin{
@@ -53,21 +53,21 @@ namespace ConvectionDiffusionPlugin{
  * assemblings for the convection diffusion equation.
  * The Equation has the form
  * \f[
- * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c - \vec{F} \right )
- * 		+ r1 \cdot c + r2 = f + f2
+ * 	\partial_t (m_1 c + m_2) - \nabla \cdot \left ( D \nabla c - \vec{v} c - \vec{F} \right )
+ * 		+ r_1 \cdot c + r_2 = f + \nabla \cdot \vec{f}_2
  * \f]
  * with
  * <ul>
  * <li>	\f$ c \f$ is the unknown solution
- * <li>	\f$ m1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
- * <li>	\f$ m2 \equiv m(\vec{x},t) \f$ is the Mass Term
+ * <li>	\f$ m_1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
+ * <li>	\f$ m_2 \equiv m(\vec{x},t) \f$ is the Mass Term
  * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
  * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
  * <li>	\f$ F \equiv \vec{F}(\vec{x},t) \f$ is the Flux
- * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
- * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
+ * <li>	\f$ r_1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
+ * <li>	\f$ r_2 \equiv r(\vec{x},t) \f$ is a Reaction Term
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
- * <li> \f$ f2 \equiv f_2(\vec{x},t) \f$ is a Vector Source Term
+ * <li> \f$ \vec{f}_2 \equiv \vec{f}_2(\vec{x},t) \f$ is a Vector Source Term
  * </ul>
  *
  * \tparam	TDomain		Domain
@@ -102,7 +102,10 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
 
 	/// set singular sources and sinks
-		void set_sss(SmartPtr<SingularSourcesAndSinks<dim, 1> > sss) { m_sss = sss; }
+		void set_sss_manager(SmartPtr<CDSingularSourcesAndSinks<dim> > sss_mngr) {m_sss_mngr = sss_mngr;}
+
+	/// get singular sources and sinks
+		SmartPtr<CDSingularSourcesAndSinks<dim> > sss_manager() {return m_sss_mngr;}
 
 	private:
 	/// prepares assembling
@@ -178,6 +181,32 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		template <typename TElem, typename TFVGeom>
 		void fsh_err_est_elem_loop();
 
+    private:
+
+	///	adds contributions of a singular source or sink to the matrix
+		template<typename TElem, typename TFVGeom>
+		void add_sss_jac_elem
+		(
+			LocalMatrix& J, ///< the matrix to update
+			const LocalVector& u, ///< current solution
+			GridObject* elem, ///< the element
+			const TFVGeom& geo, ///< the FV geometry for that element
+			size_t i, ///< index of the SCV
+			number flux ///< flux through source/sink (premultiplied by the length for lines)
+		);
+	
+	///	adds contributions of a singular source or sink to the defect
+		template<typename TElem, typename TFVGeom>
+		void add_sss_def_elem
+		(
+			LocalVector& d, ///< the defect to update
+			const LocalVector& u, ///< current solution
+			GridObject* elem, ///< the element
+			const TFVGeom& geo, ///< the FV geometry for that element
+			size_t i, ///< index of the SCV
+			number flux ///< flux through source/sink (premultiplied by the length for lines)
+		);
+
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFVGeom>
@@ -185,13 +214,13 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
 		                      const size_t nip);
 
-	///	computes the linearized defect w.r.t to the velocity
+	///	computes the linearized defect w.r.t to the diffusion
 		template <typename TElem, typename TFVGeom>
 		void lin_def_diffusion(const LocalVector& u,
 		                       std::vector<std::vector<MathMatrix<dim,dim> > > vvvLinDef[],
 		                       const size_t nip);
 
-	///	computes the linearized defect w.r.t to the velocity
+	///	computes the linearized defect w.r.t to the flux
 		template <typename TElem, typename TFVGeom>
 		void lin_def_flux(const LocalVector& u,
 		                  std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
@@ -237,8 +266,8 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 	///	abbreviation for the local solution
 		static const size_t _C_ = 0;
 
-    /// singular sources and sinks
-		SmartPtr<SingularSourcesAndSinks<dim, 1> > m_sss;
+    /// singular sources and sinks manager
+		SmartPtr<CDSingularSourcesAndSinks<dim> > m_sss_mngr;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;
@@ -262,7 +291,7 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 
 	///	returns the updated convection shapes
 		typedef IConvectionShapes<dim> conv_shape_type;
-		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
+		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv);
 
 	///	computes the concentration
 		template <typename TElem, typename TFVGeom>

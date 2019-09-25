@@ -38,17 +38,16 @@
 #include "bridge/util_domain_dependent.h"
 #include "bridge/util_domain_algebra_dependent.h"
 #include "convection_diffusion_base.h"
+#include "convection_diffusion_sss.h"
 #include "fv1/convection_diffusion_fv1.h"
 #include "fv1_cutElem/convection_diffusion_fv1_cutElem.h"
 #include "fe/convection_diffusion_fe.h"
+#include "fe/convection_diffusion_stab_fe.h"
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
-
 #include "fv1_cutElem/diffusion_interface/diffusion_interface.h"
-
-//#include "lib_disc/spatial_disc/immersed_util/interface_handler/interface_handler_two_sided_cut/interface_handler_diffusion.h"
-
 #include "lib_disc/spatial_disc/elem_disc/sss.h"
+#include "fractfv1/convection_diffusion_fractfv1.h"
 
 using namespace std;
 using namespace ug::bridge;
@@ -173,7 +172,12 @@ static void Domain(Registry& reg, string grp)
 #endif
 
 			.add_method("value", &T::value)
-			.add_method("gradient", &T::gradient);
+		  .add_method("gradient", &T::gradient);
+		  /*
+			.add_method("set_partial_velocity", &T::set_partial_velocity)
+			.add_method("set_partial_flux", &T::set_partial_flux)
+			.add_method("set_partial_mass", &T::set_partial_mass);
+		  */
 		reg.add_class_to_group(name, "ConvectionDiffusionBase", tag);
 	}
 
@@ -185,7 +189,8 @@ static void Domain(Registry& reg, string grp)
 		reg.add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T::set_upwind)
-			.add_method("set_singular_sources_and_sinks", &T::set_sss, "", "Singular Sources and Sinks")
+			.add_method("set_singular_sources_and_sinks", &T::set_sss_manager, "", "Sets the singular sources and sinks manager")
+			.add_method("singular_sources_and_sinks", &T::sss_manager, "", "Returns the singular sources and sinks manager")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV1", tag);
 	}
@@ -214,6 +219,21 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFE", tag);
 	}
+
+//	Convection Diffusion (FE) stabilization
+	{
+		typedef ConvectionDiffusionStabFE<TDomain> T;
+		typedef IElemDisc<TDomain> TBase;
+		string name = string("ConvectionDiffusionStabFE").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.template add_constructor<void (*)(const char*,const char*,number)>("Function(s)#Subset(s)#stabilization")
+			.template add_constructor<void (*)(const char*,const char*,number,number)>("Function(s)#Subset(s)#stabilization")
+			.add_method("set_quad_order", &T::set_quad_order)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionStabFE", tag);
+	}
+
 
 //	Convection Diffusion FVCR
 	{
@@ -296,18 +316,91 @@ static void Dimension(Registry& reg, string grp)
     
 	//	singular sources and sinks
 	{
-		typedef SingularSourcesAndSinks<dim, 1> T;
-		string name = string("CdSingularSourcesAndSinks").append(dimSuffix);
+		typedef CDSingularSourcesAndSinks<dim> T;
+		typedef typename T::point_sss_type TPointSSS;
+		typedef typename T::line_sss_type TLineSSS;
+
+		string point_name = string("CDPointSourcesSink").append(dimSuffix);
+		reg.add_class_<TPointSSS>(point_name, grp)
+			.template add_constructor<void (*) (const std::vector<number>&)> ()
+			.add_method ("set", static_cast<void (TPointSSS::*) (number)> (&TPointSSS::set))
+			.add_method ("set", static_cast<void (TPointSSS::*) (LuaFunctionHandle)> (&TPointSSS::set))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(point_name, "CDPointSourcesSink", dimTag);
+
+		string line_name = string("CDLineSourcesSink").append(dimSuffix);
+		reg.add_class_<TLineSSS>(line_name, grp)
+			.template add_constructor<void (*) (const std::vector<number>&, const std::vector<number>&)> ()
+			.add_method ("set", static_cast<void (TLineSSS::*) (number)> (&TLineSSS::set))
+			.add_method ("set", static_cast<void (TLineSSS::*) (LuaFunctionHandle)> (&TLineSSS::set))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(line_name, "CDLineSourcesSink", dimTag);
+
+		string name = string("CDSingularSourcesAndSinks").append(dimSuffix);
 		reg.add_class_<T>(name, grp)
 			.add_constructor()
-			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&)>(&T::addps))
-			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, const std::vector<number>&)>(&T::addls))
+			.add_method ("add_point", static_cast<void (T::*) (SmartPtr<TPointSSS>)> (&T::add_point))
+			.add_method ("add_line", static_cast<void (T::*) (SmartPtr<TLineSSS>)> (&T::add_line))
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "CDSingularSourcesAndSinks", dimTag);
+	}
+}
+
+}; // end Functionality
+
+/**
+ * Class exporting the functionality of the plugin restricted to 2 and 3 spatial
+ * dimensions. All functionality that is to be used in scripts or visualization
+ * only in 2d and 3d must be registered here.
+ */
+struct Functionality2d3d
+{
+
+/**
+ * Function called for the registration of Domain dependent parts
+ * of the plugin. All Functions and Classes depending on the Domain
+ * are to be placed here when registering. The method is called for all
+ * available Domain types, based on the current build options.
+ *
+ * @param reg				registry
+ * @param parentGroup		group for sorting of functionality
+ */
+template <typename TDomain>
+static void Domain(Registry& reg, string grp)
+{
+	static const int dim = TDomain::dim;
+	string suffix = GetDomainSuffix<TDomain>();
+	string tag = GetDomainTag<TDomain>();
+
+//	Convection Diffusion FV1 for the low-dimensional fractures
+	{
+		typedef ConvectionDiffusionFractFV1<TDomain> T;
+		typedef ConvectionDiffusionBase<TDomain> TBase;
+		string name = string("ConvectionDiffusionFractFV1").append(suffix);
+		reg.add_class_<T, TBase >(name, grp)
+			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+			.add_method("set_fract_manager", static_cast<void (T::*)(SmartPtr<DegeneratedLayerManager<dim> >)>(&T::set_fract_manager), "Sets the fracture manager", "Deg. fracture manager")
+			.add_method("set_upwind", &T::set_upwind)
+			.add_method("set_aperture", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_aperture), "", "Fract. aperture")
+			.add_method("set_aperture", static_cast<void (T::*)(number)>(&T::set_aperture), "", "Fract. aperture")
 #ifdef UG_FOR_LUA
-			.add_method("addps", static_cast<void (T::*)(const std::vector<number>&, LuaFunctionHandle)>(&T::addps))
-			.add_method("addls", static_cast<void (T::*)(const std::vector<number>&, const std::vector<number>&, LuaFunctionHandle)>(&T::addls))
+			.add_method("set_aperture", static_cast<void (T::*)(const char*)>(&T::set_aperture), "", "Fract. aperture")
+			.add_method("set_aperture", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_aperture), "", "Fract. aperture")
+#endif
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(number)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+#ifdef UG_FOR_LUA
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(const char*)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+			.add_method("set_ortho_velocity", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_ortho_velocity), "", "Orthogonal Velocity Field")
+#endif
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(number)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+#ifdef UG_FOR_LUA
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(const char*)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
+			.add_method("set_ortho_diffusion", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
 #endif
 			.set_construct_as_smart_pointer(true);
-		reg.add_class_to_group(name, "CdSingularSourcesAndSinks", dimTag);
+		reg.add_class_to_group(name, "ConvectionDiffusionFractFV1", tag);
 	}
     
     // CutElementHandlerImmersed
@@ -335,7 +428,7 @@ static void Dimension(Registry& reg, string grp)
     
 }
 
-}; // end Functionality
+}; // end Functionality2d3d
 
 // end group convection_diffusion
 /// \}
@@ -351,12 +444,13 @@ InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 {
 	grp.append("/SpatialDisc/ElemDisc");
 	typedef ConvectionDiffusionPlugin::Functionality Functionality;
+	typedef ConvectionDiffusionPlugin::Functionality2d3d Functionality2d3d;
 
 	try{
 		RegisterDimensionDependent<Functionality>(*reg,grp);
 		RegisterDomainDependent<Functionality>(*reg,grp);
         RegisterDomainAlgebraDependent<Functionality>(*reg,grp);
-
+		RegisterDomain2d3dDependent<Functionality2d3d>(*reg,grp);
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
