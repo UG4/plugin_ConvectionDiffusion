@@ -1,0 +1,31 @@
+/* Info File for 'ImmersedInterfaceDiffusion' class: */
+
+
+The 'ImmersedInterfaceDiffusion' class enables the computation of elliptic problems with discontinuous coefficients, whose line along the jump forms the immersed interface. A detailed description of the mathematical theory and numerical tests can be found in [1].
+
+The 'ImmersedInterfaceDiffusion' class is a derivation of the 'ImmersedInterface' class. It therefore contains all the components of an 'ImmersedInterface' class implemented according to the necessities for an immersed interface with jumping coefficients. Those are explained in more detail in the according class types.
+
+
+The special requirements for the elliptic immersed interface implementation are the following:
+
+(1) The domain on BOTH sides of the interface is relevant for the physics of the problem. Therefore, the cut element computations performed by the according classes ( CutElementHandler, LocalInterfaceHandler) will be called TWICE for each original element. Accordingly, all the 'ElemDisc' methods for the computation of the local stiffnes matrix and defect contain two calls of the same methods, but get as additional parameter the inversed orientation of the interface (see convection_diffusion_fv1_cutElem.cpp).
+
+(2) Due to (1) two local stiffness matrices and defects will be computed during the element-local assembling process. These can NOT be stored in the usual data structure. Therefore, according local data structures are contained in the 'InterfaceHandlerLocal'.
+
+(3) The ansatz space used for this application is an interface adapted space. It falls into case 2 of a local-to-global mapping type (for detailed explanation, see the description in 'Info File 2' within this folder, and also 'Info File 1 ' and 'Info File 2' in the ugbase/lib_disc/spatial_disc/immersed_util folder. ).
+
+(4) Due to (3) additional DoFs need to be provided by the algebra for the increased, interface adapted mesh. This will be done by increasing the matrix and vector data during the initialisation pahse.
+
+
+
+
+The two central methods called during the initialisation via the 'init()' method are:
+
+---> update_interface_data(): called by the init() of the associated CutElementHandler; computes all cut elements;
+---> call of 'u.resize()'; this yields the increase of DoFs;
+
+
+
+[1] Hoellbacher S., Wittum G.:
+    "A sharp interface method using enriched finite elements for elliptic interface problems."
+    submitted to Numerische Mathematik
