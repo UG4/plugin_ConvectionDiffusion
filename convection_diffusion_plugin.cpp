@@ -259,7 +259,10 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_<TPointSSS>(point_name, grp)
 			.template add_constructor<void (*) (const std::vector<number>&)> ()
 			.add_method ("set", static_cast<void (TPointSSS::*) (number)> (&TPointSSS::set))
+			.add_method ("set", static_cast<void (TPointSSS::*) (typename TPointSSS::user_data_type)> (&TPointSSS::set))
+#ifdef UG_FOR_LUA
 			.add_method ("set", static_cast<void (TPointSSS::*) (LuaFunctionHandle)> (&TPointSSS::set))
+#endif
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(point_name, "CDPointSourcesSink", dimTag);
 

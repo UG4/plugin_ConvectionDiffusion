@@ -53,20 +53,24 @@ namespace ConvectionDiffusionPlugin {
 template <int dim>
 class cd_sss_data
 {
+public:
+	typedef SmartPtr<CplUserData<number, dim> > user_data_type;
 	/** the data for the source/sink:
 	 * [0]: total contaminant flux through the point
 	 */
-	MathVector<1> m_values;
+protected:
+	//MathVector<1> m_values;
+	number m_values;
 	
-	SmartPtr<UserData<MathVector<1>, dim> > m_spData; ///< an alternative method to specify the data
+	user_data_type m_spData; ///< an alternative method to specify the data
 	
 public:
 	
 ///	class construction (there must exist a 'dummy' constructor!)
-	cd_sss_data () {m_values [0] = 0;}
+	cd_sss_data () {m_values = 0;}
 	
 ///	returns the flux
-	number flux () {return m_values [0];}
+	number flux () {return m_values ;}
 	
 ///	computes the data from the user data object
 	void compute
@@ -83,21 +87,22 @@ public:
 ///	sets the data
 	void set (number flux)
 	{
-		m_values[0] = flux;
+		m_values = flux;
 		m_spData = SPNULL;
 	}
 	
 ///	sets the data by an object
-	void set (SmartPtr<UserData<MathVector<1>, dim> > spData)
+	void set (user_data_type spData)
 	{
 		m_spData = spData;
 	}
-	
+
+#ifdef UG_FOR_LUA
 ///	set as a LUA function
 	void set (LuaFunctionHandle func)
-	{
-		m_spData = make_sp (new LuaUserData<MathVector<1>, dim> (func));
-	}
+	{ m_spData = make_sp (new LuaUserData<number, dim> (func)); }
+#endif
+
 };
 
 /** Class for markers of the point sources and sinks
@@ -186,7 +191,10 @@ template <int dim> class cd_line_sss_data : public cd_sss_data<dim>, public line
 template <int dim>
 class CDSingularSourcesAndSinks
 	: public FVSingularSourcesAndSinks<dim, cd_point_sss_data<dim>, cd_line_sss_data<dim> >
-{};
+{
+public:
+	typedef cd_point_sss_data<dim> user_data_type;
+};
 
 } // namespace ConvectionDiffusionPlugin
 } // end namespace ug
