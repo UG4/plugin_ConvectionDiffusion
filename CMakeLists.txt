@@ -49,7 +49,7 @@ set(SOURCES		convection_diffusion_base.cpp
 ################################################################################
 # The code below doesn't have to be changed (usually)
 ################################################################################
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 2.8.12)
 
 project(UG_PLUGIN_${pluginName})
 
