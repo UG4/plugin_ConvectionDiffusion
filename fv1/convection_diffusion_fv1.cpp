@@ -42,6 +42,33 @@ namespace ConvectionDiffusionPlugin{
 
 DebugID DID_CONV_DIFF_FV1("CONV_DIFF_FV1");
 
+
+//	multiply by scaling
+template<typename TFVGeom, typename TFunction>
+void for_each_scv(const TFVGeom& geo, TFunction apply)
+{
+	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+	{
+		const typename TFVGeom::SCV& scv = geo.scv(ip);			// 	get current SCV
+		const int co = scv.node_id();							// 	get associated node
+
+		apply(scv, ip, co);
+		// d(_C_, co) += m_imMass[ip] * scv.volume();			// 	add to local defect
+	}
+}
+
+//	multiply by scaling
+template<typename TFVGeom, typename TFunction>
+void for_each_scvf(const TFVGeom& geo, TFunction apply)
+{
+	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
+	{
+		const typename TFVGeom::SCVF& scvf = geo.scvf(ip);			// 	get current SCV
+		apply(scvf, ip);
+		// d(_C_, co) += m_imMass[ip] * scv.volume();			// 	add to local defect
+	}
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //	general
 ////////////////////////////////////////////////////////////////////////////////
@@ -305,6 +332,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		////////////////////////////////////////////////////
 		// Convective Term
 		////////////////////////////////////////////////////
+			if (base_type::m_partialAssMask_Conv & 2) continue;
 			if(m_imVelocity.data_given())
 			{
 			//	Add Flux contribution
@@ -333,14 +361,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 	// 	loop Sub Control Volume (SCV)
 		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
+
+			const typename TFVGeom::SCV& scv = geo.scv(ip); // 	get current SCV
+			const int co = scv.node_id();// 	get associated node
 			
-		// 	get associated node
-			const int co = scv.node_id();
-			
-		// 	Add to local matrix
-			J(_C_, co, _C_, co) += m_imReactionRate[ip] * scv.volume();
+			J(_C_, co, _C_, co) += m_imReactionRate[ip] * scv.volume();// 	Add to local matrix
 		}
 	}
 	
@@ -400,20 +425,14 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
+	if (base_type::m_partialAssMask_Mass & 2) return;
 	if(!m_imMassScale.data_given()) return;
 
 // 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
 	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-	// 	get associated node
-		const int co = scv.node_id();
-
-	// 	Add to local matrix
 		J(_C_, co, _C_, co) += scv.volume() * m_imMassScale[ip];
-	}
+	});
 
 //	m_imMass part does not explicitly depend on associated unknown function
 }
@@ -440,6 +459,14 @@ add_sss_def_elem
 	else
 		// sink
 		d(_C_, co) -= flux * u(_C_, co);
+}
+
+template<typename TVector, typename TSegment>
+void ComputeGradient(TVector& grad_c, const LocalVector &u, size_t _C_, const TSegment& scvf)
+{
+	VecSet(grad_c, 0.0);
+	for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
+		VecScaleAppend(grad_c, u(_C_,sh), scvf.global_grad(sh));
 }
 
 template<typename TDomain>
@@ -470,9 +497,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				MathVector<dim> Dgrad_c, grad_c;
 
 			// 	compute gradient and shape at ip
-				VecSet(grad_c, 0.0);
-				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-					VecScaleAppend(grad_c, u(_C_,sh), scvf.global_grad(sh));
+				ComputeGradient(grad_c, u, _C_, scvf);
 
 			//	scale by diffusion tensor
 				MatVecMult(Dgrad_c, m_imDiffusion[ip], grad_c);
@@ -522,11 +547,9 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	// 	loop Sub Control Volumes (SCV)
 		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
 
-		// 	get associated node
-			const int co = scv.node_id();
+			const typename TFVGeom::SCV& scv = geo.scv(ip); // 	get current SCV
+			const int co = scv.node_id();					// 	get associated node
 
 		// 	Add to local defect
 			d(_C_, co) += u(_C_, co) * m_imReactionRate[ip] * scv.volume();
@@ -539,14 +562,11 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 	// 	loop Sub Control Volumes (SCV)
 		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
 
-		// 	get associated node
-			const int co = scv.node_id();
+			const typename TFVGeom::SCV& scv = geo.scv(ip);		// 	get current SCV
+			const int co = scv.node_id(); 						// 	get associated node
 
-		// 	Add to local defect
-			d(_C_, co) += m_imReaction[ip] * scv.volume();
+			d(_C_, co) += m_imReaction[ip] * scv.volume();		// 	Add to local defect
 		}
 	}
 
@@ -605,53 +625,24 @@ add_def_A_expl_elem(LocalVector& d, const LocalVector& u, GridObject* elem, cons
 
 //	reaction rate
 	if(m_imReactionRateExpl.data_given())
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
 	{
-	// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-		// 	get associated node
-			const int co = scv.node_id();
-
-		// 	Add to local defect
-			d(_C_, co) += u(_C_, co) * m_imReactionRateExpl[ip] * scv.volume();
-		}
-	}
+		d(_C_, co) += u(_C_, co) * m_imReactionRateExpl[ip] * scv.volume();
+	});
 
 //	reaction
 	if(m_imReactionExpl.data_given())
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
 	{
-	// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-		// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
+		d(_C_, co) += m_imReactionExpl[ip] * scv.volume();
+	});
 
-		// 	get associated node
-			const int co = scv.node_id();
-
-		// 	Add to local defect
-			d(_C_, co) += m_imReactionExpl[ip] * scv.volume();
-		}
-	}
 
 	if(m_imSourceExpl.data_given())
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
 	{
-		// 	loop Sub Control Volumes (SCV)
-		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
-		{
-			// 	get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
-
-			// 	get associated node
-			const int co = scv.node_id();
-
-			// 	Add to local rhs
-			d(_C_, co) -= m_imSourceExpl[ip] * scv.volume();
-		}
-	}
+		d(_C_, co) -= m_imSourceExpl[ip] * scv.volume();
+	});
 }
 
 template<typename TDomain>
@@ -659,34 +650,20 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-// 	get finite volume geometry
+	// 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
-	if(!m_imMassScale.data_given() && !m_imMass.data_given()) return;
-
-// 	loop Sub Control Volumes (SCV)
-	for(size_t ip = 0; ip < geo.num_scv(); ++ip)
+	if(m_imMassScale.data_given())
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
 	{
-	// 	get current SCV
-		const typename TFVGeom::SCV& scv = geo.scv(ip);
+		d(_C_, co) += m_imMassScale[ip] * u(_C_, co) * scv.volume();
+	});
 
-	// 	get associated node
-		const int co = scv.node_id();
-
-	//	mass value
-		number val = 0.0;
-
-	//	multiply by scaling
-		if(m_imMassScale.data_given())
-			val += m_imMassScale[ip] * u(_C_, co);
-
-	//	add mass
-		if(m_imMass.data_given())
-			val += m_imMass[ip];
-
-	// 	Add to local defect
-		d(_C_, co) += val * scv.volume();
-	}
+	if(m_imMass.data_given())
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
+	{
+		d(_C_, co) += m_imMass[ip] * scv.volume();
+	});
 }
 
 
@@ -695,36 +672,27 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 add_rhs_elem(LocalVector& d, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	// get finite volume geometry
+	// get finite volume geometry.
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 	// loop Sub Control Volumes (SCV)
-	if ( m_imSource.data_given() ) {
-		for ( size_t ip = 0; ip < geo.num_scv(); ++ip ) {
-			// get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv( ip );
-
-			// get associated node
-			const int co = scv.node_id();
-
-			// Add to local rhs
-			d(_C_, co) += m_imSource[ip] * scv.volume();
-			//UG_LOG("d(_C_, co) = " << d(_C_, co) << "; \t ip " << ip << "; \t co " << co << "; \t scv_vol " << scv.volume() << "; \t m_imSource[ip] " << m_imSource[ip] << std::endl);
-		}
-	}
+	if ( m_imSource.data_given())
+	for_each_scv(geo, [&](const typename TFVGeom::SCV& scv, size_t ip, int co)
+	{
+		d(_C_, co) += m_imSource[ip] * scv.volume();
+		//UG_LOG("d(_C_, co) = " << d(_C_, co) << "; \t ip " << ip << "; \t co " << co << "; \t scv_vol " << scv.volume() << "; \t m_imSource[ip] " << m_imSource[ip] << std::endl);
+	});
 
 	// loop Sub Control Volumes (SCVF)
-	if ( m_imVectorSource.data_given() ) {
-		for ( size_t ip = 0; ip < geo.num_scvf(); ++ip ) {
-			// get current SCVF
-			const typename TFVGeom::SCVF& scvf = geo.scvf( ip );
+	if ( m_imVectorSource.data_given() )
+	for_each_scvf(geo, [&](const typename TFVGeom::SCVF& scvf, size_t ip)
+	{
+		number flux = VecDot(m_imVectorSource[ip], scvf.normal());	// Add to local rhs
+		d(_C_, scvf.from()) -= flux;
+		d(_C_, scvf.to()  ) += flux;
+	});
 
-			// Add to local rhs
-			number flux = VecDot(m_imVectorSource[ip], scvf.normal());
-			d(_C_, scvf.from()) -= flux;
-			d(_C_, scvf.to()  ) += flux;
-		}
-	}
+
 }
 
 
@@ -749,8 +717,9 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 
 	if (!err_est_data)
 	{
-		UG_THROW("Dynamic cast to SideAndElemErrEstData failed."
-				<< std::endl << "Make sure you handed the correct type of ErrEstData to this discretization.");
+		UG_THROW("Dynamic cast to SideAndElemErrEstData failed." << std::endl <<
+				typeid(*(this->m_spErrEstData)).name() << std::endl <<
+				"Make sure you handed the correct type of SideAndElemErrEstData to this discretization.");
 	}
 
 
@@ -1210,6 +1179,8 @@ lin_def_velocity(const LocalVector& u,
 			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
 				vvvLinDef[ip][c][sh] = 0.0;
 
+	if (base_type::m_partialAssMask_Conv & 1) return;
+
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -1294,6 +1265,8 @@ lin_def_flux(const LocalVector& u,
 			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
 				vvvLinDef[ip][c][sh] = 0.0;
 
+	if (base_type::m_partialAssMask_Flux & 1) return;
+
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -1303,6 +1276,11 @@ lin_def_flux(const LocalVector& u,
 	//	add parts for both sides of scvf
 		vvvLinDef[ip][_C_][scvf.from()] += scvf.normal();
 		vvvLinDef[ip][_C_][scvf.to()] -= scvf.normal();
+
+		UG_DLOG(DID_CONV_DIFF_FV1, 1, ">>OCT_DISC_DEBUG: " << "convection_diffusion_fv1.cpp: "
+					<< "lin_def_flux():  normalSize scvf # " << ip << ": " << VecLength(scvf.normal())
+					<< "; \t from "<< scvf.from() << "; to " << scvf.to()
+					<< std::endl);
 	}
 }
 
@@ -1432,6 +1410,9 @@ lin_def_mass_scale(const LocalVector& u,
 
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = u(_C_, co) * scv.volume();
+
+		if (base_type::m_partialAssMask_Mass & 1)
+		{ vvvLinDef[co][_C_][co] = 0.0;}
 	}
 }
 
@@ -1457,6 +1438,9 @@ lin_def_mass(const LocalVector& u,
 
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = scv.volume();
+
+		if (base_type::m_partialAssMask_Mass & 1)
+		{ vvvLinDef[co][_C_][co] = 0.0;}
 	}
 }
 
@@ -1520,16 +1504,11 @@ ex_value(number vValue[],
 	//	Loop Sub Control Volumes (SCV)
 		for(size_t ip = 0; ip < geo.num_scv(); ++ip)
 		{
-		// 	Get current SCV
-			const typename TFVGeom::SCV& scv = geo.scv(ip);
+			const typename TFVGeom::SCV& scv = geo.scv(ip);		// 	Get current SCV
+			const size_t co = scv.node_id();					//	get corner of SCV
+			vValue[ip] = u(_C_, co);							//	solution at ip
 
-		//	get corner of SCV
-			const size_t co = scv.node_id();
-
-		//	solution at ip
-			vValue[ip] = u(_C_, co);
-
-		//	set derivatives if needed
+			//	set derivatives if needed
 			if(bDeriv)
 			{
 				size_t ndof = vvvDeriv[ip][_C_].size();
@@ -1612,10 +1591,10 @@ ex_grad(MathVector<dim> vValue[],
 		// 	Get current SCVF
 			const typename TFVGeom::SCVF& scvf = geo.scvf(ip);
 
-			VecSet(vValue[ip], 0.0);
-
+			/*VecSet(vValue[ip], 0.0);
 			for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
-				VecScaleAppend(vValue[ip], u(_C_, sh), scvf.global_grad(sh));
+				VecScaleAppend(vValue[ip], u(_C_, sh), scvf.global_grad(sh));*/
+			ComputeGradient(vValue[ip], u, _C_, scvf);
 
 			if(bDeriv)
 			{
@@ -1792,7 +1771,7 @@ register_func()
 	m_imMass.	set_fct(id, this, &T::template lin_def_mass<TElem, TFVGeom>);
 
 //	exports
-	m_exValue->	   template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TFVGeom>);
+	m_exValue->template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TFVGeom>);
 	m_exGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad<TElem, TFVGeom>);
 }
 
