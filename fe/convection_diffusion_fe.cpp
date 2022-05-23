@@ -66,13 +66,12 @@ void ConvectionDiffusionFE<TDomain>::
 prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 {
 	//	check number of fcts
-	if(vLfeID.size() != 1)
-		UG_THROW("ConvectionDiffusion: Wrong number of functions given. "
-				"Need exactly "<<1);
+	UG_COND_THROW(vLfeID.size() != 1, "ConvectionDiffusion:" <<
+				"Wrong number of functions given. Need exactly "<<1);
 
 	//	check that not ADAPTIVE
-	if(vLfeID[0].order() < 1)
-		UG_THROW("ConvectionDiffusion: Adaptive order not implemented.");
+	UG_COND_THROW(vLfeID[0].order() < 0, "ConvectionDiffusion: "<<
+				"Adaptive order not implemented.");
 
 	//	set order
 	m_lfeID = vLfeID[0];
@@ -84,9 +83,7 @@ prepare_setting(const std::vector<LFEID>& vLfeID, bool bNonRegularGrid)
 template<typename TDomain>
 bool ConvectionDiffusionFE<TDomain>::
 use_hanging() const
-{
-	return false;
-}
+{ return false; }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Assembling functions
@@ -513,8 +510,9 @@ compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != (size_t) ref_elem_type::numSides)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
+
+	UG_COND_THROW (side_list.size() != (size_t) ref_elem_type::numSides,
+				 "Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
 
 	// 	Some auxiliary variables.
 	MathVector<dim> fluxDensity, gradC, normal;
@@ -633,14 +631,15 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 // note: mass parts only enter volume term
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	UG_COND_THROW(err_est_data->surface_view().get() == NULL,
+				"Error estimator has NULL surface view.");
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
 	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
-	if (elem_list.size() != 1)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
+	UG_COND_THROW (elem_list.size() != 1,
+			      "Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
 
 //	request geometry
 	static const TFEGeom& geo = GeomProvider<TFEGeom>::get();
@@ -684,8 +683,8 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	UG_COND_THROW(err_est_data->surface_view().get() == NULL, "Error estimator has NULL surface view.");
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 // SIDE TERMS //
@@ -693,8 +692,9 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 //	get the sides of the element
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::side_type>::secure_container side_list;
 	pErrEstGrid->associated_elements_sorted(side_list, (TElem*) elem);
-	if (side_list.size() != (size_t) ref_elem_type::numSides)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
+
+	UG_COND_THROW(side_list.size() != (size_t) ref_elem_type::numSides,
+				  "Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
 
 // loop sides
 	size_t passedIPs = 0;
@@ -728,8 +728,9 @@ compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[]
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
 	pErrEstGrid->associated_elements_sorted(elem_list, (TElem*) elem);
-	if (elem_list.size() != 1)
-		UG_THROW ("Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
+
+	UG_COND_THROW (elem_list.size() != 1,
+				 "Mismatch of numbers of sides in 'ConvectionDiffusionFE::compute_err_est_elem'");
 
 // source //
 	try
