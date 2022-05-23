@@ -352,8 +352,16 @@ public:
 		if (spConvDiff->m_imFlux.user_data().valid())
 		{ flux_linker->add(1.0, spConvDiff->m_imFlux.user_data()); }
 
-		// if (spConvDiff->m_imDiffusion.user_data().valid())
-		// { flux_linker->add(spConvDiff->m_imDiffusion.user_data(), spConvDiff->gradient()); }
+		if (spConvDiff->m_imDiffusion.user_data().valid())
+		{
+			typedef MathVector<dim> TData;
+			typedef MathMatrix<dim,dim> TDataScale;
+			typedef ScaleAddLinker<TData, dim, TDataScale> T;
+			SmartPtr<T> DgradC = make_sp<T> (new T());
+			DgradC->add(spConvDiff->m_imDiffusion.user_data(), spConvDiff->gradient());
+
+			flux_linker->add(1.0, DgradC);
+		}
 
 		if (spConvDiff->m_imVelocity.user_data().valid())
 		flux_linker->add(spConvDiff->value(), spConvDiff->m_imVelocity.user_data());
