@@ -92,7 +92,9 @@ class ConvectionDiffusionBase
 	public:
 	///	Constructor
 		ConvectionDiffusionBase(const char* functions, const char* subsets);
-
+	protected:
+		void init_imports();
+	public:
 	///	sets the diffusion tensor
 	/**
 	 * This method sets the Diffusion tensor used in computations. If no
