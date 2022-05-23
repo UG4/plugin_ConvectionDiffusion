@@ -42,6 +42,9 @@
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 
+
+#include "lib_disc/spatial_disc/user_data/linker/scale_add_linker.h"
+
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
@@ -73,6 +76,9 @@ namespace ConvectionDiffusionPlugin{
  * \tparam	TDomain		Domain
  * \tparam	TAlgebra	Algebra
  */
+template<typename TDomain>
+class ConvectionDiffusionUserDataFactory;
+
 template<	typename TDomain>
 class ConvectionDiffusionBase
 : public IElemDisc<TDomain>
@@ -88,7 +94,9 @@ class ConvectionDiffusionBase
 	public:
 	///	Constructor
 		ConvectionDiffusionBase(const char* functions, const char* subsets);
-
+	protected:
+		void init_imports();
+	public:
 	///	sets the diffusion tensor
 	/**
 	 * This method sets the Diffusion tensor used in computations. If no
@@ -276,10 +284,10 @@ class ConvectionDiffusionBase
 		typedef SmartPtr<CplUserData<MathVector<dim>, dim> > GradExport;
 
 	///	returns the export of the value of associated unknown function
-		virtual SmartPtr<CplUserData<number, dim> > value();
+		virtual NumberExport value();
 
 	///	returns the export of the gradient of associated unknown function
-		virtual SmartPtr<CplUserData<MathVector<dim>, dim> > gradient();
+		virtual GradExport gradient();
 
 	protected:
 	///	Export for the concentration
@@ -287,10 +295,74 @@ class ConvectionDiffusionBase
 
 	///	Export for the gradient of concentration
 		SmartPtr<DataExport<MathVector<dim>, dim> > m_exGrad;
+
+
+
+	public:
+		void set_partial_velocity(int mask) {m_partialAssMask_Conv = mask;}
+		void set_partial_flux(int mask) {m_partialAssMask_Flux = mask;}
+		void set_partial_mass(int mask) {m_partialAssMask_Mass = mask;}
+
+	protected:
+		// bit 1: do not assemble contribution of derivative
+		// bit 2: do not assemble convection
+		int m_partialAssMask_Conv;
+		int m_partialAssMask_Flux;
+		int m_partialAssMask_Mass;
+
+		friend class ConvectionDiffusionUserDataFactory<TDomain>;
 };
 
 // end group convection_diffusion
 /// \}
+
+/// This class provides linker for mass and flux.
+template<typename TDomain>
+class ConvectionDiffusionUserDataFactory
+{
+public:
+	static const int dim = TDomain::dim;
+
+protected:
+	typedef ConvectionDiffusionBase<TDomain> TConvectionDiffusion;
+
+	typedef ScaleAddLinker<number, dim, number> TMassLinker;
+	typedef ScaleAddLinker<MathVector<dim>, dim, number> TFluxLinker;
+
+public:
+	ConvectionDiffusionUserDataFactory(){}
+
+	SmartPtr<TMassLinker> create_mass_linker(SmartPtr<TConvectionDiffusion> spConvDiff) const
+	{
+		SmartPtr<TMassLinker> mass_linker = make_sp<TMassLinker> (new TMassLinker());
+
+		if (spConvDiff->m_imMass.user_data().valid())
+		{ mass_linker->add(1.0, spConvDiff->m_imMass.user_data()); }
+
+		if (spConvDiff->m_imMassScale.user_data().valid())
+		{ mass_linker->add(spConvDiff->value(), spConvDiff->m_imMassScale.user_data());}
+
+		return mass_linker;
+	}
+
+	SmartPtr<TFluxLinker> create_flux_linker(SmartPtr<TConvectionDiffusion> spConvDiff) const
+	{
+		SmartPtr<TFluxLinker> flux_linker = make_sp<TFluxLinker> (new TFluxLinker());
+
+		if (spConvDiff->m_imFlux.user_data().valid())
+		{ flux_linker->add(1.0, spConvDiff->m_imFlux.user_data()); }
+
+		// if (spConvDiff->m_imDiffusion.user_data().valid())
+		// { flux_linker->add(spConvDiff->m_imDiffusion.user_data(), spConvDiff->gradient()); }
+
+		if (spConvDiff->m_imVelocity.user_data().valid())
+		flux_linker->add(spConvDiff->value(), spConvDiff->m_imVelocity.user_data());
+
+
+		return flux_linker;
+	}
+
+};
 
 } // end ConvectionDiffusionPlugin
 } // end namespace ug

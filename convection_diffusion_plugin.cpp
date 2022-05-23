@@ -242,6 +242,20 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
 	}
+
+	/// Factory class for userdata.
+	{
+		typedef ConvectionDiffusionUserDataFactory<TDomain> T;
+
+		string name = string("ConvectionDiffusionUserDataFactory").append(suffix);
+		reg.add_class_<T>(name, grp)
+			.template add_constructor<void (*)()>("Auxiliary function.")
+			.add_method("create_mass_linker", &T::create_mass_linker)
+			.add_method("create_flux_linker", &T::create_flux_linker)
+			.set_construct_as_smart_pointer(true);
+		reg.add_class_to_group(name, "ConvectionDiffusionUserDataFactory", tag);
+	}
+
 }
 
 template <int dim>
