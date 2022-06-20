@@ -54,8 +54,8 @@ namespace ConvectionDiffusionPlugin{
  * assemblings for the convection diffusion equation.
  * The Equation has the form
  * \f[
- * 	\partial_t (m1*c + m2) - \nabla \left( D \nabla c - \vec{v} c \right) +
- * 		r1 \cdot c + r2 = f + f2
+ * 	\partial_t (m1*c + m2) - \nabla \cdot \left( D \nabla c - \vec{v} c \right)
+ *      + \nabla \cdot F + r1 \cdot c + r2 = f + f2
  * \f]
  * with
  * <ul>

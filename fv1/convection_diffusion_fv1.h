@@ -106,6 +106,12 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 
 	/// get singular sources and sinks
 		SmartPtr<CDSingularSourcesAndSinks<dim> > sss_manager() {return m_sss_mngr;}
+		
+	/// activates/deactivates the condensed scvf ip's for the FV scheme
+		void set_condensed_FV(bool condensed) {m_bCondensedFV = condensed;}
+		
+	///	returns the 'condensed scvf ip' flag
+		bool condensed_FV() {return m_bCondensedFV;}
 
 	private:
 	/// prepares assembling
@@ -329,11 +335,22 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 	protected:
 	///	current regular grid flag
 		bool m_bNonRegularGrid;
+	
+	///	if to use the 'condensed' FV scvf ip's
+		bool m_bCondensedFV;
 
 	///	register utils
 	///	\{
 		void register_all_funcs(bool bHang);
+		template <typename TElem> void register_func_for_(bool bHang);
 		template <typename TElem, typename TFVGeom> void register_func();
+		struct RegisterLocalDiscr
+		{
+			this_type * m_pThis; bool m_bHang;
+			RegisterLocalDiscr(this_type * pThis, bool bHang) : m_pThis(pThis), m_bHang(bHang) {}
+			template< typename TElem > void operator() (TElem &)
+			{m_pThis->register_func_for_<TElem> (m_bHang);}
+		};
 	/// \}
 
 	private:

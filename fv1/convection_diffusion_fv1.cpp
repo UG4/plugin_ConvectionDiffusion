@@ -51,7 +51,7 @@ ConvectionDiffusionFV1<TDomain>::
 ConvectionDiffusionFV1(const char* functions, const char* subsets)
  : ConvectionDiffusionBase<TDomain>(functions,subsets),
    m_spConvShape(new ConvectionShapesNoUpwind<dim>),
-   m_bNonRegularGrid(false)
+   m_bNonRegularGrid(false), m_bCondensedFV(false)
 {
 	register_all_funcs(m_bNonRegularGrid);
 }
@@ -1713,74 +1713,44 @@ get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv)
 //	register assemble functions
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifdef UG_DIM_1
-template<>
-void ConvectionDiffusionFV1<Domain1d>::
+/**
+ * Registers the assembling functions for all the element types
+ */
+template<typename TDomain>
+void ConvectionDiffusionFV1<TDomain>::
 register_all_funcs(bool bHang)
 {
-//	switch assemble functions
-	if(!bHang)
-	{
-		register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
-	}
-	else
-	{
-		register_func<RegularEdge, HFV1Geometry<RegularEdge, dim> >();
-	}
+//	list of element types for assembling
+	typedef typename domain_traits<dim>::AllElemList AssembleElemList;
+	
+//	register the local assembling functions
+	boost::mpl::for_each<AssembleElemList> (RegisterLocalDiscr (this, bHang));
 }
-#endif
 
-#ifdef UG_DIM_2
-template<>
-void ConvectionDiffusionFV1<Domain2d>::
-register_all_funcs(bool bHang)
+/**
+ * Registers the assembling functions for an element type.
+ */
+template<typename TDomain>
+template<typename TElem>
+void
+ConvectionDiffusionFV1<TDomain>::
+register_func_for_(bool bHang)
 {
 //	switch assemble functions
 	if(!bHang)
 	{
-		register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
-		register_func<Triangle, FV1Geometry<Triangle, dim> >();
-		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
+		if(!m_bCondensedFV)
+			register_func<TElem, FV1Geometry<TElem, dim> >();
+		else
+			register_func<TElem, FV1CondensedGeometry<TElem, dim> >();
 	}
 	else
 	{
-		register_func<RegularEdge, HFV1Geometry<RegularEdge, dim> >();
-		register_func<Triangle, HFV1Geometry<Triangle, dim> >();
-		register_func<Quadrilateral, HFV1Geometry<Quadrilateral, dim> >();
+		if(m_bCondensedFV)
+			UG_THROW("ConvectionDiffusionFV1: Condensed FV not supported for hanging nodes.");
+		register_func<TElem, HFV1Geometry<TElem, dim> >();
 	}
 }
-#endif
-
-#ifdef UG_DIM_3
-template<>
-void ConvectionDiffusionFV1<Domain3d>::
-register_all_funcs(bool bHang)
-{
-//	switch assemble functions
-	if(!bHang)
-	{
-		register_func<RegularEdge, FV1Geometry<RegularEdge, dim> >();
-		register_func<Triangle, FV1Geometry<Triangle, dim> >();
-		register_func<Quadrilateral, FV1Geometry<Quadrilateral, dim> >();
-		register_func<Tetrahedron, FV1Geometry<Tetrahedron, dim> >();
-		register_func<Prism, FV1Geometry<Prism, dim> >();
-		register_func<Pyramid, FV1Geometry<Pyramid, dim> >();
-		register_func<Hexahedron, FV1Geometry<Hexahedron, dim> >();
-		register_func<Octahedron, FV1Geometry<Octahedron, dim> >();
-	}
-	else
-	{
-		register_func<RegularEdge, HFV1Geometry<RegularEdge, dim> >();
-		register_func<Triangle, HFV1Geometry<Triangle, dim> >();
-		register_func<Quadrilateral, HFV1Geometry<Quadrilateral, dim> >();
-		register_func<Tetrahedron, HFV1Geometry<Tetrahedron, dim> >();
-		register_func<Prism, HFV1Geometry<Prism, dim> >();
-		register_func<Pyramid, HFV1Geometry<Pyramid, dim> >();
-		register_func<Hexahedron, HFV1Geometry<Hexahedron, dim> >();
-		register_func<Octahedron, HFV1Geometry<Octahedron, dim> >();
-	}
-}
-#endif
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
