@@ -44,6 +44,8 @@
 #include "fvcr/convection_diffusion_fvcr.h"
 #include "fv/convection_diffusion_fv.h"
 #include "fractfv1/convection_diffusion_fractfv1.h"
+#include "mixed-fem/weak_form_rt.h"
+
 
 using namespace std;
 using namespace ug::bridge;
@@ -168,7 +170,7 @@ static void Domain(Registry& reg, string grp)
 #endif
 
 			.add_method("value", &T::value)
-		  .add_method("gradient", &T::gradient);
+			.add_method("gradient", &T::gradient);
 		  /*
 			.add_method("set_partial_velocity", &T::set_partial_velocity)
 			.add_method("set_partial_flux", &T::set_partial_flux)
@@ -241,6 +243,45 @@ static void Domain(Registry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV", tag);
 	}
+	//	Convection Diffusion for mixed FEM
+	{
+			typedef WeakFormulationFE<TDomain> T;
+			// typedef ConvectionDiffusionBase<TDomain> TBase;
+			typedef IElemDisc<TDomain> TBase;
+			string name = string("WeakFormulationFE").append(suffix);
+			reg.add_class_<T, TBase>(name, grp)
+					.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
+					.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
+					.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
+		#ifdef UG_FOR_LUA
+					.add_method("set_diffusion", static_cast<void (T::*)(const char*)>(&T::set_diffusion), "", "Diffusion")
+					.add_method("set_diffusion", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_diffusion), "", "Diffusion")
+		#endif
+					.add_method("set_reaction", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_reaction), "", "Reaction")
+					.add_method("set_reaction", static_cast<void (T::*)(number)>(&T::set_reaction), "", "Reaction")
+		#ifdef UG_FOR_LUA
+					.add_method("set_reaction", static_cast<void (T::*)(const char*)>(&T::set_reaction), "", "Reaction")
+					.add_method("set_reaction", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_reaction), "", "Reaction")
+		#endif
+					.add_method("set_source", static_cast<void (T::*)(SmartPtr<CplUserData<number, dim> >)>(&T::set_source), "", "Source")
+					.add_method("set_source", static_cast<void (T::*)(number)>(&T::set_source), "", "Source")
+		#ifdef UG_FOR_LUA
+					.add_method("set_source", static_cast<void (T::*)(const char*)>(&T::set_source), "", "Source")
+					.add_method("set_source", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_source), "", "Source")
+		#endif
+					.add_method("set_vector_source", static_cast<void (T::*)(SmartPtr<CplUserData<MathVector<dim>, dim> >)>(&T::set_vector_source), "", "Vector Source")
+		#ifdef UG_FOR_LUA
+					.add_method("set_vector_source", static_cast<void (T::*)(const char*)>(&T::set_vector_source), "", "Vector Source")
+					.add_method("set_vector_source", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_vector_source), "", "Vector Source")
+		#endif
+					.add_method("divergence", &T::value) // WARNING: This is not nice...
+					.add_method("value", &T::gradient)
+					.set_construct_as_smart_pointer(true);
+
+			reg.add_class_to_group(name, "WeakFormulationFE", tag);
+	}
+
+
 }
 
 template <int dim>
