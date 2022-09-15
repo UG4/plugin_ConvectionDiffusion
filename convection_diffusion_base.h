@@ -55,7 +55,7 @@ namespace ConvectionDiffusionPlugin{
  * The Equation has the form
  * \f[
  * 	\partial_t (m1*c + m2) - \nabla \cdot \left( D \nabla c - \vec{v} c \right)
- *      + \nabla \cdot F + r1 \cdot c + r2 = f + f2
+ *      + \nabla \cdot \vec{F} + r1 \cdot c + r2 = f + \nabla \cdot f2
  * \f]
  * with
  * <ul>
@@ -63,7 +63,8 @@ namespace ConvectionDiffusionPlugin{
  * <li>	\f$ m1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
  * <li>	\f$ m2 \equiv m(\vec{x},t) \f$ is the Mass Term
  * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
- * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
+ * <li>	\f$ \vec{v} \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
+ * <li> \f$ \vec{F} \equiv \vec{F}(\vec{x},t) \f$ is the Flux field
  * <li>	\f$ r1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
  * <li>	\f$ r2 \equiv r(\vec{x},t) \f$ is a Reaction Term
  * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
