@@ -47,28 +47,12 @@ namespace ConvectionDiffusionPlugin{
 /// \addtogroup convection_diffusion
 /// \{
 
-/// Discretization for the Convection-Diffusion Equation
+/// FV Discretization for the Convection-Diffusion Equation
 /**
- * This class implements the IElemDisc interface to provide element local
- * assemblings for the convection diffusion equation.
- * The Equation has the form
- * \f[
- * 	\partial_t (m_1 c + m_2) - \nabla \cdot \left ( D \nabla c - \vec{v} c - \vec{F} \right )
- * 		+ r_1 \cdot c + r_2 = f + \nabla \cdot \vec{f}_2
- * \f]
- * with
- * <ul>
- * <li>	\f$ c \f$ is the unknown solution
- * <li>	\f$ m_1 \equiv m(\vec{x},t) \f$ is the Mass Scaling Term
- * <li>	\f$ m_2 \equiv m(\vec{x},t) \f$ is the Mass Term
- * <li>	\f$ D \equiv D(\vec{x},t) \f$ is the Diffusion Tensor
- * <li>	\f$ v \equiv \vec{v}(\vec{x},t) \f$ is the Velocity Field
- * <li>	\f$ F \equiv \vec{F}(\vec{x},t) \f$ is the Flux
- * <li>	\f$ r_1 \equiv r(\vec{x},t) \f$ is the Reaction Rate
- * <li>	\f$ r_2 \equiv r(\vec{x},t) \f$ is a Reaction Term
- * <li>	\f$ f \equiv f(\vec{x},t) \f$ is a Source Term
- * <li> \f$ \vec{f}_2 \equiv \vec{f}_2(\vec{x},t) \f$ is a Vector Source Term
- * </ul>
+ * This is the simple (upwinded) FV discretization of the convection-diffusion equation.
+ * Cf. ConvectionDiffusionBase base class for the problem setting.
+ *
+ * \see ConvectionDiffusionBase for the problem settings
  *
  * \tparam	TDomain		Domain
  */
