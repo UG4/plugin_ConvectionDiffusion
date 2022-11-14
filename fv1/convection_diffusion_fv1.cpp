@@ -274,8 +274,10 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		////////////////////////////////////////////////////
 			if(m_imDiffusion.data_given())
 			{
-			//	DID_CONV_DIFF_FV1
+				#ifdef UG_ENABLE_DEBUG_LOGS
+				//	DID_CONV_DIFF_FV1
 				number D_diff_flux_sum = 0.0;
+				#endif
 
 			// 	loop shape functions
 				for(size_t sh = 0; sh < scvf.num_sh(); ++sh)
@@ -295,8 +297,10 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 					J(_C_, scvf.from(), _C_, sh) -= D_diff_flux;
 					J(_C_, scvf.to()  , _C_, sh) += D_diff_flux;
 
-				//	DID_CONV_DIFF_FV1
+					#ifdef UG_ENABLE_DEBUG_LOGS
+					//	DID_CONV_DIFF_FV1
 					D_diff_flux_sum += D_diff_flux;
+					#endif
 				}
 
 				UG_DLOG(DID_CONV_DIFF_FV1, 2, "D_diff_flux_sum = " << D_diff_flux_sum << std::endl << std::endl);
