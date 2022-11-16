@@ -76,8 +76,8 @@ struct Functionality
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=ug::bridge::Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	static const int dim = TDomain::dim;
 	string suffix = GetDomainSuffix<TDomain>();
@@ -88,7 +88,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionBase<TDomain> T;
 		typedef IElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusionBase").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
 			.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
 #ifdef UG_FOR_LUA
@@ -184,7 +184,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionFV1<TDomain> T;
 		typedef ConvectionDiffusionBase<TDomain> TBase;
 		string name = string("ConvectionDiffusionFV1").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_condensed_FV", &T::set_condensed_FV, "", "[De-]Activates the condensed FV scvf ip's")
 			.add_method("set_upwind", &T::set_upwind, "", "Sets the upwind type for the convective terms")
@@ -199,7 +199,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionFE<TDomain> T;
 		typedef ConvectionDiffusionBase<TDomain> TBase;
 		string name = string("ConvectionDiffusionFE").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_quad_order", &T::set_quad_order)
 			.set_construct_as_smart_pointer(true);
@@ -211,7 +211,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionStabFE<TDomain> T;
 		typedef IElemDisc<TDomain> TBase;
 		string name = string("ConvectionDiffusionStabFE").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.template add_constructor<void (*)(const char*,const char*,number)>("Function(s)#Subset(s)#stabilization")
 			.template add_constructor<void (*)(const char*,const char*,number,number)>("Function(s)#Subset(s)#stabilization")
@@ -226,7 +226,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionFVCR<TDomain> T;
 		typedef ConvectionDiffusionBase<TDomain> TBase;
 		string name = string("ConvectionDiffusionFVCR").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_upwind", &T::set_upwind)
 			.set_construct_as_smart_pointer(true);
@@ -238,7 +238,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionFV<TDomain> T;
 		typedef ConvectionDiffusionBase<TDomain> TBase;
 		string name = string("ConvectionDiffusionFV").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_quad_order", &T::set_quad_order)
 			.set_construct_as_smart_pointer(true);
@@ -250,7 +250,7 @@ static void Domain(Registry& reg, string grp)
 			// typedef ConvectionDiffusionBase<TDomain> TBase;
 			typedef IElemDisc<TDomain> TBase;
 			string name = string("WeakFormulationFE").append(suffix);
-			reg.add_class_<T, TBase>(name, grp)
+			reg.template add_class_<T, TBase>(name, grp)
 					.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 					.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
 					.add_method("set_diffusion", static_cast<void (T::*)(number)>(&T::set_diffusion), "", "Diagonal Diffusion")
@@ -285,8 +285,8 @@ static void Domain(Registry& reg, string grp)
 
 }
 
-template <int dim>
-static void Dimension(Registry& reg, string grp)
+template <int dim, typename TRegistry=ug::bridge::Registry>
+static void Dimension(TRegistry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
 	string dimTag = GetDimensionTag<dim>();
@@ -298,7 +298,7 @@ static void Dimension(Registry& reg, string grp)
 		typedef typename T::line_sss_type TLineSSS;
 
 		string point_name = string("CDPointSourcesSink").append(dimSuffix);
-		reg.add_class_<TPointSSS>(point_name, grp)
+		reg.template add_class_<TPointSSS>(point_name, grp)
 			.template add_constructor<void (*) (const std::vector<number>&)> ()
 			.add_method ("set", static_cast<void (TPointSSS::*) (number)> (&TPointSSS::set))
 			.add_method ("set", static_cast<void (TPointSSS::*) (typename TPointSSS::user_data_type)> (&TPointSSS::set))
@@ -309,7 +309,7 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_to_group(point_name, "CDPointSourcesSink", dimTag);
 
 		string line_name = string("CDLineSourcesSink").append(dimSuffix);
-		reg.add_class_<TLineSSS>(line_name, grp)
+		reg.template add_class_<TLineSSS>(line_name, grp)
 			.template add_constructor<void (*) (const std::vector<number>&, const std::vector<number>&)> ()
 			.add_method ("set", static_cast<void (TLineSSS::*) (number)> (&TLineSSS::set))
 			.add_method ("set", static_cast<void (TLineSSS::*) (LuaFunctionHandle)> (&TLineSSS::set))
@@ -317,7 +317,7 @@ static void Dimension(Registry& reg, string grp)
 		reg.add_class_to_group(line_name, "CDLineSourcesSink", dimTag);
 
 		string name = string("CDSingularSourcesAndSinks").append(dimSuffix);
-		reg.add_class_<T>(name, grp)
+		reg.template add_class_<T>(name, grp)
 			.add_constructor()
 			.add_method ("add_point", static_cast<void (T::*) (SmartPtr<TPointSSS>)> (&T::add_point))
 			.add_method ("add_line", static_cast<void (T::*) (SmartPtr<TLineSSS>)> (&T::add_line))
@@ -345,8 +345,8 @@ struct Functionality2d3d
  * @param reg				registry
  * @param parentGroup		group for sorting of functionality
  */
-template <typename TDomain>
-static void Domain(Registry& reg, string grp)
+template <typename TDomain, typename TRegistry=ug::bridge::Registry>
+static void Domain(TRegistry& reg, string grp)
 {
 	static const int dim = TDomain::dim;
 	string suffix = GetDomainSuffix<TDomain>();
@@ -357,7 +357,7 @@ static void Domain(Registry& reg, string grp)
 		typedef ConvectionDiffusionFractFV1<TDomain> T;
 		typedef ConvectionDiffusionBase<TDomain> TBase;
 		string name = string("ConvectionDiffusionFractFV1").append(suffix);
-		reg.add_class_<T, TBase >(name, grp)
+		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_fract_manager", static_cast<void (T::*)(SmartPtr<DegeneratedLayerManager<dim> >)>(&T::set_fract_manager), "Sets the fracture manager", "Deg. fracture manager")
 			.add_method("set_upwind", &T::set_upwind)
@@ -392,11 +392,9 @@ static void Domain(Registry& reg, string grp)
 } // end namespace ConvectionDiffusionPlugin
 
 
-/**
- * This function is called when the plugin is loaded.
- */
-extern "C" void
-InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
+
+template <typename TRegistry=ug::bridge::Registry>
+void InitUGPlugin_ConvectionDiffusion_(TRegistry* reg, string grp)
 {
 	grp.append("/SpatialDisc/ElemDisc");
 	typedef ConvectionDiffusionPlugin::Functionality Functionality;
@@ -404,10 +402,32 @@ InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 
 	try{
 		RegisterDimensionDependent<Functionality>(*reg,grp);
+
+#ifdef UG_USE_PYBIND11
+		RegisterDomainDependent<Functionality, TRegistry>(*reg,grp);
+		RegisterDomain2d3dDependent<Functionality2d3d, TRegistry>(*reg,grp);
+#else
 		RegisterDomainDependent<Functionality>(*reg,grp);
 		RegisterDomain2d3dDependent<Functionality2d3d>(*reg,grp);
+#endif
 	}
 	UG_REGISTRY_CATCH_THROW(grp);
 }
+
+
+/**
+ * This function is called when the plugin is loaded.
+ */
+extern "C" void InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
+{ InitUGPlugin_ConvectionDiffusion_<ug::bridge::Registry>(reg, grp); }
+
+
+#ifdef UG_USE_PYBIND11
+// Expose for pybind11.
+namespace ConvectionDiffusionPlugin{
+	void InitUGPlugin_ConvectionDiffusion(ug::pybind::Registry* reg, string grp)
+	{ InitUGPlugin_ConvectionDiffusion_<ug::pybind::Registry>(reg, grp); }
+}
+#endif
 
 }// namespace ug

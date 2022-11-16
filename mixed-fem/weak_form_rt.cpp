@@ -166,7 +166,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 {
 //	request geometry
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
-	std::cerr << "NumIP=" << geo.num_ip()<< std::endl;
+	// std::cerr << "NumIP=" << geo.num_ip()<< std::endl;
 	MathVector<dim> DinvShapej;
 	MathMatrix<dim,dim> Dinv;
 //	loop integration points
@@ -191,7 +191,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 			{
 			//	compute integrand
 				number integrand = VecDot(geo.shape(ip,i), DinvShapej);
-				std::cerr << i << "," << j <<":"<< integrand << "*" << geo.weight(ip);
+				// std::cerr << i << "," << j <<":"<< integrand << "*" << geo.weight(ip);
 			// 	Reaction
 				//if(m_imReactionRate.data_given())
 				//	integrand += m_imReactionRate[ip] * geo.shape(ip, j) * geo.shape(ip, i);
@@ -200,7 +200,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 			//	multiply by weight
 				integrand *= geo.weight(ip);
-				std::cerr << "="<< integrand << std::endl;
+				// std::cerr << "="<< integrand << std::endl;
 			//	add to local matrix
 				J(_U_, i, _U_, j) += integrand*geo.signum(j)*geo.signum(i);
 			}
