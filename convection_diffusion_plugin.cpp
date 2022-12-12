@@ -353,9 +353,28 @@ static void Domain(TRegistry& reg, string grp)
 } // end namespace ConvectionDiffusionPlugin
 
 
-/**
- * This function is called when the plugin is loaded.
- */
+
+#ifndef UG_USE_PYBIND11
+
+
+//! This function is called when the plugin is loaded.
+extern "C"
+void InitUGPlugin_ConvectionDiffusion(ug::bridge::Registry* reg, string grp)
+{
+	grp.append("/SpatialDisc/ElemDisc");
+	typedef ConvectionDiffusionPlugin::Functionality Functionality;
+	typedef ConvectionDiffusionPlugin::Functionality2d3d Functionality2d3d;
+
+	try{
+		RegisterDimensionDependent<Functionality>(*reg,grp);
+		RegisterDomainDependent<Functionality>(*reg,grp);
+		RegisterDomain2d3dDependent<Functionality2d3d>(*reg,grp);
+	}
+	UG_REGISTRY_CATCH_THROW(grp);
+}
+
+#else // UG_USE_PYBIND11
+
 template <typename TRegistry=ug::bridge::Registry>
 void InitUGPlugin_ConvectionDiffusion_(TRegistry* reg, string grp)
 {
@@ -372,7 +391,7 @@ void InitUGPlugin_ConvectionDiffusion_(TRegistry* reg, string grp)
 }
 
 
-//! * This function is called when the plugin is loaded.
+//! This function is called when the plugin is loaded.
 extern "C" void
 InitUGPlugin_ConvectionDiffusion(ug::bridge::Registry* reg, string grp)
 { InitUGPlugin_ConvectionDiffusion_(reg, grp); }
@@ -384,5 +403,7 @@ namespace ConvectionDiffusionPlugin{
 	{ InitUGPlugin_ConvectionDiffusion_<ug::pybind::Registry>(reg, grp); }
 }
 #endif
+
+#endif // UG_USE_PYBIND11
 
 }// namespace ug
