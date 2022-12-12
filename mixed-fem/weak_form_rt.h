@@ -37,6 +37,8 @@
 #include "../convection_diffusion_base.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
+// #define WITH_MIXED_FEM_FEATURE
+
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
@@ -163,11 +165,14 @@ class WeakFormulationFE : public ConvectionDiffusionBase<TDomain>
 		void fsh_err_est_elem_loop();
 
 	protected:
-	///	computes the linearized defect w.r.t to the velocity
-	/*	template <typename TElem, typename TFEGeom>
+		template <typename TFEGeom>
+		double compute_convective_flux(const TFEGeom& geo, size_t ip, size_t i);
+
+		///	computes the linearized defect w.r.t to the velocity
+		template <typename TElem, typename TFEGeom>
 		void lin_def_velocity(const LocalVector& u,
 		                      std::vector<std::vector<MathVector<dim> > > vvvLinDef[],
-		                      const size_t nip);*/
+		                      const size_t nip);
 
 	///	computes the linearized defect w.r.t to the velocity
 		template <typename TElem, typename TFEGeom>
@@ -195,7 +200,7 @@ class WeakFormulationFE : public ConvectionDiffusionBase<TDomain>
 */
 	///	computes the linearized defect w.r.t to the source term
 		template <typename TElem, typename TFEGeom>
-		void lin_def_source(const LocalVector& u,
+		void lin_def_value(const LocalVector& u,
 		                    std::vector<std::vector<number> > vvvLinDef[],
 		                    const size_t nip);
 
@@ -216,15 +221,26 @@ class WeakFormulationFE : public ConvectionDiffusionBase<TDomain>
 		void lin_def_mass(const LocalVector& u,
 		                  std::vector<std::vector<number> > vvvLinDef[],
 		                  const size_t nip);*/
+
+	/*	void lin_def_value(const LocalVector& u,
+		                   std::vector<std::vector<number> > vvvLinDef[],
+		                   const size_t nip);*/
+
+
+public:
+
+		void set_value(SmartPtr<CplUserData<number, dim> > user)
+		{ m_imValue.set_data(user); }
 							  
 	private:
 	///	abbreviation for the local solution
 		static const size_t _U_ = 0;
 
 		using base_type::m_imDiffusion;
-		/*using base_type::m_imVelocity;
-		using base_type::m_imFlux;*/
-		using base_type::m_imSource;
+		using base_type::m_imVelocity;
+		//using base_type::m_imFlux;
+		DataImport<number, dim> m_imValue;
+		// using base_type::m_imSource;
 		using base_type::m_imVectorSource;
 		/*using base_type::m_imSourceExpl;
 		using base_type::m_imReactionRate;
@@ -233,6 +249,7 @@ class WeakFormulationFE : public ConvectionDiffusionBase<TDomain>
 		using base_type::m_imReactionExpl;
 		using base_type::m_imMassScale;
 		using base_type::m_imMass;*/
+
 
 		using base_type::m_exGrad;	 // this is a vector
 		using base_type::m_exValue;  // this is a number
