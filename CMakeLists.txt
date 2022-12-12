@@ -64,3 +64,30 @@ else(buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
 	target_link_libraries (${pluginName} ug4)
 endif(buildEmbeddedPlugins)
+
+
+
+
+################################################################################
+# Python binding
+################################################################################
+if(USE_PYBIND11)
+	SET(pyPluginName pyconvectiondiffusion) # Must match module name!
+	
+	# FIND_PACKAGE(Python CONFIG)
+	find_package(Python COMPONENTS Interpreter Development)
+	find_package(pybind11 CONFIG)
+	
+	MESSAGE(STATUS ${Python_FOUND})
+	MESSAGE(STATUS ${pybind11_FOUND})
+	MESSAGE(STATUS ${pybind11_INCLUDE_DIRS})
+	MESSAGE(STATUS "Info: ****************************************************************************************")
+	
+	pybind11_add_module(${pyPluginName} convection_diffusion_pybind.cpp)
+	set_target_properties(${pyPluginName} PROPERTIES	
+  		CXX_STANDARD 11 
+  		CXX_STANDARD_REQUIRED YES
+   		CXX_EXTENSIONS NO
+   		OUTPUT_NAME ug4py/${pyPluginName})
+	target_link_libraries (${pyPluginName} PRIVATE ug4 ${pluginName})
+endif(USE_PYBIND11)
