@@ -73,7 +73,8 @@ endif(buildEmbeddedPlugins)
 ################################################################################
 if(USE_PYBIND11)
 	SET(myPluginSources convection_diffusion_pybind.cpp)
-	SET(myLibraries ug4 ${pluginName})
+	SET(myLibraries ${pluginName} ug4)
 	# First argument must match module name in PYBIND11_MODULE call
 	ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
+	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName}) # TODO: should be part of ug4pybind_add_module
 endif(USE_PYBIND11)
