@@ -64,3 +64,17 @@ else(buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
 	target_link_libraries (${pluginName} ug4)
 endif(buildEmbeddedPlugins)
+
+
+
+
+################################################################################
+# Python binding
+################################################################################
+if(USE_PYBIND11)
+	SET(myPluginSources convection_diffusion_pybind.cpp)
+	SET(myLibraries ${pluginName} ug4)
+	# First argument must match module name in PYBIND11_MODULE call
+	ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
+	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName}) # TODO: should be part of ug4pybind_add_module
+endif(USE_PYBIND11)

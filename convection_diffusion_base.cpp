@@ -441,6 +441,33 @@ gradient() {return m_exGrad;}
 ////////////////////////////////////////////////////////////////////////////////
 
 template<typename TDomain>
+void ConvectionDiffusionBase<TDomain>::
+init_imports()
+{
+	//	register imports
+		this->register_import(m_imDiffusion);
+		this->register_import(m_imVelocity);
+		this->register_import(m_imFlux);
+		this->register_import(m_imReactionRate);
+		this->register_import(m_imReaction);
+		this->register_import(m_imReactionRateExpl);
+		this->register_import(m_imReactionExpl);
+		this->register_import(m_imSourceExpl);
+		this->register_import(m_imSource);
+		this->register_import(m_imVectorSource);
+		this->register_import(m_imMassScale);
+		this->register_import(m_imMass);
+
+		m_imMassScale.set_mass_part();
+		m_imMass.set_mass_part();
+		m_imSource.set_rhs_part();
+		m_imVectorSource.set_rhs_part();
+		m_imSourceExpl.set_expl_part();
+		m_imReactionExpl.set_expl_part();
+		m_imReactionRateExpl.set_expl_part();
+}
+
+template<typename TDomain>
 ConvectionDiffusionBase<TDomain>::
 ConvectionDiffusionBase(const char* functions, const char* subsets)
  : IElemDisc<TDomain>(functions,subsets),
@@ -451,28 +478,8 @@ ConvectionDiffusionBase(const char* functions, const char* subsets)
 	if(this->num_fct() != 1)
 		UG_THROW("Wrong number of functions: The ElemDisc 'ConvectionDiffusion'"
 					   " needs exactly "<<1<<" symbolic function.");
-
-//	register imports
-	this->register_import(m_imDiffusion);
-	this->register_import(m_imVelocity);
-	this->register_import(m_imFlux);
-	this->register_import(m_imReactionRate);
-	this->register_import(m_imReaction);
-	this->register_import(m_imReactionRateExpl);
-	this->register_import(m_imReactionExpl);
-	this->register_import(m_imSourceExpl);
-	this->register_import(m_imSource);
-	this->register_import(m_imVectorSource);
-	this->register_import(m_imMassScale);
-	this->register_import(m_imMass);
-
-	m_imMassScale.set_mass_part();
-	m_imMass.set_mass_part();
-	m_imSource.set_rhs_part();
-	m_imVectorSource.set_rhs_part();
-	m_imSourceExpl.set_expl_part();
-	m_imReactionExpl.set_expl_part();
-	m_imReactionRateExpl.set_expl_part();
+// init all imports
+	init_imports();
 
 //	default value for mass scale
 	set_mass_scale(1.0);
