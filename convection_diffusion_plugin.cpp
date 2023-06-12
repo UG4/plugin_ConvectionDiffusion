@@ -340,6 +340,8 @@ static void Domain(TRegistry& reg, string grp)
 			.add_method("set_ortho_diffusion", static_cast<void (T::*)(const char*)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
 			.add_method("set_ortho_diffusion", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_ortho_diffusion), "", "Orthogonal Diffusion")
 #endif
+			.add_method("set_singular_sources_and_sinks", &T::set_sss_manager, "", "Sets the singular sources and sinks manager")
+			.add_method("singular_sources_and_sinks", &T::sss_manager, "", "Returns the singular sources and sinks manager")
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFractFV1", tag);
 	}
