@@ -64,6 +64,7 @@ else(buildEmbeddedPlugins)
 	add_library(${pluginName} SHARED ${SOURCES})
 	target_link_libraries (${pluginName} ug4)
 	# CPack
+	set_target_properties(${pluginName} PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib/")
 	install(TARGETS ${pluginName} LIBRARY DESTINATION bin/plugins COMPONENT plugins)
 endif(buildEmbeddedPlugins)
 
@@ -79,5 +80,6 @@ if(USE_PYBIND11)
 	# First argument must match module name in PYBIND11_MODULE call
 	ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
 	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName}) # TODO: should be part of ug4pybind_add_module
+	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN/..:$ORIGIN/../../../lib")
 	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION bin/plugins/ug4 COMPONENT plugins)
 endif(USE_PYBIND11)
