@@ -53,33 +53,43 @@ cmake_minimum_required(VERSION 2.8.12...3.27.1)
 
 project(UG_PLUGIN_${pluginName})
 
-# include the definitions and dependencies for ug-plugins.
-include(${UG_ROOT_CMAKE_PATH}/ug_plugin_includes.cmake)
-
+################################################################################
+# Classic binding.
+################################################################################
+if(NOT USE_PYBIND11)
 if(buildEmbeddedPlugins)
 	# add the sources to ug4's sources
 	EXPORTSOURCES(${CMAKE_CURRENT_SOURCE_DIR} ${SOURCES})
 else(buildEmbeddedPlugins)
-	# create a shared library from the sources and link it against ug4.
+
+	# Create a SHARED library from the sources and link it against ug4.
 	add_library(${pluginName} SHARED ${SOURCES})
 	target_link_libraries (${pluginName} ug4)
+	
 	# CPack
 	set_target_properties(${pluginName} PROPERTIES INSTALL_RPATH "$ORIGIN/../../lib/")
 	install(TARGETS ${pluginName} LIBRARY DESTINATION bin/plugins COMPONENT plugins)
+	
 endif(buildEmbeddedPlugins)
-
-
+endif(NOT USE_PYBIND11)
 
 
 ################################################################################
-# Python binding
+# Python binding (plugin is static, python interface dynamic).
 ################################################################################
 if(USE_PYBIND11)
+
+	# Create a STATIC library from the sources.
+	add_library(${pluginName} STATIC ${SOURCES})
+
 	SET(myPluginSources convection_diffusion_pybind.cpp)
-	SET(myLibraries ${pluginName} ug4)
+	SET(myLibraries ${pluginName} ${targetLibraryName}) # targetLibraryName is either ug4 or ug4_s
+	
 	# First argument must match module name in PYBIND11_MODULE call
 	ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
 	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName}) # TODO: should be part of ug4pybind_add_module
+	
+	# CPack
 	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN/..:$ORIGIN/../../../lib")
-	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION bin/plugins/ug4 COMPONENT plugins)
+	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION python COMPONENT pymodules)
 endif(USE_PYBIND11)
