@@ -79,14 +79,16 @@ endif(NOT USE_PYBIND11)
 ################################################################################
 if(USE_PYBIND11)
 
-	# Create a STATIC library from the sources.
+	# Create a STATIC library for UG4 stuff from the sources
 	add_library(${pluginName} STATIC ${SOURCES})
 
 	SET(myPluginSources convection_diffusion_pybind.cpp)
 	SET(myLibraries ${pluginName} ${targetLibraryName}) # targetLibraryName is either ug4 or ug4_s
 	
+	#  (depends on FindPython)
+	python_add_library(pyconvectiondiffusion MODULE  ${myPluginSources} ${SOURCES} WITH_SOABI)
 	# First argument must match module name in PYBIND11_MODULE call
-	ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
+	# ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
 	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName}) # TODO: should be part of ug4pybind_add_module
 	
 	# CPack
