@@ -89,7 +89,7 @@ if(USE_PYBIND11)
 	python_add_library(pyconvectiondiffusion MODULE  ${myPluginSources} ${SOURCES} WITH_SOABI)
 	# First argument must match module name in PYBIND11_MODULE call
 	# ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
-	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName}) # TODO: should be part of ug4pybind_add_module
+	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName} ug4_s) # TODO: should be part of ug4pybind_add_module
 	
 	# CPack
 	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN/..:$ORIGIN/../../../lib")
