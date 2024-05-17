@@ -273,7 +273,9 @@ static void Dimension(TRegistry& reg, string grp)
 		reg.template add_class_<TLineSSS>(line_name, grp)
 			.template add_constructor<void (*) (const std::vector<number>&, const std::vector<number>&)> ()
 			.add_method ("set", static_cast<void (TLineSSS::*) (number)> (&TLineSSS::set))
+#ifdef UG_FOR_LUA
 			.add_method ("set", static_cast<void (TLineSSS::*) (LuaFunctionHandle)> (&TLineSSS::set))
+#endif
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(line_name, "CDLineSourcesSink", dimTag);
 
