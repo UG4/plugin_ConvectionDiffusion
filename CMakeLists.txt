@@ -93,5 +93,5 @@ if(USE_PYBIND11)
 	
 	# CPack
 	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN/..:$ORIGIN/../../../lib")
-	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION python COMPONENT pymodules)
+	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION ug4py COMPONENT pymodules)
 endif(USE_PYBIND11)
