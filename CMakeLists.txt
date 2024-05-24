@@ -53,6 +53,10 @@ cmake_minimum_required(VERSION 2.8.12...3.27.1)
 
 project(UG_PLUGIN_${pluginName})
 
+# include the definitions and dependencies for ug-plugins.
+include(${UG_ROOT_CMAKE_PATH}/ug_plugin_includes.cmake)
+
+
 ################################################################################
 # Classic binding.
 ################################################################################
@@ -75,7 +79,7 @@ endif(NOT USE_PYBIND11)
 
 
 ################################################################################
-# Python binding (plugin is static, python interface dynamic).
+# Python binding (static plugin, dynamic python interface).
 ################################################################################
 if(USE_PYBIND11)
 
