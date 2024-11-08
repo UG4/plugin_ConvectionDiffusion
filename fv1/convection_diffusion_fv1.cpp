@@ -309,6 +309,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		////////////////////////////////////////////////////
 		// Convective Term
 		////////////////////////////////////////////////////
+			if (base_type::m_partialAssMask_Conv & 2) continue;
 			if(m_imVelocity.data_given())
 			{
 			//	Add Flux contribution
@@ -404,6 +405,7 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
+	if (base_type::m_partialAssMask_Mass & 2) return;
 	if(!m_imMassScale.data_given()) return;
 
 // 	loop Sub Control Volumes (SCV)
@@ -753,8 +755,9 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 
 	if (!err_est_data)
 	{
-		UG_THROW("Dynamic cast to SideAndElemErrEstData failed."
-				<< std::endl << "Make sure you handed the correct type of ErrEstData to this discretization.");
+		UG_THROW("Dynamic cast to SideAndElemErrEstData failed." << std::endl <<
+				typeid(*(this->m_spErrEstData)).name() << std::endl <<
+				"Make sure you handed the correct type of SideAndElemErrEstData to this discretization.");
 	}
 
 
@@ -1214,6 +1217,8 @@ lin_def_velocity(const LocalVector& u,
 			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
 				vvvLinDef[ip][c][sh] = 0.0;
 
+	if (base_type::m_partialAssMask_Conv & 1) return;
+
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -1298,6 +1303,8 @@ lin_def_flux(const LocalVector& u,
 			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
 				vvvLinDef[ip][c][sh] = 0.0;
 
+	if (base_type::m_partialAssMask_Flux & 1) return;
+
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -1307,6 +1314,11 @@ lin_def_flux(const LocalVector& u,
 	//	add parts for both sides of scvf
 		vvvLinDef[ip][_C_][scvf.from()] += scvf.normal();
 		vvvLinDef[ip][_C_][scvf.to()] -= scvf.normal();
+
+		UG_DLOG(DID_CONV_DIFF_FV1, 1, ">>OCT_DISC_DEBUG: " << "convection_diffusion_fv1.cpp: "
+					<< "lin_def_flux():  normalSize scvf # " << ip << ": " << VecLength(scvf.normal())
+					<< "; \t from "<< scvf.from() << "; to " << scvf.to()
+					<< std::endl);
 	}
 }
 
@@ -1436,6 +1448,9 @@ lin_def_mass_scale(const LocalVector& u,
 
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = u(_C_, co) * scv.volume();
+
+		if (base_type::m_partialAssMask_Mass & 1)
+		{ vvvLinDef[co][_C_][co] = 0.0;}
 	}
 }
 
@@ -1461,6 +1476,9 @@ lin_def_mass(const LocalVector& u,
 
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = scv.volume();
+
+		if (base_type::m_partialAssMask_Mass & 1)
+		{ vvvLinDef[co][_C_][co] = 0.0;}
 	}
 }
 

@@ -289,6 +289,21 @@ class ConvectionDiffusionBase
 
 	///	Export for the gradient of concentration
 		SmartPtr<DataExport<MathVector<dim>, dim> > m_exGrad;
+
+
+	public:
+		void set_partial_velocity(int mask) {m_partialAssMask_Conv = mask;}
+		void set_partial_flux(int mask) {m_partialAssMask_Flux = mask;}
+		void set_partial_mass(int mask) {m_partialAssMask_Mass = mask;}
+
+	protected:
+		// bit 1: do not assemble contribution of derivative
+		// bit 2: do not assemble convection
+		int m_partialAssMask_Conv;
+		int m_partialAssMask_Flux;
+		int m_partialAssMask_Mass;
+
+
 };
 
 // end group convection_diffusion

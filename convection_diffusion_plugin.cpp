@@ -170,12 +170,12 @@ static void Domain(TRegistry& reg, string grp)
 #endif
 
 			.add_method("value", &T::value)
-		  .add_method("gradient", &T::gradient);
-		  /*
+		  .add_method("gradient", &T::gradient)
+
 			.add_method("set_partial_velocity", &T::set_partial_velocity)
 			.add_method("set_partial_flux", &T::set_partial_flux)
 			.add_method("set_partial_mass", &T::set_partial_mass);
-		  */
+
 		reg.add_class_to_group(name, "ConvectionDiffusionBase", tag);
 	}
 
