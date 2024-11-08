@@ -42,6 +42,8 @@
 #include "lib_disc/spatial_disc/user_data/data_export.h"
 #include "lib_disc/spatial_disc/user_data/data_import.h"
 
+#undef CDFV_PARTIAL_FOR_LIMEX
+
 namespace ug{
 namespace ConvectionDiffusionPlugin{
 
@@ -290,7 +292,7 @@ class ConvectionDiffusionBase
 	///	Export for the gradient of concentration
 		SmartPtr<DataExport<MathVector<dim>, dim> > m_exGrad;
 
-
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 	public:
 		void set_partial_velocity(int mask) {m_partialAssMask_Conv = mask;}
 		void set_partial_flux(int mask) {m_partialAssMask_Flux = mask;}
@@ -302,7 +304,7 @@ class ConvectionDiffusionBase
 		int m_partialAssMask_Conv;
 		int m_partialAssMask_Flux;
 		int m_partialAssMask_Mass;
-
+#endif
 
 };
 

@@ -309,7 +309,9 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		////////////////////////////////////////////////////
 		// Convective Term
 		////////////////////////////////////////////////////
+	#ifdef CDFV_PARTIAL_FOR_LIMEX
 			if (base_type::m_partialAssMask_Conv & 2) continue;
+	#endif
 			if(m_imVelocity.data_given())
 			{
 			//	Add Flux contribution
@@ -404,8 +406,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 {
 // 	get finite volume geometry
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
-
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 	if (base_type::m_partialAssMask_Mass & 2) return;
+#endif
 	if(!m_imMassScale.data_given()) return;
 
 // 	loop Sub Control Volumes (SCV)
@@ -1217,8 +1220,9 @@ lin_def_velocity(const LocalVector& u,
 			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
 				vvvLinDef[ip][c][sh] = 0.0;
 
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 	if (base_type::m_partialAssMask_Conv & 1) return;
-
+#endif
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
 	{
@@ -1303,7 +1307,9 @@ lin_def_flux(const LocalVector& u,
 			for(size_t sh = 0; sh < vvvLinDef[ip][c].size(); ++sh)
 				vvvLinDef[ip][c][sh] = 0.0;
 
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 	if (base_type::m_partialAssMask_Flux & 1) return;
+#endif
 
 //  loop Sub Control Volume Faces (SCVF)
 	for(size_t ip = 0; ip < geo.num_scvf(); ++ip)
@@ -1314,11 +1320,6 @@ lin_def_flux(const LocalVector& u,
 	//	add parts for both sides of scvf
 		vvvLinDef[ip][_C_][scvf.from()] += scvf.normal();
 		vvvLinDef[ip][_C_][scvf.to()] -= scvf.normal();
-
-		UG_DLOG(DID_CONV_DIFF_FV1, 1, ">>OCT_DISC_DEBUG: " << "convection_diffusion_fv1.cpp: "
-					<< "lin_def_flux():  normalSize scvf # " << ip << ": " << VecLength(scvf.normal())
-					<< "; \t from "<< scvf.from() << "; to " << scvf.to()
-					<< std::endl);
 	}
 }
 
@@ -1448,9 +1449,10 @@ lin_def_mass_scale(const LocalVector& u,
 
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = u(_C_, co) * scv.volume();
-
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 		if (base_type::m_partialAssMask_Mass & 1)
 		{ vvvLinDef[co][_C_][co] = 0.0;}
+#endif		
 	}
 }
 
@@ -1476,9 +1478,10 @@ lin_def_mass(const LocalVector& u,
 
 	// 	set lin defect
 		vvvLinDef[co][_C_][co] = scv.volume();
-
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 		if (base_type::m_partialAssMask_Mass & 1)
 		{ vvvLinDef[co][_C_][co] = 0.0;}
+#endif
 	}
 }
 

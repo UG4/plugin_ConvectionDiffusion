@@ -169,13 +169,14 @@ static void Domain(TRegistry& reg, string grp)
 			.add_method("set_mass", static_cast<void (T::*)(LuaFunctionHandle)>(&T::set_mass), "", "Mass")
 #endif
 
-			.add_method("value", &T::value)
-		  .add_method("gradient", &T::gradient)
-
+#ifdef CDFV_PARTIAL_FOR_LIMEX
 			.add_method("set_partial_velocity", &T::set_partial_velocity)
 			.add_method("set_partial_flux", &T::set_partial_flux)
-			.add_method("set_partial_mass", &T::set_partial_mass);
+			.add_method("set_partial_mass", &T::set_partial_mass)
+#endif
 
+			.add_method("value", &T::value)
+			.add_method("gradient", &T::gradient);
 		reg.add_class_to_group(name, "ConvectionDiffusionBase", tag);
 	}
 
