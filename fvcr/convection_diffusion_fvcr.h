@@ -78,6 +78,9 @@ class ConvectionDiffusionFVCR : public ConvectionDiffusionBase<TDomain>
 	 * \param	shapes		upwind method
 	 */
 		void set_upwind(SmartPtr<IConvectionShapes<dim> > shapes);
+    
+    ///    returns  velocity
+        SmartPtr<CplUserData<MathVector<dim>, dim> > velocity() {return m_imVelocity.user_data ();}
 
 	private:
 	///	prepares the loop over all elements
