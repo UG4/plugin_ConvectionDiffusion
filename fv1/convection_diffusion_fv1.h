@@ -96,6 +96,9 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		
 	///	returns the 'condensed scvf ip' flag
 		bool condensed_FV() {return m_bCondensedFV;}
+    
+    ///    returns  velocity
+        SmartPtr<CplUserData<MathVector<dim>, dim> > velocity() {return m_imVelocity.user_data ();}
 
 	private:
 	/// prepares assembling

@@ -39,6 +39,7 @@
 #include "convection_diffusion_base.h"
 #include "convection_diffusion_sss.h"
 #include "fv1/convection_diffusion_fv1.h"
+#include "fv1/bnd/outflow_fv1.h"
 #include "fe/convection_diffusion_fe.h"
 #include "fe/convection_diffusion_stab_fe.h"
 #include "fvcr/convection_diffusion_fvcr.h"
@@ -193,6 +194,26 @@ static void Domain(TRegistry& reg, string grp)
 			.set_construct_as_smart_pointer(true);
 		reg.add_class_to_group(name, "ConvectionDiffusionFV1", tag);
 	}
+    
+    //    Convection Diffusion FV1 Outflow boundary condition base
+    {
+        typedef ConvectionDiffusionOutflowBase<TDomain> T;
+        typedef IElemDisc<TDomain> TBase;
+        string name = string("ConvectionDiffusionOutflowBase").append(suffix);
+        reg.template add_class_<T, TBase>(name, grp)
+            .add_method("add", &T::add, "", "Subset(s)");
+        reg.add_class_to_group(name, "ConvectionDiffusionOutflowBase", tag);
+    }
+//    Convection Diffusion FV1 Outflow boundary condition
+    {
+        typedef ConvectionDiffusionOutflowFV1<TDomain> T;
+        typedef ConvectionDiffusionOutflowBase<TDomain> TBase;
+        string name = string("ConvectionDiffusionOutflowFV1").append(suffix);
+        reg.template add_class_<T, TBase>(name, grp)
+            .template add_constructor<void (*)(SmartPtr< ConvectionDiffusionBase<TDomain> >)>("MasterDisc")
+            .set_construct_as_smart_pointer(true);
+        reg.add_class_to_group(name, "ConvectionDiffusionOutflowFV1", tag);
+    }
 
 //	Convection Diffusion FE
 	{

@@ -140,6 +140,9 @@ class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 		}
 	#endif
 
+    ///    returns  velocity
+        SmartPtr<CplUserData<MathVector<dim>, dim> > velocity() {return m_imVelocity.user_data ();}
+    
 		void set_ortho_velocity(SmartPtr<CplUserData<number, dim> > user)
 		{
 			m_imOrthoVelocity.set_data(user);

@@ -76,7 +76,9 @@ class ConvectionDiffusionFE : public ConvectionDiffusionBase<TDomain>
 
 	///	sets the quad order
 		void set_quad_order(size_t order);
-
+    
+    ///    returns  velocity
+        SmartPtr<CplUserData<MathVector<dim>, dim> > velocity() {return m_imVelocity.user_data ();}
 	private:
 	///	prepares the loop over all elements
 	/**
