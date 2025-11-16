@@ -106,7 +106,7 @@ ConvectionDiffusionFractFV1<TDomain>::get_updated_conv_shapes
 	if(m_imVelocity.data_given())
 	{
 	//	get diffusion at ips
-		const MathMatrix<dim, dim>* vDiffusion = NULL;
+		const MathMatrix<dim, dim>* vDiffusion = nullptr;
 		if (m_imDiffusion.data_given ()) vDiffusion = m_imDiffusion.values ();
 
 	//	update convection shapes
@@ -130,7 +130,7 @@ void ConvectionDiffusionFractFV1<TDomain>::prep_elem_loop
 	int si ///< and only in this subdomain
 )
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 	
 //	check the imports
 	if (!m_imAperture.data_given())
@@ -173,10 +173,10 @@ void ConvectionDiffusionFractFV1<TDomain>::prep_elem
 	const position_type vCornerCoords [] ///< coordinates of the corners of the element
 )
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 	
-	static const int refDim = TElem::dim; // dimensionality of the element, not the side!
-	TElem * pElem = static_cast<TElem*> (elem);
+	static constexpr int refDim = TElem::dim; // dimensionality of the element, not the side!
+	auto * pElem = static_cast<TElem*> (elem);
 	ref_elem_type& rRefElem = Provider<ref_elem_type>::get ();
 
 //	get the non-degenerated sides of the fracture element
@@ -224,19 +224,19 @@ void ConvectionDiffusionFractFV1<TDomain>::prep_elem
 
 //	set local positions
 	
-	m_imDiffusion.template 		set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
-	m_imVelocity.template 		set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
-	m_imFlux.template 			set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
-	m_imVectorSource.template 	set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
+	m_imDiffusion.template set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
+	m_imVelocity.template set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
+	m_imFlux.template set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
+	m_imVectorSource.template set_local_ips<refDim> (vSideLocSCVFipCoords, numSCVFip);
 	
-	m_imSource.template 		set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imReactionRate.template 	set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imReaction.template 		set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imReactionRateExpl.template 	set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imReactionExpl.template 	set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imSourceExpl.template		set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imMassScale.template 		set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
-	m_imMass.template 			set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imSource.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imReactionRate.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imReaction.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imReactionRateExpl.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imReactionExpl.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imSourceExpl.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imMassScale.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
+	m_imMass.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
 
 	m_imOrthoDiffusion.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
 	m_imOrthoVelocity.template set_local_ips<refDim> (vSideLocSCVipCoords, numSCVip);
@@ -399,9 +399,9 @@ void ConvectionDiffusionFractFV1<TDomain>::fract_add_jac_A_elem
 //	Assemble the singular sources and sinks
     if (m_sss_mngr.valid () && m_sss_mngr->num_lines () != 0)
     {
-    	typedef typename domain_type::position_accessor_type t_pos_accessor;
-    	typedef typename CDSingularSourcesAndSinks<dim>::template
-    		line_iterator<side_type,t_pos_accessor,TFractFVGeom> t_lin_sss_iter;
+	    using t_pos_accessor = typename domain_type::position_accessor_type;
+	    using t_lin_sss_iter = typename CDSingularSourcesAndSinks<dim>::template
+			    line_iterator<side_type,t_pos_accessor,TFractFVGeom>;
     	
 		t_pos_accessor& aaPos = this->domain()->position_accessor ();
 		Grid& grid = (Grid&) *this->domain()->grid ();
@@ -670,9 +670,9 @@ void ConvectionDiffusionFractFV1<TDomain>::fract_add_def_A_elem
 //	Assemble the singular sources and sinks
     if (m_sss_mngr.valid () && m_sss_mngr->num_lines () != 0)
     {
-    	typedef typename domain_type::position_accessor_type t_pos_accessor;
-    	typedef typename CDSingularSourcesAndSinks<dim>::template
-    		line_iterator<side_type,t_pos_accessor,TFractFVGeom> t_lin_sss_iter;
+	    using t_pos_accessor = typename domain_type::position_accessor_type;
+	    using t_lin_sss_iter = typename CDSingularSourcesAndSinks<dim>::template
+			    line_iterator<side_type,t_pos_accessor,TFractFVGeom>;
     	
 		t_pos_accessor& aaPos = this->domain()->position_accessor ();
 		Grid& grid = (Grid&) *this->domain()->grid ();
@@ -1406,7 +1406,7 @@ template<typename TElem>
 void ConvectionDiffusionFractFV1<TDomain>::register_func ()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
+	using T = this_type;
 
 	this->clear_add_fct(id);
 	
@@ -1440,7 +1440,7 @@ void ConvectionDiffusionFractFV1<TDomain>::register_func ()
 template<typename TDomain>
 void ConvectionDiffusionFractFV1<TDomain>::register_all_funcs ()
 {
-	typedef typename domain_traits<dim>::DimElemList AssembleElemList;
+	using AssembleElemList = typename domain_traits<dim>::DimElemList;
 	
 	boost::mpl::for_each<AssembleElemList> (RegisterLocalDiscr (this));
 }

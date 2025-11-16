@@ -102,7 +102,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 		static TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 		geo.update_local_data();
@@ -157,7 +157,7 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 //	set local positions
 	if(TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 		m_imDiffusion.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
 		                       	                      geo.num_scvf_ips());
 		m_imVelocity.template 	set_local_ips<refDim>(geo.scvf_local_ips(),
@@ -739,11 +739,10 @@ ex_value(number vValue[],
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
+	static constexpr size_t numSH =	ref_elem_type::numCorners;
 
 //	CRFV SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
@@ -826,14 +825,13 @@ ex_grad(MathVector<dim> vValue[],
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	reference dimension
-	static const int refDim = ref_elem_type::dim;
+	static constexpr int refDim = ref_elem_type::dim;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
+	static constexpr size_t numSH =	ref_elem_type::numCorners;
 
 //	CRFV SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
@@ -910,7 +908,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo)
 	if(m_imVelocity.data_given())
 	{
 	//	get diffusion at ips
-		const MathMatrix<dim, dim>* vDiffusion = NULL;
+		const MathMatrix<dim, dim>* vDiffusion = nullptr;
 		if(m_imDiffusion.data_given()) vDiffusion = m_imDiffusion.values();
 
 	//	update convection shapes
@@ -987,8 +985,8 @@ void ConvectionDiffusionFVCR<TDomain>::
 register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
-	static const int refDim = reference_element_traits<TElem>::dim;
+	using T = this_type;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);

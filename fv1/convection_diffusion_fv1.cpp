@@ -110,7 +110,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 		TFVGeom& geo = GeomProvider<TFVGeom>::get();
 		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 		const size_t numSCVFip = geo.num_scvf_ips();
@@ -164,18 +164,18 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 		const size_t numSCVFip = geo.num_scvf_ips();
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		const size_t numSCVip = geo.num_scv_ips();
-		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imVectorSource.template 	set_local_ips<refDim>(vSCVFip,numSCVFip);
-		m_imReactionRate.template 	set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imReaction.template 		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imReactionRateExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imReactionExpl.template 	set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imSourceExpl.template		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imMassScale.template 		set_local_ips<refDim>(vSCVip,numSCVip);
-		m_imMass.template 			set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imDiffusion.template set_local_ips<refDim>(vSCVFip,numSCVFip);
+		m_imVelocity.template set_local_ips<refDim>(vSCVFip,numSCVFip);
+		m_imFlux.template set_local_ips<refDim>(vSCVFip,numSCVFip);
+		m_imSource.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imVectorSource.template set_local_ips<refDim>(vSCVFip,numSCVFip);
+		m_imReactionRate.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imReaction.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imReactionRateExpl.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imReactionExpl.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imSourceExpl.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imMassScale.template set_local_ips<refDim>(vSCVip,numSCVip);
+		m_imMass.template set_local_ips<refDim>(vSCVip,numSCVip);
 
 		if(m_spConvShape.valid())
 			if(!m_spConvShape->template set_geometry_type<TFVGeom>(geo))
@@ -188,18 +188,18 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 	const size_t numSCVFip = geo.num_scvf_ips();
 	const MathVector<dim>* vSCVip = geo.scv_global_ips();
 	const size_t numSCVip = geo.num_scv_ips();
-	m_imDiffusion.			set_global_ips(vSCVFip, numSCVFip);
-	m_imVelocity.			set_global_ips(vSCVFip, numSCVFip);
-	m_imFlux.				set_global_ips(vSCVFip, numSCVFip);
-	m_imSource.				set_global_ips(vSCVip, numSCVip);
-	m_imVectorSource.		set_global_ips(vSCVFip, numSCVFip);
-	m_imReactionRate.		set_global_ips(vSCVip, numSCVip);
-	m_imReactionRateExpl.	set_global_ips(vSCVip, numSCVip);
-	m_imReactionExpl.		set_global_ips(vSCVip, numSCVip);
-	m_imSourceExpl.			set_global_ips(vSCVip, numSCVip);
-	m_imReaction.			set_global_ips(vSCVip, numSCVip);
-	m_imMassScale.			set_global_ips(vSCVip, numSCVip);
-	m_imMass.				set_global_ips(vSCVip, numSCVip);
+	m_imDiffusion.set_global_ips(vSCVFip, numSCVFip);
+	m_imVelocity.set_global_ips(vSCVFip, numSCVFip);
+	m_imFlux.set_global_ips(vSCVFip, numSCVFip);
+	m_imSource.set_global_ips(vSCVip, numSCVip);
+	m_imVectorSource.set_global_ips(vSCVFip, numSCVFip);
+	m_imReactionRate.set_global_ips(vSCVip, numSCVip);
+	m_imReactionRateExpl.set_global_ips(vSCVip, numSCVip);
+	m_imReactionExpl.set_global_ips(vSCVip, numSCVip);
+	m_imSourceExpl.set_global_ips(vSCVip, numSCVip);
+	m_imReaction.set_global_ips(vSCVip, numSCVip);
+	m_imMassScale.set_global_ips(vSCVip, numSCVip);
+	m_imMass.set_global_ips(vSCVip, numSCVip);
 }
 
 template <class TVector>
@@ -356,11 +356,11 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	if (m_sss_mngr.valid () && (m_sss_mngr->num_points () != 0 || m_sss_mngr->num_lines () != 0))
     {
-    	typedef typename TDomain::position_accessor_type t_pos_accessor;
-    	typedef typename CDSingularSourcesAndSinks<dim>::template
-    		point_iterator<TElem,t_pos_accessor,TFVGeom> t_pnt_sss_iter;
-    	typedef typename CDSingularSourcesAndSinks<dim>::template
-    		line_iterator<TElem,t_pos_accessor,TFVGeom> t_lin_sss_iter;
+	    using t_pos_accessor = typename TDomain::position_accessor_type;
+	    using t_pnt_sss_iter = typename CDSingularSourcesAndSinks<dim>::template
+			    point_iterator<TElem,t_pos_accessor,TFVGeom>;
+	    using t_lin_sss_iter = typename CDSingularSourcesAndSinks<dim>::template
+			    line_iterator<TElem,t_pos_accessor,TFVGeom>;
 
 		t_pos_accessor& aaPos = this->domain()->position_accessor();
 		Grid& grid = (Grid&) *this->domain()->grid();
@@ -560,11 +560,11 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 
     if (m_sss_mngr.valid () && (m_sss_mngr->num_points () != 0 || m_sss_mngr->num_lines () != 0))
     {
-    	typedef typename TDomain::position_accessor_type t_pos_accessor;
-    	typedef typename CDSingularSourcesAndSinks<dim>::template
-    		point_iterator<TElem,t_pos_accessor,TFVGeom> t_pnt_sss_iter;
-    	typedef typename CDSingularSourcesAndSinks<dim>::template
-    		line_iterator<TElem,t_pos_accessor,TFVGeom> t_lin_sss_iter;
+	    using t_pos_accessor = typename TDomain::position_accessor_type;
+	    using t_pnt_sss_iter = typename CDSingularSourcesAndSinks<dim>::template
+			    point_iterator<TElem,t_pos_accessor,TFVGeom>;
+	    using t_lin_sss_iter = typename CDSingularSourcesAndSinks<dim>::template
+			    line_iterator<TElem,t_pos_accessor,TFVGeom>;
     	
 		t_pos_accessor& aaPos = this->domain()->position_accessor();
 		Grid& grid = (Grid&) *this->domain()->grid();
@@ -744,7 +744,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
-	if (this->m_spErrEstData.get() == NULL)
+	if (this->m_spErrEstData.get() == nullptr)
 	{
 		UG_THROW("No ErrEstData object has been given to this ElemDisc!");
 	}
@@ -766,7 +766,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 //	set local positions
 	if (!TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 
 		// get local IPs
 		size_t numSideIPs, numElemIPs;
@@ -779,20 +779,20 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 			sideIPs = err_est_data->template side_local_ips<refDim>(roid);
 			elemIPs = err_est_data->template elem_local_ips<refDim>(roid);
 
-			if (!sideIPs || !elemIPs) return;	// are NULL if TElem is not of the same dim as TDomain
+			if (!sideIPs || !elemIPs) return;	// are nullptr if TElem is not of the same dim as TDomain
 		}
 		UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
 		// set local IPs in imports
-		m_imDiffusion.template 		set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imVelocity.template 		set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imFlux.template 			set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imSource.template 		set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imVectorSource.template 	set_local_ips<refDim>(sideIPs, numSideIPs, false);
-		m_imReactionRate.template 	set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imReaction.template 		set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imMassScale.template 		set_local_ips<refDim>(elemIPs, numElemIPs, false);
-		m_imMass.template 			set_local_ips<refDim>(elemIPs, numElemIPs, false);
+		m_imDiffusion.template set_local_ips<refDim>(sideIPs, numSideIPs, false);
+		m_imVelocity.template set_local_ips<refDim>(sideIPs, numSideIPs, false);
+		m_imFlux.template set_local_ips<refDim>(sideIPs, numSideIPs, false);
+		m_imSource.template set_local_ips<refDim>(elemIPs, numElemIPs, false);
+		m_imVectorSource.template set_local_ips<refDim>(sideIPs, numSideIPs, false);
+		m_imReactionRate.template set_local_ips<refDim>(elemIPs, numElemIPs, false);
+		m_imReaction.template set_local_ips<refDim>(elemIPs, numElemIPs, false);
+		m_imMassScale.template set_local_ips<refDim>(elemIPs, numElemIPs, false);
+		m_imMass.template set_local_ips<refDim>(elemIPs, numElemIPs, false);
 
 		//	init upwind for element type
 		TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -817,7 +817,7 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 // 	update geometry for this element
 	static TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -833,7 +833,7 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 //	set local positions
 	if (TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 
 		size_t numSideIPs, numElemIPs;
 		const MathVector<refDim>* sideIPs;
@@ -845,19 +845,19 @@ prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> 
 			sideIPs = err_est_data->template side_local_ips<refDim>(roid);
 			elemIPs = err_est_data->template elem_local_ips<refDim>(roid);
 
-			if (!sideIPs || !elemIPs) return;	// are NULL if TElem is not of the same dim as TDomain
+			if (!sideIPs || !elemIPs) return;	// are nullptr if TElem is not of the same dim as TDomain
 		}
 		UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
-		m_imDiffusion.template 		set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imVelocity.template 		set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imFlux.template 			set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imSource.template 		set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imVectorSource.template 	set_local_ips<refDim>(sideIPs, numSideIPs);
-		m_imReactionRate.template 	set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imReaction.template 		set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imMassScale.template 		set_local_ips<refDim>(elemIPs, numElemIPs);
-		m_imMass.template 			set_local_ips<refDim>(elemIPs, numElemIPs);
+		m_imDiffusion.template set_local_ips<refDim>(sideIPs, numSideIPs);
+		m_imVelocity.template set_local_ips<refDim>(sideIPs, numSideIPs);
+		m_imFlux.template set_local_ips<refDim>(sideIPs, numSideIPs);
+		m_imSource.template set_local_ips<refDim>(elemIPs, numElemIPs);
+		m_imVectorSource.template set_local_ips<refDim>(sideIPs, numSideIPs);
+		m_imReactionRate.template set_local_ips<refDim>(elemIPs, numElemIPs);
+		m_imReaction.template set_local_ips<refDim>(elemIPs, numElemIPs);
+		m_imMassScale.template set_local_ips<refDim>(elemIPs, numElemIPs);
+		m_imMass.template set_local_ips<refDim>(elemIPs, numElemIPs);
 
 		//	init upwind for element type
 		TFVGeom& geo = GeomProvider<TFVGeom>::get();
@@ -908,11 +908,11 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
+	if (err_est_data->surface_view().get() == nullptr) {UG_THROW("Error estimator has nullptr surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 //	request geometry
@@ -1074,7 +1074,7 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 
 	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
+	if (err_est_data->surface_view().get() == nullptr) {UG_THROW("Error estimator has nullptr surface view.");}
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 	typename MultiGrid::traits<typename SideAndElemErrEstData<TDomain>::elem_type>::secure_container elem_list;
@@ -1121,12 +1121,12 @@ template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
-	if (err_est_data->surface_view().get() == NULL) {UG_THROW("Error estimator has NULL surface view.");}
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
+	if (err_est_data->surface_view().get() == nullptr) {UG_THROW("Error estimator has nullptr surface view.");}
+	auto* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 // SIDE TERMS //
 
@@ -1483,11 +1483,10 @@ ex_value(number vValue[],
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
+	static constexpr size_t numSH =	ref_elem_type::numCorners;
 
 
 //	FV1 SCVF ip
@@ -1597,14 +1596,13 @@ ex_grad(MathVector<dim> vValue[],
 	static const TFVGeom& geo = GeomProvider<TFVGeom>::get();
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	reference dimension
-	static const int refDim = ref_elem_type::dim;
+	static constexpr int refDim = ref_elem_type::dim;
 
 //	number of shape functions
-	static const size_t numSH =	ref_elem_type::numCorners;
+	static constexpr size_t numSH =	ref_elem_type::numCorners;
 
 
 //	FV1 SCVF ip
@@ -1697,7 +1695,7 @@ get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv)
 	if(m_imVelocity.data_given())
 	{
 	//	get diffusion at ips
-		const MathMatrix<dim, dim>* vDiffusion = NULL;
+		const MathMatrix<dim, dim>* vDiffusion = nullptr;
 		if(m_imDiffusion.data_given()) vDiffusion = m_imDiffusion.values();
 
 	//	update convection shapes
@@ -1725,7 +1723,7 @@ void ConvectionDiffusionFV1<TDomain>::
 register_all_funcs(bool bHang)
 {
 //	list of element types for assembling
-	typedef typename domain_traits<dim>::AllElemList AssembleElemList;
+	using AssembleElemList = typename domain_traits<dim>::AllElemList;
 	
 //	register the local assembling functions
 	boost::mpl::for_each<AssembleElemList> (RegisterLocalDiscr (this, bHang));
@@ -1762,8 +1760,8 @@ void ConvectionDiffusionFV1<TDomain>::
 register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
-	static const int refDim = reference_element_traits<TElem>::dim;
+	using T = this_type;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);
@@ -1786,17 +1784,17 @@ register_func()
 
 //	set computation of linearized defect w.r.t velocity
 	m_imDiffusion.set_fct(id, this, &T::template lin_def_diffusion<TElem, TFVGeom>);
-	m_imVelocity. set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
+	m_imVelocity.set_fct(id, this, &T::template lin_def_velocity<TElem, TFVGeom>);
 	m_imFlux.set_fct(id, this, &T::template lin_def_flux<TElem, TFVGeom>);
 	m_imReactionRate. set_fct(id, this, &T::template lin_def_reaction_rate<TElem, TFVGeom>);
-	m_imReaction. set_fct(id, this, &T::template lin_def_reaction<TElem, TFVGeom>);
-	m_imSource.	  set_fct(id, this, &T::template lin_def_source<TElem, TFVGeom>);
+	m_imReaction.set_fct(id, this, &T::template lin_def_reaction<TElem, TFVGeom>);
+	m_imSource.set_fct(id, this, &T::template lin_def_source<TElem, TFVGeom>);
 	m_imVectorSource.set_fct(id, this, &T::template lin_def_vector_source<TElem, TFVGeom>);
 	m_imMassScale.set_fct(id, this, &T::template lin_def_mass_scale<TElem, TFVGeom>);
-	m_imMass.	set_fct(id, this, &T::template lin_def_mass<TElem, TFVGeom>);
+	m_imMass.set_fct(id, this, &T::template lin_def_mass<TElem, TFVGeom>);
 
 //	exports
-	m_exValue->	   template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TFVGeom>);
+	m_exValue->template set_fct<T,refDim>(id, this, &T::template ex_value<TElem, TFVGeom>);
 	m_exGrad->template set_fct<T,refDim>(id, this, &T::template ex_grad<TElem, TFVGeom>);
 }
 

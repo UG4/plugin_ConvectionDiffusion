@@ -54,7 +54,7 @@ template <int dim>
 class cd_sss_data
 {
 public:
-	typedef SmartPtr<CplUserData<number, dim> > user_data_type;
+	using user_data_type = SmartPtr<CplUserData<number, dim> >;
 	/** the data for the source/sink:
 	 * [0]: total contaminant flux through the point
 	 */
@@ -88,7 +88,7 @@ public:
 	void set (number flux)
 	{
 		m_values = flux;
-		m_spData = SPNULL;
+		m_spData = nullptr;
 	}
 	
 ///	sets the data by an object
@@ -117,15 +117,15 @@ class point_sss_marker
 public:
 
 ///	class constructor
-	point_sss_marker () : m_elem (NULL), m_co (0) {};
+	point_sss_marker () : m_elem (nullptr), m_co (0) {};
 	
 ///	resets the mark
-	void init () {m_elem = NULL; m_co = 0;}
+	void init () {m_elem = nullptr; m_co = 0;}
 	
 ///	check and set the element mark
 	bool marked_for (GridObject * elem, size_t co)
 	{
-		if (m_elem == NULL)
+		if (m_elem == nullptr)
 		{
 			m_elem = elem; m_co = co;
 			return true;
@@ -158,7 +158,7 @@ class line_sss_marker
 public:
 
 ///	class constructor
-	line_sss_marker () {};
+	line_sss_marker () = default;
 	
 ///	reset the mark
 	void init () {m_intersections.clear ();}
@@ -181,7 +181,7 @@ public:
 					return false; // in this fracture, we use a different corner
 		}
 	// no, register this fracture, too
-		m_intersections.push_back (t_fract_elem (elem, co));
+		m_intersections.emplace_back(elem, co);
 		return true;
 	}
 };
@@ -193,7 +193,7 @@ class CDSingularSourcesAndSinks
 	: public FVSingularSourcesAndSinks<dim, cd_point_sss_data<dim>, cd_line_sss_data<dim> >
 {
 public:
-	typedef cd_point_sss_data<dim> user_data_type;
+	using user_data_type = cd_point_sss_data<dim>;
 };
 
 } // namespace ConvectionDiffusionPlugin

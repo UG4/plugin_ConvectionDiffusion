@@ -121,19 +121,19 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 //	set local positions
 	if(!TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 		const size_t numSCVFip = geo.num_scvf_ips();
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		const size_t numSCVip = geo.num_scv_ips();
-		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imVelocity.template 		set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imFlux.template 			set_local_ips<refDim>(vSCVFip,numSCVFip, false);
-		m_imSource.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imReactionRate.template	set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imReaction.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imMassScale.template 		set_local_ips<refDim>(vSCVip,numSCVip, false);
-		m_imMass.template	 		set_local_ips<refDim>(vSCVip,numSCVip, false);
+		m_imDiffusion.template set_local_ips<refDim>(vSCVFip,numSCVFip, false);
+		m_imVelocity.template set_local_ips<refDim>(vSCVFip,numSCVFip, false);
+		m_imFlux.template set_local_ips<refDim>(vSCVFip,numSCVFip, false);
+		m_imSource.template set_local_ips<refDim>(vSCVip,numSCVip, false);
+		m_imReactionRate.template set_local_ips<refDim>(vSCVip,numSCVip, false);
+		m_imReaction.template set_local_ips<refDim>(vSCVip,numSCVip, false);
+		m_imMassScale.template set_local_ips<refDim>(vSCVip,numSCVip, false);
+		m_imMass.template set_local_ips<refDim>(vSCVip,numSCVip, false);
 	}
 }
 
@@ -162,7 +162,7 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 	const size_t numSCVip = geo.num_scv_ips();
 	if(TFVGeom::usesHangingNodes)
 	{
-		static const int refDim = TElem::dim;
+		static constexpr int refDim = TElem::dim;
 		const MathVector<refDim>* vSCVFip = geo.scvf_local_ips();
 		const MathVector<refDim>* vSCVip = geo.scv_local_ips();
 		m_imDiffusion.template 		set_local_ips<refDim>(vSCVFip,numSCVFip);
@@ -850,11 +850,10 @@ ex_value(number vValue[],
 	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	reference object id
-	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	FV SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
@@ -958,14 +957,13 @@ ex_grad(MathVector<dim> vValue[],
 	const TFVGeom& geo = GeomProvider<TFVGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	reference dimension
-	static const int refDim = TElem::dim;
+	static constexpr int refDim = TElem::dim;
 
 //	reference object id
-	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	FV SCVF ip
 	if(vLocIP == geo.scvf_local_ips())
@@ -1041,7 +1039,7 @@ void ConvectionDiffusionFV<Domain1d>::
 register_all_funcs(const LFEID& lfeID, const int quadOrder)
 {
 //	const int order = lfeID.order();
-	typedef DimFVGeometry<dim> FVGeom;
+	using FVGeom = DimFVGeometry<dim>;
 	register_func<RegularEdge, FVGeom >();
 }
 #endif
@@ -1057,38 +1055,38 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	//	RegularEdge
 		switch(order)
 		{
-			case 1:	{typedef FVGeometry<1, RegularEdge, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, RegularEdge, dim>;
 					 register_func<RegularEdge, FVGeom >(); break;}
-			case 2:	{typedef FVGeometry<2, RegularEdge, dim> FVGeom;
+			case 2:	{ using FVGeom = FVGeometry<2, RegularEdge, dim>;
 					 register_func<RegularEdge, FVGeom >(); break;}
-			case 3:	{typedef FVGeometry<3, RegularEdge, dim> FVGeom;
+			case 3:	{ using FVGeom = FVGeometry<3, RegularEdge, dim>;
 					 register_func<RegularEdge, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 1> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim, 1>;
 					 register_func<RegularEdge, FVGeom >(); break;}
 		}
 
 	//	Triangle
 		switch(order)
 		{
-			case 1:	{typedef FVGeometry<1, Triangle, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, Triangle, dim>;
 					 register_func<Triangle, FVGeom >(); break;}
-			case 2:	{typedef FVGeometry<2, Triangle, dim> FVGeom;
+			case 2:	{ using FVGeom = FVGeometry<2, Triangle, dim>;
 					 register_func<Triangle, FVGeom >(); break;}
-			case 3:	{typedef FVGeometry<3, Triangle, dim> FVGeom;
+			case 3:	{ using FVGeom = FVGeometry<3, Triangle, dim>;
 					 register_func<Triangle, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim>;
 					 register_func<Triangle, FVGeom >(); break;}
 		}
 
 	//	Quadrilateral
 		switch(order) {
-			case 1:	{typedef FVGeometry<1, Quadrilateral, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, Quadrilateral, dim>;
 					 register_func<Quadrilateral, FVGeom >(); break;}
-			case 2:	{typedef FVGeometry<2, Quadrilateral, dim> FVGeom;
+			case 2:	{ using FVGeom = FVGeometry<2, Quadrilateral, dim>;
 					 register_func<Quadrilateral, FVGeom >(); break;}
-			case 3:	{typedef FVGeometry<3, Quadrilateral, dim> FVGeom;
+			case 3:	{ using FVGeom = FVGeometry<3, Quadrilateral, dim>;
 					 register_func<Quadrilateral, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim>;
 					  register_func<Quadrilateral, FVGeom >(); break;}
 		}
 	}
@@ -1096,7 +1094,7 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	{
 		register_func<RegularEdge, DimFVGeometry<dim, 1> >();
 
-		typedef DimFVGeometry<dim> FVGeom;
+		using FVGeom = DimFVGeometry<dim>;
 		register_func<Triangle, FVGeom >();
 		register_func<Quadrilateral, FVGeom >();
 	}
@@ -1114,53 +1112,53 @@ register_all_funcs(const LFEID& lfeID, const int quadOrder)
 	//	RegularEdge
 		switch(order)
 		{
-			case 1:	{typedef FVGeometry<1, RegularEdge, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, RegularEdge, dim>;
 					 register_func<RegularEdge, FVGeom >(); break;}
-			case 2:	{typedef FVGeometry<2, RegularEdge, dim> FVGeom;
+			case 2:	{ using FVGeom = FVGeometry<2, RegularEdge, dim>;
 					 register_func<RegularEdge, FVGeom >(); break;}
-			case 3:	{typedef FVGeometry<3, RegularEdge, dim> FVGeom;
+			case 3:	{ using FVGeom = FVGeometry<3, RegularEdge, dim>;
 					 register_func<RegularEdge, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim, 1> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim, 1>;
 					 register_func<RegularEdge, FVGeom >(); break;}
 		}
 
 	//	Tetrahedron
 		switch(order)
 		{
-			case 1:	{typedef FVGeometry<1, Tetrahedron, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, Tetrahedron, dim>;
 					 register_func<Tetrahedron, FVGeom >(); break;}
-			case 2:	{typedef FVGeometry<2, Tetrahedron, dim> FVGeom;
+			case 2:	{ using FVGeom = FVGeometry<2, Tetrahedron, dim>;
 					 register_func<Tetrahedron, FVGeom >(); break;}
-			case 3:	{typedef FVGeometry<3, Tetrahedron, dim> FVGeom;
+			case 3:	{ using FVGeom = FVGeometry<3, Tetrahedron, dim>;
 					 register_func<Tetrahedron, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim>;
 					  register_func<Tetrahedron, FVGeom >(); break;}
 		}
 
 	//	Prism
 		switch(order) {
-			case 1:	{typedef FVGeometry<1, Prism, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, Prism, dim>;
 					 register_func<Prism, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim>;
 					  register_func<Prism, FVGeom >(); break;}
 		}
 
 	//	Hexahedron
 		switch(order)
 		{
-			case 1:	{typedef FVGeometry<1, Hexahedron, dim> FVGeom;
+			case 1:	{ using FVGeom = FVGeometry<1, Hexahedron, dim>;
 					 register_func<Hexahedron, FVGeom >(); break;}
-			case 2:	{typedef FVGeometry<2, Hexahedron, dim> FVGeom;
+			case 2:	{ using FVGeom = FVGeometry<2, Hexahedron, dim>;
 					 register_func<Hexahedron, FVGeom >(); break;}
-			case 3:	{typedef FVGeometry<3, Hexahedron, dim> FVGeom;
+			case 3:	{ using FVGeom = FVGeometry<3, Hexahedron, dim>;
 					 register_func<Hexahedron, FVGeom >(); break;}
-			default: {typedef DimFVGeometry<dim> FVGeom;
+			default: { using FVGeom = DimFVGeometry<dim>;
 					  register_func<Hexahedron, FVGeom >(); break;}
 		}
 	}
 	else
 	{
-		typedef DimFVGeometry<dim> FVGeom;
+		using FVGeom = DimFVGeometry<dim>;
 		register_func<Tetrahedron, FVGeom >();
 		register_func<Prism, FVGeom >();
 		register_func<Hexahedron, FVGeom >();
@@ -1175,8 +1173,8 @@ void ConvectionDiffusionFV<TDomain>::
 register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
-	static const int refDim = reference_element_traits<TElem>::dim;
+	using T = this_type;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFVGeom>);

@@ -74,19 +74,19 @@ struct Functionality
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
-template <typename TDomain, typename TRegistry=ug::bridge::Registry>
+template <typename TDomain, typename TRegistry=Registry>
 static void Domain(TRegistry& reg, string grp)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 
 //	Convection Diffusion Base
 	{
-		typedef ConvectionDiffusionBase<TDomain> T;
-		typedef IElemDisc<TDomain> TBase;
+		using T = ConvectionDiffusionBase<TDomain>;
+		using TBase = IElemDisc<TDomain>;
 		string name = string("ConvectionDiffusionBase").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.add_method("set_diffusion", static_cast<void (T::*)(SmartPtr<CplUserData<MathMatrix<dim, dim>, dim> >)>(&T::set_diffusion), "", "Diffusion")
@@ -181,8 +181,8 @@ static void Domain(TRegistry& reg, string grp)
 
 //	Convection Diffusion FV1
 	{
-		typedef ConvectionDiffusionFV1<TDomain> T;
-		typedef ConvectionDiffusionBase<TDomain> TBase;
+		using T = ConvectionDiffusionFV1<TDomain>;
+		using TBase = ConvectionDiffusionBase<TDomain>;
 		string name = string("ConvectionDiffusionFV1").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
@@ -196,8 +196,8 @@ static void Domain(TRegistry& reg, string grp)
 
 //	Convection Diffusion FE
 	{
-		typedef ConvectionDiffusionFE<TDomain> T;
-		typedef ConvectionDiffusionBase<TDomain> TBase;
+		using T = ConvectionDiffusionFE<TDomain>;
+		using TBase = ConvectionDiffusionBase<TDomain>;
 		string name = string("ConvectionDiffusionFE").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
@@ -208,8 +208,8 @@ static void Domain(TRegistry& reg, string grp)
 
 //	Convection Diffusion (FE) stabilization
 	{
-		typedef ConvectionDiffusionStabFE<TDomain> T;
-		typedef IElemDisc<TDomain> TBase;
+		using T = ConvectionDiffusionStabFE<TDomain>;
+		using TBase = IElemDisc<TDomain>;
 		string name = string("ConvectionDiffusionStabFE").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
@@ -223,8 +223,8 @@ static void Domain(TRegistry& reg, string grp)
 
 //	Convection Diffusion FVCR
 	{
-		typedef ConvectionDiffusionFVCR<TDomain> T;
-		typedef ConvectionDiffusionBase<TDomain> TBase;
+		using T = ConvectionDiffusionFVCR<TDomain>;
+		using TBase = ConvectionDiffusionBase<TDomain>;
 		string name = string("ConvectionDiffusionFVCR").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
@@ -235,8 +235,8 @@ static void Domain(TRegistry& reg, string grp)
 
 //	Convection Diffusion FV
 	{
-		typedef ConvectionDiffusionFV<TDomain> T;
-		typedef ConvectionDiffusionBase<TDomain> TBase;
+		using T = ConvectionDiffusionFV<TDomain>;
+		using TBase = ConvectionDiffusionBase<TDomain>;
 		string name = string("ConvectionDiffusionFV").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
@@ -246,7 +246,7 @@ static void Domain(TRegistry& reg, string grp)
 	}
 }
 
-template <int dim, typename TRegistry=ug::bridge::Registry>
+template <int dim, typename TRegistry=Registry>
 static void Dimension(TRegistry& reg, string grp)
 {
 	string dimSuffix = GetDimensionSuffix<dim>();
@@ -254,9 +254,9 @@ static void Dimension(TRegistry& reg, string grp)
 
 	//	singular sources and sinks 
 	{
-		typedef CDSingularSourcesAndSinks<dim> T;
-		typedef typename T::point_sss_type TPointSSS;
-		typedef typename T::line_sss_type TLineSSS;
+		using T = CDSingularSourcesAndSinks<dim>;
+		using TPointSSS = typename T::point_sss_type;
+		using TLineSSS = typename T::line_sss_type;
 
 		string point_name = string("CDPointSourcesSink").append(dimSuffix);
 		reg.template add_class_<TPointSSS>(point_name, grp)
@@ -306,19 +306,19 @@ struct Functionality2d3d
  * available Domain types, based on the current build options.
  *
  * @param reg				registry
- * @param parentGroup		group for sorting of functionality
+ * @param grp				group for sorting of functionality
  */
-template <typename TDomain, typename TRegistry=ug::bridge::Registry>
+template <typename TDomain, typename TRegistry=Registry>
 static void Domain(TRegistry& reg, string grp)
 {
-	static const int dim = TDomain::dim;
+	static constexpr int dim = TDomain::dim;
 	string suffix = GetDomainSuffix<TDomain>();
 	string tag = GetDomainTag<TDomain>();
 
 //	Convection Diffusion FV1 for the low-dimensional fractures
 	{
-		typedef ConvectionDiffusionFractFV1<TDomain> T;
-		typedef ConvectionDiffusionBase<TDomain> TBase;
+		using T = ConvectionDiffusionFractFV1<TDomain>;
+		using TBase = ConvectionDiffusionBase<TDomain>;
 		string name = string("ConvectionDiffusionFractFV1").append(suffix);
 		reg.template add_class_<T, TBase >(name, grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
@@ -363,11 +363,11 @@ static void Domain(TRegistry& reg, string grp)
 
 //! This function is called when the plugin is loaded.
 extern "C"
-void InitUGPlugin_ConvectionDiffusion(ug::bridge::Registry* reg, string grp)
+void InitUGPlugin_ConvectionDiffusion(Registry* reg, string grp)
 {
 	grp.append("/SpatialDisc/ElemDisc");
-	typedef ConvectionDiffusionPlugin::Functionality Functionality;
-	typedef ConvectionDiffusionPlugin::Functionality2d3d Functionality2d3d;
+	using Functionality = ConvectionDiffusionPlugin::Functionality;
+	using Functionality2d3d = ConvectionDiffusionPlugin::Functionality2d3d;
 
 	try{
 		RegisterDimensionDependent<Functionality>(*reg,grp);
@@ -383,8 +383,8 @@ template <typename TRegistry=ug::bridge::Registry>
 void InitUGPlugin_ConvectionDiffusion_(TRegistry* reg, string grp)
 {
 	grp.append("/SpatialDisc/ElemDisc");
-	typedef ConvectionDiffusionPlugin::Functionality Functionality;
-	typedef ConvectionDiffusionPlugin::Functionality2d3d Functionality2d3d;
+	using Functionality = ConvectionDiffusionPlugin::Functionality;
+	using Functionality2d3d = ConvectionDiffusionPlugin::Functionality2d3d;
 
 	try{
 		RegisterDimensionDependent<Functionality>(*reg,grp);

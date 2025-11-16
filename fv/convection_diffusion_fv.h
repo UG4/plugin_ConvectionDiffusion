@@ -58,14 +58,14 @@ class ConvectionDiffusionFV : public ConvectionDiffusionBase<TDomain>
 {
 	private:
 	///	Base class type
-		typedef ConvectionDiffusionBase<TDomain> base_type;
+		using base_type = ConvectionDiffusionBase<TDomain>;
 
 	///	Own type
-		typedef ConvectionDiffusionFV<TDomain> this_type;
+		using this_type = ConvectionDiffusionFV<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	Constructor
@@ -171,7 +171,7 @@ class ConvectionDiffusionFV : public ConvectionDiffusionBase<TDomain>
 							  
 	private:
 	///	abbreviation for the local solution
-		static const size_t _C_ = 0;
+		static constexpr size_t _C_ = 0;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;

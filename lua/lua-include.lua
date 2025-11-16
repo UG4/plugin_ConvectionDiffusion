@@ -29,10 +29,10 @@
 -- GNU Lesser General Public License for more details.
 
 --!	Returns a ConvectionDiffusion Element-Disc of the requested type
---! @return Returns the domain discreatization
+--! @return Returns the domain discretization
 --! @param fcts (String) names of symbolic functions 
 --! @param subsets (String) names of symbolic subsets 
---! @param discType (String) discretizatin scheme 
+--! @param discType (String) discretization scheme
 function ConvectionDiffusion(fcts, subsets, discType)
 	if discType == nil then discType = "fv1" end
 	if 		discType == "fv1"  then return ConvectionDiffusionFV1(fcts, subsets)

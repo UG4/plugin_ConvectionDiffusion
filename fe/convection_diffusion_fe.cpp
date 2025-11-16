@@ -108,16 +108,16 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 					" Cannot update Finite Element Geometry.");
 
 	//	Set local positions.
-	static const int refDim = TElem::dim;
+	static constexpr int refDim = TElem::dim;
 	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imVelocity.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imFlux.template  		set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imSource.template    set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imVelocity.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imFlux.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imSource.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imVectorSource.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imReactionRate.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imReaction.template  set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imReactionRate.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imReaction.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 	m_imMassScale.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
-	m_imMass.template 	   set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
+	m_imMass.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 }
 
 template<typename TDomain>
@@ -385,17 +385,17 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 	//	get the error estimator data object and check that it is of the right type
 	//	we check this at this point in order to be able to dispense with this check later on
 	//	(i.e. in prep_err_est_elem and compute_err_est_A_elem())
-	UG_COND_THROW(this->m_spErrEstData.get() == NULL,
+	UG_COND_THROW(this->m_spErrEstData.get() == nullptr,
 				  "No ErrEstData object has been given to this ElemDisc!");
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 	UG_COND_THROW(!err_est_data, "Dynamic cast to SideAndElemErrEstData failed." << std::endl
 				  << "Make sure you handed the correct type of ErrEstData to this discretization.");
 
 
 //	set local positions
-	static const int refDim = TElem::dim;
+	static constexpr int refDim = TElem::dim;
 
 	// get local IPs
 	size_t numSideIPs, numElemIPs;
@@ -408,7 +408,7 @@ prep_err_est_elem_loop(const ReferenceObjectID roid, const int si)
 		sideIPs = err_est_data->template side_local_ips<refDim>(roid);
 		elemIPs = err_est_data->template elem_local_ips<refDim>(roid);
 
-		if (!sideIPs || !elemIPs) return;	// are NULL if TElem is not of the same dim as TDomain
+		if (!sideIPs || !elemIPs) return;	// are nullptr if TElem is not of the same dim as TDomain
 	}
 	UG_CATCH_THROW("Integration points for error estimator cannot be set.");
 
@@ -439,7 +439,7 @@ template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 prep_err_est_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[])
 {
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
 
 //	request geometry
 	TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
@@ -485,12 +485,12 @@ template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 compute_err_est_A_elem(const LocalVector& u, GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-	UG_COND_THROW(err_est_data->surface_view().get() == NULL, "Error estimator has NULL surface view.");
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	UG_COND_THROW(err_est_data->surface_view().get() == nullptr, "Error estimator has nullptr surface view.");
 
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
+	auto pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 	// Request geometry.
 	static const TFEGeom& geo = GeomProvider<TFEGeom>::get();
@@ -630,9 +630,9 @@ compute_err_est_M_elem(const LocalVector& u, GridObject* elem, const MathVector<
 {
 // note: mass parts only enter volume term
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-	UG_COND_THROW(err_est_data->surface_view().get() == NULL,
-				"Error estimator has NULL surface view.");
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	UG_COND_THROW(err_est_data->surface_view().get() == nullptr,
+				"Error estimator has nullptr surface view.");
 
 	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
@@ -680,12 +680,12 @@ template<typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::
 compute_err_est_rhs_elem(GridObject* elem, const MathVector<dim> vCornerCoords[], const number& scale)
 {
-	typedef typename reference_element_traits<TElem>::reference_element_type ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
-	err_est_type* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
-	UG_COND_THROW(err_est_data->surface_view().get() == NULL, "Error estimator has NULL surface view.");
+	auto* err_est_data = dynamic_cast<err_est_type*>(this->m_spErrEstData.get());
+	UG_COND_THROW(err_est_data->surface_view().get() == nullptr, "Error estimator has nullptr surface view.");
 
-	MultiGrid* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
+	auto* pErrEstGrid = (MultiGrid*) (err_est_data->surface_view()->subset_handler()->multi_grid());
 
 // SIDE TERMS //
 
@@ -1022,14 +1022,13 @@ ex_value(number vValue[],
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	reference dimension
-	static const int refDim = reference_element_traits<TElem>::dim;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 //	reference object id
-	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	FE ip
 	if(vLocIP == geo.local_ips())
@@ -1103,14 +1102,13 @@ ex_grad(MathVector<dim> vValue[],
 	const TFEGeom& geo = GeomProvider<TFEGeom>::get(m_lfeID, m_quadOrder);
 
 //	reference element
-	typedef typename reference_element_traits<TElem>::reference_element_type
-			ref_elem_type;
+	using ref_elem_type = typename reference_element_traits<TElem>::reference_element_type;
 
 //	reference dimension
-	static const int refDim = reference_element_traits<TElem>::dim;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 //	reference object id
-	static const ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
+	static constexpr ReferenceObjectID roid = ref_elem_type::REFERENCE_OBJECT_ID;
 
 //	FE
 	if(vLocIP == geo.local_ips())
@@ -1205,22 +1203,22 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Triangle
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 3> >;
 				 register_func<Triangle, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 5> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 5> >;
 				 register_func<Triangle, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> >;
 				 register_func<Triangle, FEGeom >(); break;}
 		default: register_func<Triangle, DimFEGeometry<dim> >();  break;
 	}
 
 //	Quadrilateral
 	switch(order) {
-		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 3> >;
 				 register_func<Quadrilateral, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 7> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 7> >;
 				 register_func<Quadrilateral, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> >;
 				 register_func<Quadrilateral, FEGeom >(); break;}
 		default: register_func<Quadrilateral, DimFEGeometry<dim> >();  break;
 	}
@@ -1252,11 +1250,11 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Tetrahedron
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 3> >;
 				 register_func<Tetrahedron, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 5> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 5> >;
 				 register_func<Tetrahedron, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> >;
 				 register_func<Tetrahedron, FEGeom >(); break;}
 		default: register_func<Tetrahedron, DimFEGeometry<dim> >();  break;
 	}
@@ -1281,11 +1279,11 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Hexahedron
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 3> >;
 				 register_func<Hexahedron, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 7> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 7> >;
 				 register_func<Hexahedron, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> >;
 				 register_func<Hexahedron, FEGeom >(); break;}
 		default: register_func<Hexahedron, DimFEGeometry<dim> >();  break;
 	}
@@ -1297,8 +1295,8 @@ template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionFE<TDomain>::register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
-	static const int refDim = reference_element_traits<TElem>::dim;
+	using T = this_type;
+	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFEGeom>);

@@ -56,22 +56,22 @@ namespace ConvectionDiffusionPlugin{
  *
  * \tparam	TDomain		Domain
  */
-template<	typename TDomain>
+template<typename TDomain>
 class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 {
 	private:
 	///	Base class type
-		typedef ConvectionDiffusionBase<TDomain> base_type;
+		using base_type = ConvectionDiffusionBase<TDomain>;
 
 	///	Own type
-		typedef ConvectionDiffusionFV1<TDomain> this_type;
+		using this_type = ConvectionDiffusionFV1<TDomain>;
 
 	/// error estimator type
-		typedef SideAndElemErrEstData<TDomain> err_est_type;
+		using err_est_type = SideAndElemErrEstData<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	Constructor
@@ -254,7 +254,7 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 							  
 	private:
 	///	abbreviation for the local solution
-		static const size_t _C_ = 0;
+		static constexpr size_t _C_ = 0;
 
     /// singular sources and sinks manager
 		SmartPtr<CDSingularSourcesAndSinks<dim> > m_sss_mngr;
@@ -280,7 +280,7 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		SmartPtr<IConvectionShapes<dim> > m_spConvShape;
 
 	///	returns the updated convection shapes
-		typedef IConvectionShapes<dim> conv_shape_type;
+		using conv_shape_type = IConvectionShapes<dim>;
 		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo, bool compute_deriv);
 
 	///	computes the concentration

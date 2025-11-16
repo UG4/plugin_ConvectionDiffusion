@@ -53,19 +53,19 @@ namespace ConvectionDiffusionPlugin{
  *
  * \tparam	TDomain		Domain
  */
-template<	typename TDomain>
+template<typename TDomain>
 class ConvectionDiffusionFVCR : public ConvectionDiffusionBase<TDomain>
 {
 	private:
 	///	Base class type
-		typedef ConvectionDiffusionBase<TDomain> base_type;
+		using base_type = ConvectionDiffusionBase<TDomain>;
 
 	///	Own type
-		typedef ConvectionDiffusionFVCR<TDomain> this_type;
+		using this_type = ConvectionDiffusionFVCR<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	Constructor
@@ -173,7 +173,7 @@ class ConvectionDiffusionFVCR : public ConvectionDiffusionBase<TDomain>
 							  
 	private:
 	///	abbreviation for the local solution
-		static const size_t _C_ = 0;
+		static constexpr size_t _C_ = 0;
 
 		using base_type::m_imDiffusion;
 		using base_type::m_imVelocity;
@@ -196,7 +196,7 @@ class ConvectionDiffusionFVCR : public ConvectionDiffusionBase<TDomain>
 		SmartPtr<IConvectionShapes<dim> > m_spConvShape;
 
 	///	returns the updated convection shapes
-		typedef IConvectionShapes<dim> conv_shape_type;
+		using conv_shape_type = IConvectionShapes<dim>;
 		const IConvectionShapes<dim>& get_updated_conv_shapes(const FVGeometryBase& geo);
 
 	///	computes the concentration

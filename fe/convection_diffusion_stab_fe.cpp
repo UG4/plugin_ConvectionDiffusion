@@ -132,7 +132,7 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 					" Cannot update Finite Element Geometry.");
 
 //	set local positions
-//	static const int refDim = TElem::dim;
+//	static constexpr int refDim = TElem::dim;
 //	m_imDiffusion.template set_local_ips<refDim>(geo.local_ips(), geo.num_ip(), false);
 
 }
@@ -296,22 +296,22 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Triangle
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 1>, GaussQuadrature<ReferenceTriangle, 3> >;
 				 register_func<Triangle, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 5> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 2>, GaussQuadrature<ReferenceTriangle, 5> >;
 				 register_func<Triangle, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Triangle, dim, LagrangeLSFS<ReferenceTriangle, 3>, GaussQuadrature<ReferenceTriangle, 7> >;
 				 register_func<Triangle, FEGeom >(); break;}
 		default: register_func<Triangle, DimFEGeometry<dim> >();  break;
 	}
 
 //	Quadrilateral
 	switch(order) {
-		case 1:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 1>, GaussQuadrature<ReferenceQuadrilateral, 3> >;
 				 register_func<Quadrilateral, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 7> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 2>, GaussQuadrature<ReferenceQuadrilateral, 7> >;
 				 register_func<Quadrilateral, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Quadrilateral, dim, LagrangeLSFS<ReferenceQuadrilateral, 3>, GaussQuadrature<ReferenceQuadrilateral, 11> >;
 				 register_func<Quadrilateral, FEGeom >(); break;}
 		default: register_func<Quadrilateral, DimFEGeometry<dim> >();  break;
 	}
@@ -343,11 +343,11 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Tetrahedron
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 1>, GaussQuadrature<ReferenceTetrahedron, 3> >;
 				 register_func<Tetrahedron, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 5> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 2>, GaussQuadrature<ReferenceTetrahedron, 5> >;
 				 register_func<Tetrahedron, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Tetrahedron, dim, LagrangeLSFS<ReferenceTetrahedron, 3>, GaussQuadrature<ReferenceTetrahedron, 7> >;
 				 register_func<Tetrahedron, FEGeom >(); break;}
 		default: register_func<Tetrahedron, DimFEGeometry<dim> >();  break;
 	}
@@ -372,11 +372,11 @@ register_all_funcs(const LFEID& lfeid, const int quadOrder)
 //	Hexahedron
 	switch(order)
 	{
-		case 1:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 3> > FEGeom;
+		case 1:	{ using FEGeom = FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 1>, GaussQuadrature<ReferenceHexahedron, 3> >;
 				 register_func<Hexahedron, FEGeom >(); break;}
-		case 2:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 7> > FEGeom;
+		case 2:	{ using FEGeom = FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 2>, GaussQuadrature<ReferenceHexahedron, 7> >;
 				 register_func<Hexahedron, FEGeom >(); break;}
-		case 3:	{typedef FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> > FEGeom;
+		case 3:	{ using FEGeom = FEGeometry<Hexahedron, dim, LagrangeLSFS<ReferenceHexahedron, 3>, GaussQuadrature<ReferenceHexahedron, 11> >;
 				 register_func<Hexahedron, FEGeom >(); break;}
 		default: register_func<Hexahedron, DimFEGeometry<dim> >();  break;
 	}
@@ -388,12 +388,12 @@ template <typename TElem, typename TFEGeom>
 void ConvectionDiffusionStabFE<TDomain>::register_func()
 {
 	ReferenceObjectID id = geometry_traits<TElem>::REFERENCE_OBJECT_ID;
-	typedef this_type T;
-//	static const int refDim = reference_element_traits<TElem>::dim;
+	using T = this_type;
+//	static constexpr int refDim = reference_element_traits<TElem>::dim;
 
 	this->clear_add_fct(id);
 	this->set_prep_elem_loop_fct(id, &T::template prep_elem_loop<TElem, TFEGeom>);
-	this->set_prep_elem_fct(	 id, &T::template prep_elem<TElem, TFEGeom>);
+	this->set_prep_elem_fct( id, &T::template prep_elem<TElem, TFEGeom>);
 	this->set_fsh_elem_loop_fct( id, &T::template fsh_elem_loop<TElem, TFEGeom>);
 	this->set_add_jac_A_elem_fct(id, &T::template add_jac_A_elem<TElem, TFEGeom>);
 	this->set_add_jac_M_elem_fct(id, &T::template add_jac_M_elem<TElem, TFEGeom>);

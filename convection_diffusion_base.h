@@ -73,17 +73,17 @@ namespace ConvectionDiffusionPlugin{
  *
  * \tparam	TDomain		Domain
  */
-template<	typename TDomain>
+template<typename TDomain>
 class ConvectionDiffusionBase
 : public IElemDisc<TDomain>
 {
 	private:
 	///	Base class type
-		typedef IElemDisc<TDomain> base_type;
+		using base_type = IElemDisc<TDomain>;
 
 	public:
 	///	World dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 
 	public:
 	///	Constructor
@@ -274,8 +274,8 @@ class ConvectionDiffusionBase
 		virtual bool requests_local_time_series() {return false;}
 
 	public:
-		typedef SmartPtr<CplUserData<number, dim> > NumberExport;
-		typedef SmartPtr<CplUserData<MathVector<dim>, dim> > GradExport;
+		using NumberExport = SmartPtr<CplUserData<number, dim> >;
+		using GradExport = SmartPtr<CplUserData<MathVector<dim>, dim> >;
 
 	///	returns the export of the value of associated unknown function
 		virtual SmartPtr<CplUserData<number, dim> > value();

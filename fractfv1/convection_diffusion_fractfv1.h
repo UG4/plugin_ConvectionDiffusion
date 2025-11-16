@@ -61,44 +61,44 @@ template<typename TDomain>
 class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 {
 	///	Own type
-		typedef ConvectionDiffusionFractFV1<TDomain> this_type;
+		using this_type = ConvectionDiffusionFractFV1<TDomain>;
 
 	public:
 	
 	///	Base class type
-		typedef ConvectionDiffusionBase<TDomain> base_type;
+		using base_type = ConvectionDiffusionBase<TDomain>;
 
 	///	domain type
-		typedef typename base_type::domain_type domain_type;
+		using domain_type = typename base_type::domain_type;
 
 	///	position type
-		typedef typename base_type::position_type position_type;
+		using position_type = typename base_type::position_type;
 	
 	///	World ('full') dimension
-		static const int dim = base_type::dim;
+		static constexpr int dim = base_type::dim;
 		
 	///	Manifold ('low') dimension
-		static const int low_dim = dim - 1;
+		static constexpr int low_dim = dim - 1;
 
 	///	fracture manager type
-		typedef DegeneratedLayerManager<dim> fract_manager_type;
+		using fract_manager_type = DegeneratedLayerManager<dim>;
 		
 	private:
 	
 	///	FV geometry for the fractures
-		typedef DimFV1Geometry<low_dim, dim> TFractFVGeom;
+		using TFractFVGeom = DimFV1Geometry<low_dim, dim>;
 	
 	///	type of the sides of elements (als low-dimensional fracture elements)
-		typedef typename fract_manager_type::side_type side_type;
+		using side_type = typename fract_manager_type::side_type;
 	
 	///	max. number of corners of non-degenerated sides
-		static const size_t maxFractSideCorners = fract_manager_type::maxLayerSideCorners;
+		static constexpr size_t maxFractSideCorners = fract_manager_type::maxLayerSideCorners;
 	
 	///	abbreviation for local function: brine mass fraction
-		static const size_t _C_ = 0;
+		static constexpr size_t _C_ = 0;
 	
 	/// convection shapes type (for the upwind)
-		typedef IConvectionShapes<dim> conv_shape_type;
+		using conv_shape_type = IConvectionShapes<dim>;
 	
 	public:
 	///	Constructor
@@ -401,7 +401,7 @@ class ConvectionDiffusionFractFV1 : public ConvectionDiffusionBase<TDomain>
 	protected:
 	
 //	Parameters of the discretization:
-		SmartPtr<fract_manager_type> m_spFractManager; ///< degenerated fracture manager (may be SPNULL)
+		SmartPtr<fract_manager_type> m_spFractManager; ///< degenerated fracture manager (may be nullptr)
 		SmartPtr<conv_shape_type> m_spConvShape; ///< method to compute the upwind shapes
 
 	private:
