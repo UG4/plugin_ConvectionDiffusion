@@ -134,13 +134,29 @@ prep_elem_loop(const ReferenceObjectID roid, const int si)
 			UG_THROW("ConvectionDiffusionFV1::prep_elem_loop:"
 						" Cannot init upwind for element type.");
 	}
+
+//	prepare the 'thick boundary'
+	if(m_sThickBnd.size () != 0)
+	{
+		TFVGeom& geo = GeomProvider<TFVGeom>::get();
+		try
+		{
+			m_ssgThickBnd = this->approx_space()->subset_grp_by_name(m_sThickBnd.c_str());
+		}
+		UG_CATCH_THROW("ConvectionDiffusionFV1: Subsets '" << m_sThickBnd << "' not (all) contained in ApproximationSpace.");
+		for (size_t s = 0; s < m_ssgThickBnd.size(); s++)
+			geo.add_boundary_subset(m_ssgThickBnd[s]);
+	
+	}
 }
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
 void ConvectionDiffusionFV1<TDomain>::
 fsh_elem_loop()
-{}
+{
+	m_ssgThickBnd.clear();
+}
 
 template<typename TDomain>
 template<typename TElem, typename TFVGeom>
@@ -200,6 +216,27 @@ prep_elem(const LocalVector& u, GridObject* elem, const ReferenceObjectID roid, 
 	m_imReaction.			set_global_ips(vSCVip, numSCVip);
 	m_imMassScale.			set_global_ips(vSCVip, numSCVip);
 	m_imMass.				set_global_ips(vSCVip, numSCVip);
+}
+
+// Compute the volume taking into account the 'thick boundary'
+template<typename TDomain>
+template<typename TElem, typename TFVGeom>
+number ConvectionDiffusionFV1<TDomain>::
+excess_volume (const TFVGeom& geo, const typename TFVGeom::SCV& scv)
+{
+	number vol = scv.volume();
+	
+	for(size_t s = 0; s < m_ssgThickBnd.size(); s++)
+	{
+		const std::vector<typename TFVGeom::BF> & vBF = geo.bf(m_ssgThickBnd[s]);
+		for(size_t i = 0; i < vBF.size(); i++)
+		{
+			const typename TFVGeom::BF & bf = vBF[i];
+			if (bf.node_id() == scv.node_id())
+				vol += bf.volume() * m_thickBndSize;
+		}
+	}
+	return vol;
 }
 
 template <class TVector>
@@ -414,9 +451,9 @@ add_jac_M_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 
 	// 	get associated node
 		const int co = scv.node_id();
-
+		
 	// 	Add to local matrix
-		J(_C_, co, _C_, co) += scv.volume() * m_imMassScale[ip];
+		J(_C_, co, _C_, co) += this->template excess_volume<TElem, TFVGeom> (geo, scv) * m_imMassScale[ip];
 	}
 
 //	m_imMass part does not explicitly depend on associated unknown function
@@ -689,7 +726,7 @@ add_def_M_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 			val += m_imMass[ip];
 
 	// 	Add to local defect
-		d(_C_, co) += val * scv.volume();
+		d(_C_, co) += val * this->template excess_volume<TElem, TFVGeom> (geo, scv);
 	}
 }
 
@@ -1435,7 +1472,7 @@ lin_def_mass_scale(const LocalVector& u,
 		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
 
 	// 	set lin defect
-		vvvLinDef[co][_C_][co] = u(_C_, co) * scv.volume();
+		vvvLinDef[co][_C_][co] = u(_C_, co) * this->template excess_volume<TElem, TFVGeom> (geo, scv);
 	}
 }
 
@@ -1460,7 +1497,7 @@ lin_def_mass(const LocalVector& u,
 		UG_ASSERT(co == scv.node_id(), "Only one shape per SCV");
 
 	// 	set lin defect
-		vvvLinDef[co][_C_][co] = scv.volume();
+		vvvLinDef[co][_C_][co] = this->template excess_volume<TElem, TFVGeom> (geo, scv);
 	}
 }
 
@@ -1750,9 +1787,11 @@ register_func_for_(bool bHang)
 	}
 	else
 	{
-		if(m_bCondensedFV)
-			UG_THROW("ConvectionDiffusionFV1: Condensed FV not supported for hanging nodes.");
-		register_func<TElem, HFV1Geometry<TElem, dim> >();
+	//	The 'thick boundary' is not supported for the hanging nodes
+	UG_THROW("ConvectionDiffusionFV1: This implementation does not support the hanging nodes.");
+	//	if(m_bCondensedFV)
+	//		UG_THROW("ConvectionDiffusionFV1: Condensed FV not supported for hanging nodes.");
+	//	register_func<TElem, HFV1Geometry<TElem, dim> >();
 	}
 }
 

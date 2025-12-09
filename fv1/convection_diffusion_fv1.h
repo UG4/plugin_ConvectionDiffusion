@@ -34,6 +34,7 @@
 #define __H__UG__LIB_DISC__CONVECTION_DIFFUSION__CONVECTION_DIFFUSION_FV1__
 
 // ug4 headers
+#include "lib_grid/tools/subset_group.h"
 #include "lib_disc/spatial_disc/disc_util/conv_shape_interface.h"
 
 // plugin's internal headers
@@ -96,6 +97,9 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 		
 	///	returns the 'condensed scvf ip' flag
 		bool condensed_FV() {return m_bCondensedFV;}
+		
+	/// add a 'thick boundary' subset
+		void set_thick_bnd (const char * bnd, number size) {m_sThickBnd = bnd; m_thickBndSize = size;}
 
 	private:
 	/// prepares assembling
@@ -196,6 +200,10 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 			size_t i, ///< index of the SCV
 			number flux ///< flux through source/sink (premultiplied by the length for lines)
 		);
+	
+	/// Compute the volume taking into account the 'thick boundary'
+		template<typename TElem, typename TFVGeom>
+		number excess_volume (const TFVGeom& geo, const typename TFVGeom::SCV& scv);
 
 	protected:
 	///	computes the linearized defect w.r.t to the velocity
@@ -322,6 +330,11 @@ class ConvectionDiffusionFV1 : public ConvectionDiffusionBase<TDomain>
 	
 	///	if to use the 'condensed' FV scvf ip's
 		bool m_bCondensedFV;
+	
+	/// subsets of the 'thick boundaries'
+		std::string m_sThickBnd;
+		number m_thickBndSize;
+		SubsetGroup m_ssgThickBnd;
 
 	///	register utils
 	///	\{

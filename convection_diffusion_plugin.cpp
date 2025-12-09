@@ -188,6 +188,7 @@ static void Domain(TRegistry& reg, string grp)
 			.template add_constructor<void (*)(const char*,const char*)>("Function(s)#Subset(s)")
 			.add_method("set_condensed_FV", &T::set_condensed_FV, "", "[De-]Activates the condensed FV scvf ip's")
 			.add_method("set_upwind", &T::set_upwind, "", "Sets the upwind type for the convective terms")
+			.add_method("set_thick_bnd", &T::set_thick_bnd, "", "Sets the 'thick boundary' subsets and size")
 			.add_method("set_singular_sources_and_sinks", &T::set_sss_manager, "", "Sets the singular sources and sinks manager")
 			.add_method("singular_sources_and_sinks", &T::sss_manager, "", "Returns the singular sources and sinks manager")
 			.set_construct_as_smart_pointer(true);
