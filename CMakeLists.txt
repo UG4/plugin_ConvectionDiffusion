@@ -34,6 +34,8 @@
 # The ConvectionDiffusion plugin
 ################################################################################
 
+message(STATUS "# ConvevtionDiffusion - BEGIN ##############################################################################")
+
 # Name of your plugin and sources.
 set(pluginName	ConvectionDiffusion)
 set(SOURCES		convection_diffusion_base.cpp
@@ -83,6 +85,8 @@ endif(NOT USE_PYBIND11)
 ################################################################################
 if(USE_PYBIND11)
 
+	message(STATUS "Linking with ${targetLibraryName}")
+
 	# Create a STATIC library for UG4 stuff from the sources
 	add_library(${pluginName} STATIC ${SOURCES})
 
@@ -93,9 +97,12 @@ if(USE_PYBIND11)
 	python_add_library(pyconvectiondiffusion MODULE  ${myPluginSources} ${SOURCES} WITH_SOABI)
 	# First argument must match module name in PYBIND11_MODULE call
 	# ug4pybind_add_module(pyconvectiondiffusion ${myPluginSources} ${myLibraries})
-	target_link_libraries (pyconvectiondiffusion PRIVATE ${pluginName} ug4_s) # TODO: should be part of ug4pybind_add_module
+	target_link_libraries (pyconvectiondiffusion PRIVATE ${myLibraries}) # TODO: should be part of ug4pybind_add_module
 	
 	# CPack
 	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN/..:$ORIGIN/../../../lib")
 	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION ug4py COMPONENT pymodules)
 endif(USE_PYBIND11)
+
+
+message(STATUS "# ConvevtionDiffusion - END ##############################################################################")
