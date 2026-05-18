@@ -100,7 +100,11 @@ if(USE_PYBIND11)
 	target_link_libraries (pyconvectiondiffusion PRIVATE ${myLibraries}) # TODO: should be part of ug4pybind_add_module
 	
 	# CPack
-	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN/..:$ORIGIN/../../../lib")
+	if(APPLE)
+    	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "@loader_path:@loader_path/../lib")
+	elseif(LINUX)
+		set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
+	end()
 	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION ug4py COMPONENT pymodules)
 endif(USE_PYBIND11)
 
