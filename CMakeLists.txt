@@ -104,7 +104,7 @@ if(USE_PYBIND11)
     	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "@loader_path:@loader_path/../lib")
 	elseif(LINUX)
 		set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
-	end()
+	endif()
 	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION ug4py COMPONENT pymodules)
 endif(USE_PYBIND11)
 
