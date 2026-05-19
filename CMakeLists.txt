@@ -101,8 +101,10 @@ if(USE_PYBIND11)
 	
 	# CPack
 	if(APPLE)
-    	set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "@loader_path:@loader_path/../lib")
-	elseif(LINUX)
+    	set_target_properties(pyconvectiondiffusion PROPERTIES 
+    		INSTALL_RPATH "@loader_path/../lib"
+    		BUILD_WITH_INSTALL_RPATH TRUE)
+	elseif(LINUX AND NOT APPLE)
 		set_target_properties(pyconvectiondiffusion PROPERTIES INSTALL_RPATH "$ORIGIN:$ORIGIN/../lib")
 	endif()
 	install(TARGETS pyconvectiondiffusion LIBRARY DESTINATION ug4py COMPONENT pymodules)
