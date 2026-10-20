@@ -78,17 +78,18 @@ void ConvectionDiffusionFractFV1<TDomain>::prepare_setting
 )
 {
 //	check the grid
-	if (bNonRegular)
-		UG_THROW ("ERROR in ConvectionDiffusionFractFV1::prepare_setting:"
+	// UG_COND_THROW (bNonRegular, 
+	UG_COND_LOG (bNonRegular, 
+				"ERROR in ConvectionDiffusionFractFV1::prepare_setting:"
 				" This discretization does not support hanging nodes.\n");
 
 //	check number of the components
-	if (vLfeID.size () != 1)
-		UG_THROW ("ConvectionDiffusionFractFV1::prepare_setting: Wrong number of functions given. Need exactly 1.");
+	UG_COND_THROW (vLfeID.size () != 1, 
+		"ConvectionDiffusionFractFV1::prepare_setting: Wrong number of functions given. Need exactly 1.");
 
 //	check whether these are the LagrangeP1 elements
-	if (vLfeID[0] != LFEID(LFEID::LAGRANGE, dim, 1))
-		UG_THROW ("ConvectionDiffusionFractFV1::prepare_setting: ConvectionDiffusion FV Scheme only implemented for 1st order.");
+	UG_COND_THROW (vLfeID[0] != LFEID(LFEID::LAGRANGE, dim, 1), 
+		"ConvectionDiffusionFractFV1::prepare_setting: ConvectionDiffusion FV Scheme only implemented for 1st order.");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
