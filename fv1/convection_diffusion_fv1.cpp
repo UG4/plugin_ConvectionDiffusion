@@ -235,12 +235,11 @@ add_sss_jac_elem
 	const LocalVector& u, ///< current solution
 	GridObject* elem, ///< the element
 	const TFVGeom& geo, ///< the FV geometry for that element
-	size_t i, ///< index of the SCV
+	size_t co, ///< index of the SCV
 	number flux ///< flux through source/sink (premultiplied by the length for lines)
 )
 {
-	size_t co = geo.scv(i).node_id ();
-	
+
 	if (flux < 0.0)
 		// sink
 		J(_C_, co, _C_, co) -= flux;
@@ -365,9 +364,8 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 		t_pos_accessor& aaPos = this->domain()->position_accessor();
 		Grid& grid = (Grid&) *this->domain()->grid();
 		
-		for(size_t i = 0; i < geo.num_scv(); i++)
+		for(size_t co = 0; co < geo.num_sh(); co++)
 		{
-			size_t co = geo.scv(i).node_id ();
 			
 		//	point sources
 			for (t_pnt_sss_iter pnt (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
@@ -377,7 +375,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				if (! pnt_sss->marked_for (elem, co))
 					continue;
 				pnt_sss->compute (pnt_sss->position (), this->time (), -1); //TODO: set the subset id instead of -1
-				this->template add_sss_jac_elem<TElem, TFVGeom> (J, u, elem, geo, i,
+				this->template add_sss_jac_elem<TElem, TFVGeom> (J, u, elem, geo, co,
 					pnt_sss->flux ());
 			}
 			
@@ -388,7 +386,7 @@ add_jac_A_elem(LocalMatrix& J, const LocalVector& u, GridObject* elem, const Mat
 				FVLineSourceOrSink<dim, cd_line_sss_data<dim> > * line_sss = *line;
 				number len = VecDistance (line.seg_start (), line.seg_end ());
 				line_sss->compute (line.seg_start (), this->time (), -1); //TODO: set the subset id instead of -1
-				this->template add_sss_jac_elem<TElem, TFVGeom> (J, u, elem, geo, i,
+				this->template add_sss_jac_elem<TElem, TFVGeom> (J, u, elem, geo, co,
 					line_sss->flux () * len);
 			}
 		}
@@ -432,12 +430,10 @@ add_sss_def_elem
 	const LocalVector& u, ///< current solution
 	GridObject* elem, ///< the element
 	const TFVGeom& geo, ///< the FV geometry for that element
-	size_t i, ///< index of the SCV
+	size_t co, ///< index of the SCV
 	number flux ///< flux through source/sink (premultiplied by the length for lines)
 )
 {
-	size_t co = geo.scv(i).node_id ();
-
 	if (flux > 0.0)
 		// source
 		d(_C_, co) -= flux;
@@ -569,19 +565,19 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 		t_pos_accessor& aaPos = this->domain()->position_accessor();
 		Grid& grid = (Grid&) *this->domain()->grid();
 		
-		for(size_t i = 0; i < geo.num_scv(); i++)
+		//for(size_t i = 0; i < geo.num_scv(); i++)
+		for(size_t co = 0; co < geo.num_sh(); co++)
 		{
-			size_t co = geo.scv(i).node_id ();
 			
 		//	point sources
-			for (t_pnt_sss_iter pnt (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
+		for (t_pnt_sss_iter pnt (m_sss_mngr.get(), (TElem *) elem, grid, aaPos, geo, co);
 				! pnt.is_over (); ++pnt)
 			{
 				FVPointSourceOrSink<dim, cd_point_sss_data<dim> > * pnt_sss = *pnt;
 				if (! pnt_sss->marked_for (elem, co))
 					continue;
 				pnt_sss->compute (pnt_sss->position (), this->time (), -1); //TODO: set the subset id instead of -1
-				this->template add_sss_def_elem<TElem, TFVGeom> (d, u, elem, geo, i,
+				this->template add_sss_def_elem<TElem, TFVGeom> (d, u, elem, geo, co,
 					pnt_sss->flux ());
 			}
 			
@@ -592,7 +588,7 @@ add_def_A_elem(LocalVector& d, const LocalVector& u, GridObject* elem, const Mat
 				FVLineSourceOrSink<dim, cd_line_sss_data<dim> > * line_sss = *line;
 				number len = VecDistance (line.seg_start (), line.seg_end ());
 				line_sss->compute (line.seg_start (), this->time (), -1); //TODO: set the subset id instead of -1
-				this->template add_sss_def_elem<TElem, TFVGeom> (d, u, elem, geo, i,
+				this->template add_sss_def_elem<TElem, TFVGeom> (d, u, elem, geo, co,
 					line_sss->flux () * len);
 			}
 		}
